@@ -4,7 +4,7 @@
 
 
 
-本系列是 [Causal Inference for the Brave and True](https://zenodo.org/badge/latestdoi/255903310) 这本书 ![DOI](https://zenodo.org/badge/255903310.svg)的中文翻译版。该书用平实的语言和严谨的数学，以及实用的Python代码，结合经济学与社会学的策略评估和敏感性分析应用，对因果推断最新的概念、理论及实践进行了非常好的介绍，非常适合初学者入门，同时也适合技术管理专家回顾相关领域的整体知识。
+本系列是 [Causal Inference for the Brave and True](https://zenodo.org/badge/latestdoi/255903310) 这本书 ![DOI](https://zenodo.org/badge/255903310.svg)的中文翻译版。该书用平实的语言和严谨的数学，以及实用的Python代码，结合经济学与社会学的策略评估和敏感性分析应用，对因果推断最新的概念、理论及实践进行了非常全面的介绍，既适合初学者入门，同时也适合技术管理专家回顾相关领域的整体知识。
 
 本书主要基础是计量经济学，吸收了非常多学者，包括Joshua Angrist, Alberto Abadie，Christopher Walters，Miguel Hernan 和 Jamie Robins等，在这方面的最新研究，主要参考了以下资料：
 
@@ -20,8 +20,8 @@
 
 章节 | 名称 | 出稿日期 |
 --- | --- | ---
-1 |	 第一章：|  2021-11-13 
-2 |	 第二章：| 2021-11-20 
+1 |	 第一章：|  2021-11-07 
+2 |	 第二章：| 2021-11-13 
 3 |	 第三章：|   TBD 
 4 |	第四章：|   TBD 
 5 |	第五章:	|  TBD 
