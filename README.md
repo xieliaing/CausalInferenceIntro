@@ -1,7 +1,6 @@
 # 因果推断：从概念到实践
 
-![img](./causal-inference-for-the-brave-and-true/data/img/brave-and-true.png)
-
+![img](./chapters/data/img/brave-and-true.png)
 
 
 本系列是 [Causal Inference for the Brave and True](https://zenodo.org/badge/latestdoi/255903310) 这本书 ![DOI](https://zenodo.org/badge/255903310.svg)的中文翻译版。该书用平实的语言和严谨的数学，以及实用的Python代码，结合经济学与社会学的策略评估和敏感性分析应用，对因果推断最新的概念、理论及实践进行了非常全面的介绍，既适合初学者入门，同时也适合技术管理专家回顾相关领域的整体知识。
