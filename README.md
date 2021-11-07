@@ -1,6 +1,7 @@
 # 因果推断：从概念到实践
 
-![img](./chapters/data/img/brave-and-true.png)
+![img](./causal-inference-for-the-brave-and-true/data/img/brave-and-true.png)
+
 
 
 本系列是 [Causal Inference for the Brave and True](https://zenodo.org/badge/latestdoi/255903310) 这本书 ![DOI](https://zenodo.org/badge/255903310.svg)的中文翻译版。该书用平实的语言和严谨的数学，以及实用的Python代码，结合经济学与社会学的策略评估和敏感性分析应用，对因果推断最新的概念、理论及实践进行了非常全面的介绍，既适合初学者入门，同时也适合技术管理专家回顾相关领域的整体知识。
@@ -13,7 +14,11 @@
 * [Mastering 'Metrics](https://www.masteringmetrics.com/)
 * [Causal Inference Book](https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/)
 
-原作者[Matheus Facure Alves](https://github.com/matheusfacure/python-causality-handbook)是巴西NuBank公司的Staff Data Scientist。这里非常感谢他同意我翻译此书。
+原作者[Matheus Facure Alves](https://github.com/matheusfacure/python-causality-handbook)是巴西NuBank公司的Staff Data Scientist。这里非常感谢他同意我翻译此书。中文翻译版会在两个地方同步发布：
+
+方便国际读者的 [Github地址](https://github.com/xieliaing/CausalInferenceIntro)
+方便国内读者的 [Gitee地址](https://gitee.com/xieliaing/causal-inference-intro-gitee)
+
 
 第一部分中文翻译版的进度按照如下时间线开展：
 
