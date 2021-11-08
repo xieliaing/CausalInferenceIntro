@@ -1,6 +1,6 @@
 # 因果推断：从概念到实践
 
-![img](./causal-inference-for-the-brave-and-true/data/img/brave-and-true.png)
+![img](./chapters/data/img/brave-and-true.png)
 
 
 
