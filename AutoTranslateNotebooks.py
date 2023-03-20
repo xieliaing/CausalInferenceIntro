@@ -24,16 +24,16 @@ def segment_text(text_list, max_chars=2000):
 
     return segments
 
-def TranslateNBText(Gtranslator, text):
+def TranslateNBText(Gtranslator, text, max_characters = 2000, src_lang='en', dest_lang='zh-cn'):
     translator = Gtranslator
     TranslatedTextList = []    
     TranslatedText = ''
     # null strings will return NoneType error, using strip() to handle
     if len(str(text).strip())>0:
         #limit to fewer characters for API call
-        text_segments = segment_text(text, max_chars=2000)
+        text_segments = segment_text(text, max_chars=max_characters)
         for ts in text_segments:
-            outtext = translator.translate(str(ts), src='en', dest='zh-cn')                
+            outtext = translator.translate(str(ts), src_lang, dest_lang)                
             TranslatedTextList.append(outtext.text)            
             
     for element in TranslatedTextList:
