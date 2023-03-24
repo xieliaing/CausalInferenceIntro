@@ -1,4 +1,5 @@
-import json, googletrans, os, re
+import json, googletrans, os, re, argparse
+import nbformat
 from googletrans import Translator
 
 # Google Translate API limit text to 5000 characters for each request
@@ -44,9 +45,15 @@ def TranslateNBText(Gtranslator, text, max_characters = 2000, src_lang='en', des
 # Set up translator object
 translator = Translator()
 
-# Load Jupyter notebook
-notebook_file = 'chapters/Chapter01-Copy.ipynb'
-notebook_path = os.path.abspath(notebook_file)
+# Load Jupyter notebook from arguments
+parser = argparse.ArgumentParser()
+parser.add_argument('input_file', help='the input Jupyter Notebook file')
+parser.add_argument('output_file', help='the output Juypter Notebook file to write to')
+args = parser.parse_args()
+
+#notebook_file = 'chapters/Chapter01-Copy.ipynb'
+#notebook_path = os.path.abspath(notebook_file)
+notebook_path = args.input_file
 with open(notebook_path, encoding='UTF-8') as f:
     nb = nbformat.read(f, as_version=4)
 
@@ -60,7 +67,7 @@ for cell in nb['cells']:
         cell['source'] = translated_text
 
 # Save updated notebook
-notebook_path2 = notebook_path.split('.')[0]+'_cn.'+notebook_path.split('.')[1]
-with open(notebook_path2, 'w', encoding='utf-8') as f:
+#notebook_path2 = notebook_path.split('.')[0]+'_cn.'+notebook_path.split('.')[1]
+with open(args.output_file, 'w', encoding='utf-8') as f:
     nbformat.write(nb, f)
     
