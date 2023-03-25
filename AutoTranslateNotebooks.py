@@ -34,7 +34,7 @@ def TranslateNBText(Gtranslator, text, max_characters = 2000, src_lang='en', des
         #limit to fewer characters for API call
         text_segments = segment_text(text, max_chars=max_characters)
         for ts in text_segments:
-            outtext = translator.translate(str(ts), src_lang, dest_lang)                
+            outtext = translator.translate(str(ts), src=src_lang, dest=dest_lang)                
             TranslatedTextList.append(outtext.text)            
             
     for element in TranslatedTextList:
