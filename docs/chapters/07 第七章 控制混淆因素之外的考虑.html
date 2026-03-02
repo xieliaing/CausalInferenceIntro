@@ -1,0 +1,1820 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-CN" xml:lang="zh-CN"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="CausalInferenceIntro">
+
+<title>第七章: 控制混淆因素之外的考虑 – 因果推断：从概念到实践</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../chapters/08 第八章 工具变量.html" rel="next">
+<link href="../chapters/06 第六章 分组和虚拟变量.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-f1a637e51edb8e5d5a953483935b5072.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "没有结果",
+    "search-matching-documents-text": "匹配的文档",
+    "search-copy-link-title": "复制搜索链接",
+    "search-hide-matches-text": "隐藏其它匹配结果",
+    "search-more-match-text": "更多匹配结果",
+    "search-more-matches-text": "更多匹配结果",
+    "search-clear-button-title": "清除",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "取消",
+    "search-submit-button-title": "提交",
+    "search-label": "搜索"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-sidebar docked nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    </a>
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">因果推断：从概念到实践</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="搜索"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="展开或折叠导航栏" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="../index.html" aria-current="page"> 
+<span class="menu-text">首页</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/xieliaing/CausalInferenceIntro"> 
+<span class="menu-text">GitHub</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/matheusfacure/python-causality-handbook"> 
+<span class="menu-text">原书</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="展开或折叠侧边栏导航" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/01 第一章-因果关系入门.html">章节</a></li><li class="breadcrumb-item"><a href="../chapters/07 第七章 控制混淆因素之外的考虑.html">第七章: 控制混淆之外</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="展开或折叠侧边栏导航" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="搜索" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+      <a href="../index.html" class="sidebar-logo-link">
+      </a>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="搜索"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">章节</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="展开或折叠此栏">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/01 第一章-因果关系入门.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第一章: 因果关系入门</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/02 第二章-随机试验.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二章: 随机试验</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/03 第三章 统计学回顾：最危险的公式.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第三章: 统计学回顾</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/04 第四章 图因果模型.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第四章: 图因果模型</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/05 第五章 线性回归超乎寻常的有效性.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第五章: 线性回归的有效性</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/06 第六章 分组和虚拟变量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第六章: 分组和虚拟变量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/07 第七章 控制混淆因素之外的考虑.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">第七章: 控制混淆之外</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/08 第八章 工具变量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第八章: 工具变量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/09 第九章 非服从性与局部平均效应.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第九章: 非服从性与 LATE</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/10 第十章 匹配.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十章: 匹配</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/11 第十一章 倾向得分.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十一章: 倾向得分</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/12 第十二章 双重稳健估计.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十二章: 双重稳健估计</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/13 第十三章 面板数据与固定效应.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十三章: 面板数据与固定效应</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/14 第十四章 双重差分.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十四章: 双重差分</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/15 第十五章 合成控制.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十五章: 合成控制</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/16 第十六章 断点回归.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十六章: 断点回归</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/17 第十七章 预测模型 101.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十七章: 预测模型 101</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/18 第十八章 异质干预效应与个性化.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十八章: 异质干预效应</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/19 第十九章 评估因果模型.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十九章: 评估因果模型</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/20 第二十章 即插即用估计量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二十章: 即插即用估计量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/21 第二十一章 元学习器.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二十一章: 元学习器</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="2">
+    <h2 id="toc-title">本页目录</h2>
+   
+  <ul>
+  <li><a href="#良好的控制" id="toc-良好的控制" class="nav-link active" data-scroll-target="#良好的控制">良好的控制</a></li>
+  <li><a href="#主要是有害的对照" id="toc-主要是有害的对照" class="nav-link" data-scroll-target="#主要是有害的对照">主要是有害的对照</a></li>
+  <li><a href="#不良控制---选择偏差" id="toc-不良控制---选择偏差" class="nav-link" data-scroll-target="#不良控制---选择偏差">不良控制 - 选择偏差</a>
+  <ul class="collapse">
+  <li><a href="#糟糕的-cop" id="toc-糟糕的-cop" class="nav-link" data-scroll-target="#糟糕的-cop">糟糕的 COP</a></li>
+  </ul></li>
+  <li><a href="#关键思想" id="toc-关键思想" class="nav-link" data-scroll-target="#关键思想">关键思想</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/xieliaing/CausalInferenceIntro/blob/main/chapters/07 第七章 控制混淆因素之外的考虑.ipynb" class="toc-action"><i class="bi bi-github"></i>查看代码</a></li><li><a href="https://github.com/xieliaing/CausalInferenceIntro/issues/new" class="toc-action"><i class="bi empty"></i>反馈问题</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/01 第一章-因果关系入门.html">章节</a></li><li class="breadcrumb-item"><a href="../chapters/07 第七章 控制混淆因素之外的考虑.html">第七章: 控制混淆之外</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">第七章: 控制混淆因素之外的考虑</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">作者</div>
+    <div class="quarto-title-meta-contents">
+             <p>CausalInferenceIntro </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">发布于</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">2026年3月2日</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="良好的控制" class="level2">
+<h2 class="anchored" data-anchor-id="良好的控制">良好的控制</h2>
+<p>我们已经看到向我们的回归模型添加额外的控制变量可以帮助识别因果效应。如果控制变量本身是一个混淆因素，将它添加到模型中不仅很好，而且是一项要求。当粗心大意的人看到这一点时，自然的反应是将他能测量的任何东西都扔进模型中。在当今的大数据世界中，这很容易超过 1000 个变量。事实证明，这不仅是不必要的，而且可能不利于因果识别。我们现在将注意力转向非混淆因素的控制。首先，让我们来看看好的案例。然后，我们将深入研究有问题控制案例。</p>
+<p>作为一个启发性的示例，假设您是一家金融科技公司债务催收团队的数据科学家。您的下一个任务是弄清楚发送电子邮件要求人们协商债务的影响。您的响应变量是迟到客户的付款金额。</p>
+<p>为了回答这个问题，您的团队从您的迟到客户群中随机选择了 5000 名客户进行随机测试。对于每个客户，您抛硬币，如果是正面，客户就会收到电子邮件；否则，客户为纳入对照组。通过改实验，您希望了解电子邮件催收所能产生的额外收入。</p>
+<div id="cell-2" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>warnings.filterwarnings(<span class="st">'ignore'</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy <span class="im">import</span> stats</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib <span class="im">import</span> style</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib <span class="im">import</span> pyplot <span class="im">as</span> plt</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> statsmodels.formula.api <span class="im">as</span> smf</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> graphviz <span class="im">as</span> gr</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>style.use(<span class="st">"fivethirtyeight"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="cell-3" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> pd.read_csv(<span class="st">"./data/collections_email.csv"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>data.head()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="3">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">payments</th>
+<th data-quarto-table-cell-role="th">email</th>
+<th data-quarto-table-cell-role="th">opened</th>
+<th data-quarto-table-cell-role="th">agreement</th>
+<th data-quarto-table-cell-role="th">credit_limit</th>
+<th data-quarto-table-cell-role="th">risk_score</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>740</td>
+<td>1</td>
+<td>1.0</td>
+<td>0.0</td>
+<td>2348.495260</td>
+<td>0.666752</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>580</td>
+<td>1</td>
+<td>1.0</td>
+<td>1.0</td>
+<td>334.111969</td>
+<td>0.207395</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>600</td>
+<td>1</td>
+<td>1.0</td>
+<td>1.0</td>
+<td>1360.660722</td>
+<td>0.550479</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>770</td>
+<td>0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>1531.828576</td>
+<td>0.560488</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>660</td>
+<td>0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>979.855647</td>
+<td>0.455140</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>由于数据是随机的，您知道均值的简单差异估计平均干预效果。换句话说，除了随机化之外，没有什么可以引起干预，因此潜在的结果与干预无关：<span class="math inline">\((Y_0，Y_1 ) \perp T\)</span>。</p>
+<p><span class="math display">\[
+ATE = E[Y_i|T_i=1] - E[Y_i|T_i=0]
+\]</span></p>
+<p>由于您很聪明，并且希望在估计值周围放置置信区间，因此使用线性回归。</p>
+<div id="cell-5" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Difference in means:"</span>,</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>      data.query(<span class="st">"email==1"</span>)[<span class="st">"payments"</span>].mean() <span class="op">-</span> data.query(<span class="st">"email==0"</span>)[<span class="st">"payments"</span>].mean())</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> smf.ols(<span class="st">'payments ~ email'</span>, data<span class="op">=</span>data).fit()</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>model.summary().tables[<span class="dv">1</span>]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Difference in means: -0.6202804021329484</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="4">
+<table class="simpletable caption-top table table-sm table-striped small">
+<tbody>
+<tr class="odd">
+<td></td>
+<th data-quarto-table-cell-role="th">coef</th>
+<th data-quarto-table-cell-role="th">std err</th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">P&gt;|t|</th>
+<th data-quarto-table-cell-role="th">[0.025</th>
+<th data-quarto-table-cell-role="th">0.975]</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Intercept</th>
+<td>669.9764</td>
+<td>2.061</td>
+<td>325.116</td>
+<td>0.000</td>
+<td>665.937</td>
+<td>674.016</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">email</th>
+<td>-0.6203</td>
+<td>2.941</td>
+<td>-0.211</td>
+<td>0.833</td>
+<td>-6.387</td>
+<td>5.146</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>可悲的是，估计的ATE为-0.62，这很奇怪。对于支付延迟的客户，发送电子邮件催收反而使得债务的偿付低于平均水平？尽管如此，P值仍然如此之高，以至于这可能没有任何意义。你现在应该做什么？回到你的团队，把尾巴夹在两腿之间，说实验没有定论，你需要更多的数据？没那么快。</p>
+<p>请注意您的数据如何包含其他一些有趣的列。例如，“credit_limit”表示客户在支付延迟之前的信用额度。“risk_score”对应于客户在发送电子邮件之前的估计风险。认为信用额度和风险可能是很好的付款预测因素是有道理的。但这有什么用呢？</p>
+<p>首先，让我们了解为什么即使存在，我们也无法在干预中找到统计显著性。可能就像在这种情况下一样，干预对结果的影响很小。如果你仔细想想，让人们偿还债务的原因，总的来说，是收款部门无法控制的因素。人们偿还债务是因为他们找到了一份新工作，管理他们的财务，收入等等。在统计方面，我们可以说<strong>付款的可变性更多地由电子邮件</strong>以外的其他因素解释。</p>
+<p>为了直观地理解它，我们可以根据电子邮件这个干预变量绘制付款。我还用红色绘制了上面模型的拟合线。为了帮助可视化，我在电子邮件变量中添加了一点噪音，这样它就不会在 0 或 1 处被粉碎。</p>
+<div id="cell-7" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>sns.scatterplot(<span class="st">"email"</span>, <span class="st">"payments"</span>, </span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>                alpha<span class="op">=</span><span class="fl">0.8</span>,</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>                data<span class="op">=</span>data.assign(email<span class="op">=</span>data[<span class="st">"email"</span>] <span class="op">+</span> np.random.normal(<span class="dv">0</span>, <span class="fl">0.01</span>, size<span class="op">=</span><span class="bu">len</span>(data[<span class="st">"email"</span>]))))</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>plt.plot(np.linspace(<span class="op">-</span><span class="fl">0.2</span>, <span class="fl">1.2</span>), model.params[<span class="dv">0</span>] <span class="op">+</span> np.linspace(<span class="op">-</span><span class="dv">1</span>, <span class="dv">2</span>) <span class="op">*</span> model.params[<span class="dv">1</span>], c<span class="op">=</span><span class="st">"C1"</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Email"</span>)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Payments"</span>)<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="07 第七章 控制混淆因素之外的考虑_files/figure-html/cell-5-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>我们可以看到单个干预组中的付款差异有多大。从视觉上看，看起来两组都从400以下到1000。如果电子邮件的影响是5.00或10.00 R $，难怪很难在所有可变性中找到它。</p>
+<p>幸运的是，回归可以帮助我们降低这种方差。诀窍是使用其他控制变量。<strong>如果变量是结果的良好预测因子，它将解释其许多差异</strong>。如果风险和信用额度是付款的良好预测因素，我们可以控制它们，以便更容易地发现电子邮件对付款的影响。如果我们记得回归是如何工作的，这有一个直观的解释。向回归添加额外的变量意味着在查看干预时保持它们不变。因此，推理是，如果我们看一下类似的风险水平和信用额度，响应变量”付款”的方差应该更小。或者，换句话说，如果风险和信用额度可以很好地预测付款，则具有相似风险和信用额度的客户也应该具有相似的付款水平，因此差异较小。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/beyond-conf/y-pred.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>为了证明这一点，让我们采用将回归分为2个步骤的方式，从而将上述因素影响逐一剔除。首先，我们将使用额外的控制变量，信用额度和风险评分，对干预变量：发送电子邮件，以及结果变量，付款，分别进行回归。其次，我们将在步骤1中获得的付款回归模型的残差和干预变量回归模型的残差进行回归。（这纯粹是教学法，在实践中你不需要经历所有的麻烦）。</p>
+<div id="cell-9" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>model_email <span class="op">=</span> smf.ols(<span class="st">'email ~ credit_limit + risk_score'</span>, data<span class="op">=</span>data).fit()</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>model_payments <span class="op">=</span> smf.ols(<span class="st">'payments ~ credit_limit + risk_score'</span>, data<span class="op">=</span>data).fit()</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>residuals <span class="op">=</span> pd.DataFrame(<span class="bu">dict</span>(res_payments<span class="op">=</span>model_payments.resid, res_email<span class="op">=</span>model_email.resid))</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>model_treatment <span class="op">=</span> smf.ols(<span class="st">'res_payments ~ res_email'</span>, data<span class="op">=</span>residuals).fit()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>这将降低因变量的方差。通过对信用额度和风险的回归支付并获得此模型的残差，我们正在创建一个新的因变量，其可变性比原始变量小得多。最后一个模型还发现了具有有效标准误差估计值的 ATE。</p>
+<p>只是出于好奇，我们还可以检查预测治疗的模型不应该能够降低它的方差。这是因为电子邮件在设计上是随机的，所以没有什么可以预测它。</p>
+<div id="cell-11" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Payments Variance"</span>, np.var(data[<span class="st">"payments"</span>]))</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Payments Residual Variance"</span>, np.var(residuals[<span class="st">"res_payments"</span>]))</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Email Variance"</span>, np.var(data[<span class="st">"email"</span>]))</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Email Residual Variance"</span>, np.var(residuals[<span class="st">"res_email"</span>]))</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>model_treatment.summary().tables[<span class="dv">1</span>]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Payments Variance 10807.61241599994
+Payments Residual Variance 5652.453558466197
+Email Variance 0.24991536000001294
+Email Residual Variance 0.24918421069820038</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="7">
+<table class="simpletable caption-top table table-sm table-striped small">
+<tbody>
+<tr class="odd">
+<td></td>
+<th data-quarto-table-cell-role="th">coef</th>
+<th data-quarto-table-cell-role="th">std err</th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">P&gt;|t|</th>
+<th data-quarto-table-cell-role="th">[0.025</th>
+<th data-quarto-table-cell-role="th">0.975]</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Intercept</th>
+<td>4.143e-13</td>
+<td>1.063</td>
+<td>3.9e-13</td>
+<td>1.000</td>
+<td>-2.084</td>
+<td>2.084</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">res_email</th>
+<td>4.4304</td>
+<td>2.129</td>
+<td>2.080</td>
+<td>0.038</td>
+<td>0.256</td>
+<td>8.605</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>请注意付款的差异如何从 10807 变为 5652。一旦我们控制了风险和信用额度，我们已经将其降低了近一半。另请注意，我们没有设法减少治疗电子邮件的可变性。这是有道理的，因为风险和信用额度不能预测电子邮件（根据随机性的定义，什么都不可以预测）。</p>
+<p>现在，我们看到一些更合理的东西。这一新的估计告诉我们，我们应该期望收到电子邮件的客户平均比对照组多支付4.4雷亚尔。现在，此估计值在统计上与零不同。我们还可以想象每个对照组中的方差现在如何降低。</p>
+<div id="cell-13" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>sns.scatterplot(<span class="st">"res_email"</span>, <span class="st">"res_payments"</span>, data<span class="op">=</span>residuals)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>plt.plot(np.linspace(<span class="op">-</span><span class="fl">0.7</span>, <span class="dv">1</span>), model_treatment.params[<span class="dv">0</span>] <span class="op">+</span> np.linspace(<span class="op">-</span><span class="dv">1</span>, <span class="dv">2</span>) <span class="op">*</span> model_treatment.params[<span class="dv">1</span>], c<span class="op">=</span><span class="st">"C1"</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Email Residuals"</span>)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Payments Residuals"</span>)<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="07 第七章 控制混淆因素之外的考虑_files/figure-html/cell-8-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>正如我所说，我们这样做是出于教学原因。在实践中，您只需将控件与处理一起添加到回归模型中，估计值将完全相同。</p>
+<div id="cell-15" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>model_2 <span class="op">=</span> smf.ols(<span class="st">'payments ~ email + credit_limit + risk_score'</span>, data<span class="op">=</span>data).fit()</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>model_2.summary().tables[<span class="dv">1</span>]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="9">
+<table class="simpletable caption-top table table-sm table-striped small">
+<tbody>
+<tr class="odd">
+<td></td>
+<th data-quarto-table-cell-role="th">coef</th>
+<th data-quarto-table-cell-role="th">std err</th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">P&gt;|t|</th>
+<th data-quarto-table-cell-role="th">[0.025</th>
+<th data-quarto-table-cell-role="th">0.975]</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Intercept</th>
+<td>490.8653</td>
+<td>9.715</td>
+<td>50.527</td>
+<td>0.000</td>
+<td>471.820</td>
+<td>509.911</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">email</th>
+<td>4.4304</td>
+<td>2.130</td>
+<td>2.080</td>
+<td>0.038</td>
+<td>0.255</td>
+<td>8.606</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">credit_limit</th>
+<td>0.1511</td>
+<td>0.008</td>
+<td>18.833</td>
+<td>0.000</td>
+<td>0.135</td>
+<td>0.167</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">risk_score</th>
+<td>-8.0516</td>
+<td>38.424</td>
+<td>-0.210</td>
+<td>0.834</td>
+<td>-83.379</td>
+<td>67.276</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>总而言之，每当我们有一个控件可以很好地预测结果时，即使它不是混杂因素，将其添加到我们的模型中也是一个好主意。它有助于降低我们治疗效果估计的方差。这是一张因果图的情况图片。</p>
+<div id="cell-17" class="cell" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>g <span class="op">=</span> gr.Digraph()</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"X"</span>, <span class="st">"Y"</span>), g.edge(<span class="st">"T"</span>, <span class="st">"Y"</span>)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>g.node(<span class="st">"T"</span>, color<span class="op">=</span><span class="st">"gold"</span>)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>g.node(<span class="st">"电子邮件"</span>, color<span class="op">=</span><span class="st">"gold"</span>)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"信用额度"</span>, <span class="st">"付款"</span>)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"风险分"</span>, <span class="st">"付款"</span>)</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"电子邮件"</span>, <span class="st">"付款"</span>)</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>g</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="10">
+<div>
+<figure class="figure">
+<p><img src="07 第七章 控制混淆因素之外的考虑_files/figure-html/cell-10-output-1.svg" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="主要是有害的对照" class="level2">
+<h2 class="anchored" data-anchor-id="主要是有害的对照">主要是有害的对照</h2>
+<p>作为第二个启发用的示例，让我们考虑一个2家医院都在进行的药物测试场景。他们都在对一种治疗某种疾病的新药进行随机试验。感兴趣的结果是住院天数。如果治疗有效，它将减少患者在医院停留的天数。对于其中一家医院，有关随机治疗的策略是将其给予90%的患者，而10%的患者接受安慰剂。另一家医院有不同的策略：它随机给10%的患者提供药物，90%的患者服用安慰剂。您还被告知，提供90%的真正药物和10%安慰剂的医院通常会得到更严重的疾病病例进行治疗。</p>
+<div id="cell-19" class="cell" data-execution_count="11">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>hospital <span class="op">=</span> pd.read_csv(<span class="st">"./data/hospital_treatment.csv"</span>)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>hospital.head()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="11">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">hospital</th>
+<th data-quarto-table-cell-role="th">treatment</th>
+<th data-quarto-table-cell-role="th">severity</th>
+<th data-quarto-table-cell-role="th">days</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>1</td>
+<td>1</td>
+<td>29.686618</td>
+<td>82</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>1</td>
+<td>1</td>
+<td>20.050340</td>
+<td>57</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>1</td>
+<td>1</td>
+<td>20.302399</td>
+<td>49</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>0</td>
+<td>0</td>
+<td>10.603118</td>
+<td>44</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>0</td>
+<td>0</td>
+<td>8.332793</td>
+<td>15</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>由于正在处理的数据是随机的，因此您的第一本能是简单地对治疗结果进行回归。</p>
+<div id="cell-21" class="cell" data-execution_count="12">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>hosp_1 <span class="op">=</span> smf.ols(<span class="st">'days ~ treatment'</span>, data<span class="op">=</span>hospital).fit()</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>hosp_1.summary().tables[<span class="dv">1</span>]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="12">
+<table class="simpletable caption-top table table-sm table-striped small">
+<tbody>
+<tr class="odd">
+<td></td>
+<th data-quarto-table-cell-role="th">coef</th>
+<th data-quarto-table-cell-role="th">std err</th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">P&gt;|t|</th>
+<th data-quarto-table-cell-role="th">[0.025</th>
+<th data-quarto-table-cell-role="th">0.975]</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Intercept</th>
+<td>33.2667</td>
+<td>2.662</td>
+<td>12.498</td>
+<td>0.000</td>
+<td>27.968</td>
+<td>38.566</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">treatment</th>
+<td>14.1533</td>
+<td>3.367</td>
+<td>4.204</td>
+<td>0.000</td>
+<td>7.451</td>
+<td>20.856</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>但是你会发现一些违反直觉的结果。治疗为何会增加住院天数？答案在于我们正在运行2个不同的实验。严重程度与在医院的天数较多呈正相关，并且由于病例较重的医院也给予更多的药物，因此药物与在医院的天数呈正相关。当我们一起看两家医院时，我们有 <span class="math inline">\(E[Y_0|T=0]&gt;E[Y_0|T=1]\)</span> ，也就是说，平均而言，未治疗者的潜在结果高于接受治疗者，因为在病情较轻的医院中，未治疗的病例较多。换句话说，严重程度起到了混杂因素的作用，决定了患者去的医院，从而决定了接受药物的可能性。</p>
+<p>有两种方法可以解决这个问题。第一个破坏了使用两家医院数据的目的，即简单地单独查看每家医院的ATE。</p>
+<div id="cell-23" class="cell" data-execution_count="13">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>hosp_2 <span class="op">=</span> smf.ols(<span class="st">'days ~ treatment'</span>, data<span class="op">=</span>hospital.query(<span class="st">"hospital==0"</span>)).fit()</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>hosp_2.summary().tables[<span class="dv">1</span>]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="13">
+<table class="simpletable caption-top table table-sm table-striped small">
+<tbody>
+<tr class="odd">
+<td></td>
+<th data-quarto-table-cell-role="th">coef</th>
+<th data-quarto-table-cell-role="th">std err</th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">P&gt;|t|</th>
+<th data-quarto-table-cell-role="th">[0.025</th>
+<th data-quarto-table-cell-role="th">0.975]</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Intercept</th>
+<td>30.4074</td>
+<td>2.868</td>
+<td>10.602</td>
+<td>0.000</td>
+<td>24.523</td>
+<td>36.292</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">treatment</th>
+<td>-11.4074</td>
+<td>10.921</td>
+<td>-1.045</td>
+<td>0.306</td>
+<td>-33.816</td>
+<td>11.001</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="cell-24" class="cell" data-execution_count="14">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>hosp_3 <span class="op">=</span> smf.ols(<span class="st">'days ~ treatment'</span>, data<span class="op">=</span>hospital.query(<span class="st">"hospital==1"</span>)).fit()</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>hosp_3.summary().tables[<span class="dv">1</span>]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="14">
+<table class="simpletable caption-top table table-sm table-striped small">
+<tbody>
+<tr class="odd">
+<td></td>
+<th data-quarto-table-cell-role="th">coef</th>
+<th data-quarto-table-cell-role="th">std err</th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">P&gt;|t|</th>
+<th data-quarto-table-cell-role="th">[0.025</th>
+<th data-quarto-table-cell-role="th">0.975]</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Intercept</th>
+<td>59.0000</td>
+<td>6.747</td>
+<td>8.745</td>
+<td>0.000</td>
+<td>45.442</td>
+<td>72.558</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">treatment</th>
+<td>-10.3958</td>
+<td>6.955</td>
+<td>-1.495</td>
+<td>0.141</td>
+<td>-24.371</td>
+<td>3.580</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>在本例中，我们确实得到了 ATE 的直观结果。看起来现在这种药物实际上正在降低在医院的天数。但是，由于我们单独查看每家医院，因此没有足够的数据点。因此，我们无法找到具有统计学意义的结果。</p>
+<p>另一种利用回归的方法则是通过将疾病严重程度这个混淆变量包含在模型中来控制其影响。</p>
+<div id="cell-26" class="cell" data-execution_count="15">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>hosp_4 <span class="op">=</span> smf.ols(<span class="st">'days ~ treatment + severity'</span>, data<span class="op">=</span>hospital).fit()</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>hosp_4.summary().tables[<span class="dv">1</span>]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="15">
+<table class="simpletable caption-top table table-sm table-striped small">
+<tbody>
+<tr class="odd">
+<td></td>
+<th data-quarto-table-cell-role="th">coef</th>
+<th data-quarto-table-cell-role="th">std err</th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">P&gt;|t|</th>
+<th data-quarto-table-cell-role="th">[0.025</th>
+<th data-quarto-table-cell-role="th">0.975]</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Intercept</th>
+<td>11.6641</td>
+<td>2.000</td>
+<td>5.832</td>
+<td>0.000</td>
+<td>7.681</td>
+<td>15.647</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">treatment</th>
+<td>-7.5912</td>
+<td>2.269</td>
+<td>-3.345</td>
+<td>0.001</td>
+<td>-12.110</td>
+<td>-3.073</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">severity</th>
+<td>2.2741</td>
+<td>0.154</td>
+<td>14.793</td>
+<td>0.000</td>
+<td>1.968</td>
+<td>2.580</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>接下来出现的问题是，我们是否也应该将医院纳入模型？毕竟，我们知道医院直接影响治疗，对吗？嗯，这是真的，但是一旦我们控制了严重程度，医院就不再与住院天数的结果相关。我们知道，要成为混淆变量，改变量必须同时引起治疗和结果。在我们这种情况下，我们有一个仅导致治疗的变量。</p>
+<p>但也许控制它会降低方差，对吧？好吧，又不是真的。为了让控制变量能降低方差，它必须是结果的良好预测因子，而不是治疗的预测因子，这里的情况就是如此。</p>
+<p>不过，我们可能还是想控制它。毕竟也没什么损失…真是这样吗？</p>
+<div id="cell-28" class="cell" data-execution_count="16">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>hosp_5 <span class="op">=</span> smf.ols(<span class="st">'days ~ treatment + severity + hospital'</span>, data<span class="op">=</span>hospital).fit()</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>hosp_5.summary().tables[<span class="dv">1</span>]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="16">
+<table class="simpletable caption-top table table-sm table-striped small">
+<tbody>
+<tr class="odd">
+<td></td>
+<th data-quarto-table-cell-role="th">coef</th>
+<th data-quarto-table-cell-role="th">std err</th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">P&gt;|t|</th>
+<th data-quarto-table-cell-role="th">[0.025</th>
+<th data-quarto-table-cell-role="th">0.975]</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Intercept</th>
+<td>11.0111</td>
+<td>2.118</td>
+<td>5.198</td>
+<td>0.000</td>
+<td>6.792</td>
+<td>15.230</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">treatment</th>
+<td>-5.0945</td>
+<td>3.492</td>
+<td>-1.459</td>
+<td>0.149</td>
+<td>-12.049</td>
+<td>1.861</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">severity</th>
+<td>2.3865</td>
+<td>0.195</td>
+<td>12.251</td>
+<td>0.000</td>
+<td>1.999</td>
+<td>2.774</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">hospital</th>
+<td>-4.1535</td>
+<td>4.413</td>
+<td>-0.941</td>
+<td>0.350</td>
+<td>-12.943</td>
+<td>4.636</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>令人惊讶的是，它会带来不对的结果！</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/beyond-conf/shocked.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>在严重性之上添加医院作为对照，为我们的 ATE 估计器引入了更多差异。怎么可能？答案在于回归系数标准误的公式。</p>
+<p><span class="math display">\[
+\hat{\sigma}^2 = \dfrac{1}{n-2} \sum( y_i - \hat{y}_i )^2
+\]</span></p>
+<p><span class="math display">\[
+\text{Var}(\hat{\beta}_2) = \dfrac{\sigma^2}{\sum(x_i - \bar{x})^2}
+\]</span></p>
+<p>从这个公式可以看出，标准误差与变量<span class="math inline">\(X\)</span>的方差成反比。这意味着，如果 <span class="math inline">\(X\)</span> 变化不大，则很难估计其对结果的影响。这也具有直观意义。把它发挥到极致，假装你想估计一种药物的效果，所以你对 10000 人进行了测试，但只有 1 人得到了治疗。这将使找到 ATE 变得非常困难，我们将不得不依靠将一个人与其他人进行比较。另一种说法是，我们需要在治疗中进行很多可变性，以便更容易发现其影响。</p>
+<p>至于为什么在模型中包括医院会增加我们估计的误差，这是因为它是治疗而不是结果的良好预测指标（一旦我们控制了严重程度）。所以，通过预测治疗，它有效地使它的方差更低！我们这里也可以通过将上面的回归划分为 2 个步骤的方式来看清这一点。</p>
+<div id="cell-30" class="cell" data-execution_count="17">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>model_treatment <span class="op">=</span> smf.ols(<span class="st">'treatment ~ severity + hospital'</span>, data<span class="op">=</span>hospital).fit()</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>model_days <span class="op">=</span> smf.ols(<span class="st">'days ~ severity + hospital'</span>, data<span class="op">=</span>hospital).fit()</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>residuals <span class="op">=</span> pd.DataFrame(<span class="bu">dict</span>(res_days<span class="op">=</span>model_days.resid, res_treatment<span class="op">=</span>model_treatment.resid))</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>model_treatment <span class="op">=</span> smf.ols(<span class="st">'res_days ~ res_treatment'</span>, data<span class="op">=</span>residuals).fit()</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>model_treatment.summary().tables[<span class="dv">1</span>]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="17">
+<table class="simpletable caption-top table table-sm table-striped small">
+<tbody>
+<tr class="odd">
+<td></td>
+<th data-quarto-table-cell-role="th">coef</th>
+<th data-quarto-table-cell-role="th">std err</th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">P&gt;|t|</th>
+<th data-quarto-table-cell-role="th">[0.025</th>
+<th data-quarto-table-cell-role="th">0.975]</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Intercept</th>
+<td>2.498e-14</td>
+<td>0.827</td>
+<td>3.02e-14</td>
+<td>1.000</td>
+<td>-1.646</td>
+<td>1.646</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">res_treatment</th>
+<td>-5.0945</td>
+<td>3.447</td>
+<td>-1.478</td>
+<td>0.143</td>
+<td>-11.957</td>
+<td>1.768</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="cell-31" class="cell" data-execution_count="18">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Treatment Variance"</span>, np.var(hospital[<span class="st">"treatment"</span>]))</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Treatment Residual Variance"</span>, np.var(residuals[<span class="st">"res_treatment"</span>]))</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Treatment Variance 0.234375
+Treatment Residual Variance 0.057529091872119076</code></pre>
+</div>
+</div>
+<p>还有，不要只相信我的话！ 您可以检查上面的 SE 公式是否正确：</p>
+<div id="cell-33" class="cell" data-execution_count="19">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>sigma_hat <span class="op">=</span> <span class="bu">sum</span>(model_treatment.resid<span class="op">**</span><span class="dv">2</span>)<span class="op">/</span>(<span class="bu">len</span>(model_treatment.resid)<span class="op">-</span><span class="dv">2</span>)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>var <span class="op">=</span> sigma_hat<span class="op">/</span><span class="bu">sum</span>((residuals[<span class="st">"res_treatment"</span>] <span class="op">-</span> residuals[<span class="st">"res_treatment"</span>].mean())<span class="op">**</span><span class="dv">2</span>)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"SE of the Coeficient:"</span>, np.sqrt(var))</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>SE of the Coeficient: 3.4469737674869028</code></pre>
+</div>
+</div>
+<p>所以最重要的是，我们应该添加与治疗和结果（混杂因素）相关的控制，如上面模型中的严重程度。 我们还应该添加可以很好地预测结果的控制，即使它们不是混淆因子，因为它们降低了我们估计的方差。 但是，我们应该<strong>不</strong>添加只是治疗的良好预测因子的对照，因为它们会增加我们估计的方差。</p>
+<p>这是一张用因果图说明这种情况的图片。</p>
+<div id="cell-35" class="cell" data-execution_count="20">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>g <span class="op">=</span> gr.Digraph()</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"X"</span>, <span class="st">"T"</span>), g.edge(<span class="st">"T"</span>, <span class="st">"Y"</span>)</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>g.node(<span class="st">"T"</span>, color<span class="op">=</span><span class="st">"gold"</span>)</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>g.node(<span class="st">"治疗"</span>, color<span class="op">=</span><span class="st">"gold"</span>)</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"严重程度"</span>, <span class="st">"医院"</span>)</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"严重程度"</span>, <span class="st">"天数"</span>)</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"医院"</span>, <span class="st">"治疗"</span>)</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"治疗"</span>, <span class="st">"天数"</span>)</span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>g</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="20">
+<div>
+<figure class="figure">
+<p><img src="07 第七章 控制混淆因素之外的考虑_files/figure-html/cell-20-output-1.svg" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="不良控制---选择偏差" class="level2">
+<h2 class="anchored" data-anchor-id="不良控制---选择偏差">不良控制 - 选择偏差</h2>
+<p>让我们回到债务催收电子邮件的案例。 请记住，电子邮件是随机分配给客户的。 我们已经解释了什么是 <code>信用额度</code> 和 <code>风险分</code> 。 现在，让我们看看剩下的变量。 <code>打开</code> 是客户是否打开电子邮件的虚拟变量。 如果客户在收到电子邮件后联系收款部门协商他们的债务，<code>支付协议</code> 是另一个虚拟变量。 您认为以下哪个模型更合适？ 第一个是带有处理变量加上 <code>信用额度</code> 和 <code>风险分</code> 的模型； 第二个添加了 <code>打开</code> 和 <code>支付协议</code> 虚拟变量。</p>
+<div id="cell-37" class="cell" data-execution_count="21">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>email_1 <span class="op">=</span> smf.ols(<span class="st">'payments ~ email + credit_limit + risk_score'</span>, data<span class="op">=</span>data).fit()</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>email_1.summary().tables[<span class="dv">1</span>]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="21">
+<table class="simpletable caption-top table table-sm table-striped small">
+<tbody>
+<tr class="odd">
+<td></td>
+<th data-quarto-table-cell-role="th">coef</th>
+<th data-quarto-table-cell-role="th">std err</th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">P&gt;|t|</th>
+<th data-quarto-table-cell-role="th">[0.025</th>
+<th data-quarto-table-cell-role="th">0.975]</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Intercept</th>
+<td>490.8653</td>
+<td>9.715</td>
+<td>50.527</td>
+<td>0.000</td>
+<td>471.820</td>
+<td>509.911</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">email</th>
+<td>4.4304</td>
+<td>2.130</td>
+<td>2.080</td>
+<td>0.038</td>
+<td>0.255</td>
+<td>8.606</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">credit_limit</th>
+<td>0.1511</td>
+<td>0.008</td>
+<td>18.833</td>
+<td>0.000</td>
+<td>0.135</td>
+<td>0.167</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">risk_score</th>
+<td>-8.0516</td>
+<td>38.424</td>
+<td>-0.210</td>
+<td>0.834</td>
+<td>-83.379</td>
+<td>67.276</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="cell-38" class="cell" data-execution_count="22">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>email_2 <span class="op">=</span> smf.ols(<span class="st">'payments ~ email + credit_limit + risk_score + opened + agreement'</span>, data<span class="op">=</span>data).fit()</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>email_2.summary().tables[<span class="dv">1</span>]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="22">
+<table class="simpletable caption-top table table-sm table-striped small">
+<tbody>
+<tr class="odd">
+<td></td>
+<th data-quarto-table-cell-role="th">coef</th>
+<th data-quarto-table-cell-role="th">std err</th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">P&gt;|t|</th>
+<th data-quarto-table-cell-role="th">[0.025</th>
+<th data-quarto-table-cell-role="th">0.975]</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Intercept</th>
+<td>488.4416</td>
+<td>9.716</td>
+<td>50.272</td>
+<td>0.000</td>
+<td>469.394</td>
+<td>507.489</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">email</th>
+<td>-1.6095</td>
+<td>2.724</td>
+<td>-0.591</td>
+<td>0.555</td>
+<td>-6.949</td>
+<td>3.730</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">credit_limit</th>
+<td>0.1507</td>
+<td>0.008</td>
+<td>18.809</td>
+<td>0.000</td>
+<td>0.135</td>
+<td>0.166</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">risk_score</th>
+<td>-2.0929</td>
+<td>38.375</td>
+<td>-0.055</td>
+<td>0.957</td>
+<td>-77.325</td>
+<td>73.139</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">opened</th>
+<td>3.9808</td>
+<td>3.914</td>
+<td>1.017</td>
+<td>0.309</td>
+<td>-3.692</td>
+<td>11.654</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">agreement</th>
+<td>11.7093</td>
+<td>4.166</td>
+<td>2.811</td>
+<td>0.005</td>
+<td>3.542</td>
+<td>19.876</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>虽然第一个模型发现电子邮件的统计显着结果，但第二个模型没有。但也许第二个是正确的模型并且对电子邮件没有影响。毕竟，这个模型控制的因素更多，所以它应该更健壮吧？现在您可能知道情况并非如此。剩下的就是弄清楚是什么。</p>
+<p>我们知道我们必须添加混淆变量。导致治疗和结果的变量。我们也知道添加能够很好地预测结果的控制变量是一个好主意。这是非必需的，但很值得做的事。我们也知道添加仅预测治疗的控制变量是一个坏主意。同样，这不是致命的问题，但最好避免。那么<code>打开</code>和<code>支付协议</code>是怎样的控件呢？事实证明，它们都不是上述情况。</p>
+<p>如果你仔细想想，<code>打开</code>和<code>支付协议</code>肯定与电子邮件相关。毕竟，如果您没有收到电子邮件，您将无法打开它，而且我们还说过，该协议仅考虑在电子邮件发送后发生的重新谈判。但是<strong>他们不会产生电子邮件！相反，它们是由它引起的！</strong></p>
+<p>每当我需要了解我正在处理的变量类型时，我总是喜欢考虑它们的因果图。让我们在这里做这些：</p>
+<div id="cell-40" class="cell" data-execution_count="24">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>g <span class="op">=</span> gr.Digraph()</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"电子邮件"</span>, <span class="st">"支付"</span>)</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"电子邮件"</span>, <span class="st">"打开"</span>)</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"电子邮件"</span>, <span class="st">"支付协议"</span>)</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"打开"</span>, <span class="st">"支付"</span>)</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"打开"</span>, <span class="st">"支付协议"</span>)</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"支付协议"</span>, <span class="st">"支付"</span>)</span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"信用额度"</span>, <span class="st">"支付"</span>)</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"信用额度"</span>, <span class="st">"打开"</span>)</span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"信用额度"</span>, <span class="st">"支付协议"</span>)</span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"风险分"</span>, <span class="st">"支付"</span>)</span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"风险分"</span>, <span class="st">"打开"</span>)</span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"风险分"</span>, <span class="st">"支付协议"</span>)</span>
+<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a>g</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="24">
+<div>
+<figure class="figure">
+<p><img src="07 第七章 控制混淆因素之外的考虑_files/figure-html/cell-23-output-1.svg" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>我们知道没有什么会导致电子邮件，因为它是随机设计的。我们知道（或者至少我们有充分的理由相信）信用额度和风险会导致付款。我们还认为电子邮件会导致付款。至于<code>打开</code>，我们认为它确实引起了付款。直觉上，打开催收电子邮件的人更愿意谈判和偿还债务。我们还认为，<code>打开</code>会导致达成协议，其原因与导致付款的原因相同。此外，我们知道“opened”是由电子邮件引起的，我们有理由相信不同风险和信用额度的人对电子邮件的打开率不同，因此信用额度和风险也会导致打开。至于协议，我们也认为是<code>打开</code>造成的。如果我们考虑支付响应变量，我们可以认为是漏斗的结果：</p>
+<p><span class="math display">\[
+电子邮件 -&gt; 打开 -&gt; 协议 -&gt; 付款
+\]</span></p>
+<p>我们也认为不同程度的风险和线路有不同的达成一致的倾向，所以我们将它们标记为也引起一致。至于电子邮件和协议，我们可以说有些人只是阅读了电子邮件的主题，这使他们更有可能达成协议。关键是电子邮件也可以在不通过 <code>打开</code> 的情况下达成一致。</p>
+<p>我们在这张图中注意到，打开和协议都在从电子邮件到付款的因果路径中。所以，如果我们用回归来控制它们，我们会说“这是电子邮件的效果，同时保持<code>打开</code>和<code>支付协议</code> 不变”。然而，两者都是电子邮件因果效应的一部分，所以我们不想固定它们。相反，我们可以争辩说电子邮件增加付款正是因为它提高了协议率。如果我们修复了这些变量，我们就会从电子邮件变量中消除一些真正的影响。</p>
+<p>有了潜在的结果符号，我们可以说，由于随机化<span class="math inline">\(E[Y_0|T=0] = E[Y_0|T=1]\)</span>。然而，即使是随机化，当我们控制一致性时，治疗和控制也不再具有可比性。事实上，通过一些直观的思考，我们甚至可以猜测它们的不同之处：</p>
+<p><span class="math display">\[
+E[Y_0|T=0，协议=0] &gt; E[Y_0|T=1，协议=0]
+\]</span></p>
+<p><span class="math display">\[
+E[Y_0|T=0, 协议=1] &gt; E[Y_0|T=1, 协议=1]
+\]</span></p>
+<p>第一个等式明确表明，我们认为没有电子邮件和协议的人比有电子邮件和没有协议的人更好。那是因为，如果治疗有积极的效果，那些没有达成协议<strong>即使在收到电子邮件之后</strong>可能比那些也没有达成协议但也没有达成协议的人在付款方面更糟糕没有得到电子邮件的额外奖励。至于第二个等式，那些即使没有接受治疗也同意的人可能比那些同意但有电子邮件额外激励的人要好。</p>
+<p>当您第一次阅读它时（这是给我的），这可能会非常令人困惑，但请确保您理解它。如有必要，请再次阅读。然后，可以对打开的变量进行类似的推理。尝试自己制作。</p>
+<p>这种偏见是如此普遍，它有自己的名字。混杂是由于无法控制一个共同原因而产生的偏差，<strong>选择偏差是指我们控制一个共同的结果或从原因到结果的路径之间的变量。</strong> 根据经验，始终包括混杂因素和可以很好地预测模型中 <span class="math inline">\(Y\)</span> 的变量。始终排除仅 <span class="math inline">\(T\)</span>、治疗和结果之间的中介或治疗和结果的共同影响的良好预测变量的变量。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/beyond-conf/selection.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>选择偏差是如此普遍，以至于即使是随机化也无法解决它。更好的是，它经常被不明智的人引入，即使是在随机数据中！发现和避免选择偏差需要更多的练习而不是技巧。通常，它们出现在一些所谓的聪明想法之下，使其更难被发现。以下是我遇到的一些选择偏向的例子：</p>
+<pre><code>1. 在尝试估计收款策略对付款的影响时，添加用于支付全部债务的虚拟变量。
+2. 在尝试估计教育对收入的影响时控制白领和蓝领工作
+3. 估计利率对贷款久期影响时的转换控制
+4. 在估计孩子对婚外情的影响时控制婚姻幸福
+5. 将支付建模 E[Payments] 分解为一个预测是否会发生支付的二元模型和另一个预测会发生多少支付的模型：E[Payments|Payments&gt;0]*P(Payments&gt;0)</code></pre>
+<p>所有这些想法值得注意的是它们听起来多么合理。 选择偏差常常如此。 让这成为一个警告。 事实上，我自己也曾多次掉入上面的陷阱，我才知道它们有多糟糕。 特别是最后一个，值得进一步解释，因为它看起来很聪明，让很多数据科学家措手不及。 它是如此普遍以至于它有自己的名字：<strong>The Bad COP</strong>！</p>
+<section id="糟糕的-cop" class="level3">
+<h3 class="anchored" data-anchor-id="糟糕的-cop">糟糕的 COP</h3>
+<p>情况是这样的。 您有一个想要预测的连续变量，但其分布在零时被过度表示。 例如，如果您想对消费者支出进行建模，您将得到类似伽马分布的东西，但有很多零。</p>
+<div id="cell-42" class="cell" data-execution_count="24">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>plt.hist(np.concatenate([</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>    np.random.gamma(<span class="dv">5</span>, <span class="dv">50</span>, <span class="dv">1000</span>), </span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>    np.zeros(<span class="dv">700</span>)</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>]), bins<span class="op">=</span><span class="dv">20</span>)</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Customer Spend"</span>)</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Distribution Customer Spend"</span>)<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="07 第七章 控制混淆因素之外的考虑_files/figure-html/cell-24-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>当数据科学家看到这一点时，他脑海中浮现的第一个想法是将建模分解为 2 个步骤。首先是参与度，即<span class="math inline">\(Y &gt; 0\)</span>的概率。在我们的支出示例中，这将建模客户是否决定支出。第二部分为那些决定参与的人建模 <span class="math inline">\(Y\)</span>。它是正数条件效应。在我们的案例中，这将是客户在决定要花费任何东西后花费的金额。如果我们想估计处理 <span class="math inline">\(T\)</span> 对支出的影响，它看起来像这样：</p>
+<p><span class="math display">\[
+E[Y_i|T_i] = E[Y_i|Y_i&gt;0, T_i]P(Y_i&gt;0|T_i)
+\]</span></p>
+<p>参与模型没有任何问题<span class="math inline">\(P(Y_i&gt;0|T_i)\)</span>。事实上，如果 <span class="math inline">\(T\)</span> 是随机分配的，它将捕获由于处理而增加的支出概率。另外，上面的分解没有任何问题。根据总概率定律，这在数学上是正确的。</p>
+<p>问题在于估算 COP 部分。 <strong>即使在随机分配下也会有偏差</strong>。在直观的层面上，认为某些单位只是因为没有得到处理而为零并不疯狂。处理会导致他们<strong>不</strong>为零。另一方面，有些单位从不为零。治疗可能会增加他们的结果，但即使没有它，他们也不会为零。现在，关键是要了解这两种类型的单位没有可比性。与那些没有接受治疗的零相比，那些从不为零的人具有较高的 <span class="math inline">\(Y_0\)</span> 。事实上，对于后者，<span class="math inline">\(Y_0=0\)</span>。</p>
+<p>知道这一点，如果我们删除零，我们将在处理组和对照组上保留从不为零。但是我们将从控制中删除那些通过处理从零变为非零的。这将使处理和控制不再具有可比性，因为控制将只包含那些从不为零且具有更高 <span class="math inline">\(Y_0\)</span> 的单元，而处理将包含两种类型的单位。</p>
+<p>既然我们对问题有了直观的认识，那我们就从数学的角度来检查一下。来看一下，我们来分解一下治疗效果。在随机分配下，它等于均值差</p>
+<p><span class="math display">\[
+\begin{align*}
+&amp;E[Y_i|T_i=1] - E[Y_i|T_i=0]\\
+&amp;=E[Y_i|Y_i&gt;0, T_i=1]P(Y_i&gt;0|T_i=1) - E[Y_i|Y_i&gt;0, T_i=0]P(Y_i&gt;0|T_i=0)\\
+&amp;=\underbrace{\{P(Y_i&gt;0|T_i=1) - P(Y_i&gt;0|T_i=0)\}}_{参与 \ 效果} * E[Y_i|Y_i&gt;0, T_i=1] \\
+&amp;+\underbrace{\{E[Y_i|Y_i&gt;0, T_i=1] - E[Y_i|Y_i&gt;0, T_i=0]\}}_{COP \ Effect} * P(Y_i&gt;0|T_i= 0)
+\end{align*}
+\]</span></p>
+<p>最后一个等式来自加减 <span class="math inline">\(E[Y_i|Y_i&gt;0, T_i=1]P(Y_i&gt;0|T_i=0)\)</span> 并重新排列项。这意味着平均值的差异由两部分组成：首先，它是结果 <span class="math inline">\(y\)</span> 为正的概率差异。这被称为参与效应，因为它衡量客户参与消费的可能性的增加。其次，这是以参与为条件的结果的差异，即 COP 效应。到现在为止还挺好。这没有任何问题。这是一个数学真理。当我们尝试分别估计每个部分时，问题就来了</p>
+<p>如果我们进一步分析 COP 效应，这将变得更加明显。</p>
+<p><span class="math display">\[
+\begin{align*}
+E[Y_i|Y_i&gt;0, T_i=1] - E[Y_i|Y_i&gt;0, T_i=0]&amp;=E[Y_{i1}|Y_{i1}&gt;0]-E[Y_{i0}|Y_ {i0}&gt;0] \\
+&amp;=\underbrace{E[Y_{i1} - Y_{i0}|Y_{i1}&gt;0]}_{Causal \ Effect} + \underbrace{\{ E[Y_{i0}|Y_{i1}&gt;0 ] - E[Y_{i0}|Y_{i0}&gt;0] \}}_{选择 \ 偏差}
+\end{align*}
+\]</span></p>
+<p>在我们加减 <span class="math inline">\(E[Y_{i0}|Y_{i1}&gt;0]\)</span> 之后，第二个等式出现。当我们分解 COP 效应时，我们首先得到对参与者亚群的因果效应。在我们的示例中，这将是对决定花钱的人的因果影响。其次，我们得到一个偏差项，它是那些在分配到治疗时决定参与的人的 <span class="math inline">\(Y_0\)</span> 差异 (<span class="math inline">\(E[Y_{i0}|Y_{i1}&gt;0]\\ )) 和那些即使没有治疗也参与的人 (\\(E[Y_{i0}|Y_{i0}&gt;0]\)</span>)。在我们的例子中，这种偏差可能是负的，因为那些在分配到治疗时花费的人，如果他们没有接受治疗，可能会比那些即使没有接受治疗的人花费更少 <span class="math inline">\(E[Y_{i0}|Y_ {i1}&gt;0] &lt; E[Y_{i0}|Y_{i0}&gt;0]\)</span>。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/beyond-conf/cop.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>现在，我知道 COP 偏差一开始是非常违反直觉的，所以我认为值得通过一个直观的例子。假设我们想估计营销活动如何增加人们在我们产品上的花费。这个营销活动是随机的，所以我们不需要担心混淆。在这个例子中，我们可以将客户分成两个部分。首先，有些人只有在看到营销活动时才会购买我们的产品。让我们称这些客户为节俭的客户。除非我们给他们额外的推动，否则他们不会花钱。还有一些客户即使没有活动也会花钱。该活动使他们花费更多，但无论如何他们已经花费了。让我们称他们为富有的客户。在图中，我用浅色和虚线显示了反事实。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/beyond-conf/cop-ex1.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>为了估计活动的 ATE，因为我们有随机化，我们需要做的就是比较处理过的和未处理过的。但是，假设我们使用 COP 公式，其中我们将估计分解为两个模型，一个估计 <span class="math inline">\(P(Y_i&gt;0|T_i)\)</span> 的参与模型和估计 <span class="math inline">\(E[Y_i|Y_i &gt;0]\)</span>。这将从分析中删除所有未花费的人。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/beyond-conf/cop-ex2.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>当我们这样做时，治疗组和对照组不再具有可比性。正如我们所看到的，未经处理的客户现在只包括即使没有活动也会消费的客户群。还要注意，我们甚至可以在这里知道偏差的方向。它将是 <span class="math inline">\(E[Y_{i0}|Y_{i1}&gt;0] - E[Y_{i0}|Y_{i0}&gt;0]\)</span> 或 <span class="math inline">\(E[Y_{i0}|\文本{节俭而富有}] - E[Y_{i0}|Rich]\)</span>。这显然是负面的，因为富人比节俭的顾客花费更多。因此，一旦我们只过滤了参与者群体，我们对 ATE 的估计就会有偏差，即使最初没有由于随机化而产生的偏差。我真诚地希望这能说服您像瘟疫一样避免 COP。我看到太多数据科学家在做这种单独的估算，却没有意识到它带来的问题。</p>
+<p>为了结束选择偏差，我们需要始终提醒自己永远不要控制介于治疗和结果之间的变量，或者是结果和治疗的共同影响。 在图形语言中，以下是不良控制的样子：</p>
+<div id="cell-45" class="cell" data-execution_count="25">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>g <span class="op">=</span> gr.Digraph()</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"T"</span>, <span class="st">"X_1"</span>), g.node(<span class="st">"T"</span>, color<span class="op">=</span><span class="st">"gold"</span>), g.edge(<span class="st">"X_1"</span>, <span class="st">"Y"</span>), g.node(<span class="st">"X_1"</span>, color<span class="op">=</span><span class="st">"red"</span>)</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"T"</span>, <span class="st">"X_2"</span>), g.edge(<span class="st">"Y"</span>, <span class="st">"X_2"</span>), g.node(<span class="st">"X_2"</span>, color<span class="op">=</span><span class="st">"red"</span>)</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>g</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="25">
+<div>
+<figure class="figure">
+<p><img src="07 第七章 控制混淆因素之外的考虑_files/figure-html/cell-25-output-1.svg" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="关键思想" class="level2">
+<h2 class="anchored" data-anchor-id="关键思想">关键思想</h2>
+<p>在本节中，我们查看了不是混杂因素的变量，以及我们是否应该将它们添加到我们的模型中以进行因果识别。 我们已经看到，即使不预测 <span class="math inline">\(T\)</span>（不是混杂因素），也应该将作为结果 <span class="math inline">\(y\)</span> 的良好预测变量的变量添加到模型中。 这是因为预测 <span class="math inline">\(Y\)</span> 会降低其方差，并使我们在估计因果效应时更有可能看到具有统计意义的结果。 接下来，我们已经看到添加预测治疗而不是结果的变量是一个坏主意。 这些变量减少了治疗的可变性，使我们更难找到因果关系。 最后，我们研究了选择偏差。 当我们控制从治疗到结果的因果路径中的变量或作为治疗和结果的共同影响的变量时，就会出现偏差。</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "已复制");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "已复制");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../chapters/06 第六章 分组和虚拟变量.html" class="pagination-link" aria-label="第六章: 分组和虚拟变量">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">第六章: 分组和虚拟变量</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../chapters/08 第八章 工具变量.html" class="pagination-link" aria-label="第八章: 工具变量">
+        <span class="nav-page-text">第八章: 工具变量</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>内容基于《Causal Inference for the Brave and True》中文翻译整理。</p>
+</div>   
+    <div class="nav-footer-center">
+<p>用 Quarto 构建，面向在线阅读与本地复现。</p>
+<div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/xieliaing/CausalInferenceIntro/blob/main/chapters/07 第七章 控制混淆因素之外的考虑.ipynb" class="toc-action"><i class="bi bi-github"></i>查看代码</a></li><li><a href="https://github.com/xieliaing/CausalInferenceIntro/issues/new" class="toc-action"><i class="bi empty"></i>反馈问题</a></li></ul></div></div>
+    <div class="nav-footer-right">
+<p><a href="https://github.com/xieliaing/CausalInferenceIntro">GitHub 仓库</a></p>
+</div>
+  </div>
+</footer>
+
+
+
+
+<script src="../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

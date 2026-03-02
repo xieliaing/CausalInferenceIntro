@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-CN" xml:lang="zh-CN"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="CausalInferenceIntro">
+
+<title>第十一章: 倾向得分 – 因果推断：从概念到实践</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../chapters/12 第十二章 双重稳健估计.html" rel="next">
+<link href="../chapters/10 第十章 匹配.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-f1a637e51edb8e5d5a953483935b5072.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "没有结果",
+    "search-matching-documents-text": "匹配的文档",
+    "search-copy-link-title": "复制搜索链接",
+    "search-hide-matches-text": "隐藏其它匹配结果",
+    "search-more-match-text": "更多匹配结果",
+    "search-more-matches-text": "更多匹配结果",
+    "search-clear-button-title": "清除",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "取消",
+    "search-submit-button-title": "提交",
+    "search-label": "搜索"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-sidebar docked nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    </a>
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">因果推断：从概念到实践</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="搜索"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="展开或折叠导航栏" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="../index.html" aria-current="page"> 
+<span class="menu-text">首页</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/xieliaing/CausalInferenceIntro"> 
+<span class="menu-text">GitHub</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/matheusfacure/python-causality-handbook"> 
+<span class="menu-text">原书</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="展开或折叠侧边栏导航" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/01 第一章-因果关系入门.html">章节</a></li><li class="breadcrumb-item"><a href="../chapters/11 第十一章 倾向得分.html">第十一章: 倾向得分</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="展开或折叠侧边栏导航" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="搜索" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+      <a href="../index.html" class="sidebar-logo-link">
+      </a>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="搜索"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">章节</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="展开或折叠此栏">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/01 第一章-因果关系入门.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第一章: 因果关系入门</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/02 第二章-随机试验.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二章: 随机试验</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/03 第三章 统计学回顾：最危险的公式.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第三章: 统计学回顾</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/04 第四章 图因果模型.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第四章: 图因果模型</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/05 第五章 线性回归超乎寻常的有效性.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第五章: 线性回归的有效性</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/06 第六章 分组和虚拟变量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第六章: 分组和虚拟变量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/07 第七章 控制混淆因素之外的考虑.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第七章: 控制混淆之外</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/08 第八章 工具变量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第八章: 工具变量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/09 第九章 非服从性与局部平均效应.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第九章: 非服从性与 LATE</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/10 第十章 匹配.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十章: 匹配</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/11 第十一章 倾向得分.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">第十一章: 倾向得分</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/12 第十二章 双重稳健估计.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十二章: 双重稳健估计</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/13 第十三章 面板数据与固定效应.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十三章: 面板数据与固定效应</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/14 第十四章 双重差分.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十四章: 双重差分</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/15 第十五章 合成控制.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十五章: 合成控制</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/16 第十六章 断点回归.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十六章: 断点回归</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/17 第十七章 预测模型 101.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十七章: 预测模型 101</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/18 第十八章 异质干预效应与个性化.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十八章: 异质干预效应</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/19 第十九章 评估因果模型.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十九章: 评估因果模型</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/20 第二十章 即插即用估计量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二十章: 即插即用估计量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/21 第二十一章 元学习器.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二十一章: 元学习器</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="2">
+    <h2 id="toc-title">本页目录</h2>
+   
+  <ul>
+  <li><a href="#成长背后的心理学" id="toc-成长背后的心理学" class="nav-link active" data-scroll-target="#成长背后的心理学">成长背后的心理学</a></li>
+  <li><a href="#倾向得分" id="toc-倾向得分" class="nav-link" data-scroll-target="#倾向得分">倾向得分</a></li>
+  <li><a href="#倾向加权" id="toc-倾向加权" class="nav-link" data-scroll-target="#倾向加权">倾向加权</a></li>
+  <li><a href="#倾向得分估计" id="toc-倾向得分估计" class="nav-link" data-scroll-target="#倾向得分估计">倾向得分估计</a></li>
+  <li><a href="#标准误差" id="toc-标准误差" class="nav-link" data-scroll-target="#标准误差">标准误差</a></li>
+  <li><a href="#倾向得分的常见问题" id="toc-倾向得分的常见问题" class="nav-link" data-scroll-target="#倾向得分的常见问题">倾向得分的常见问题</a></li>
+  <li><a href="#倾向得分匹配" id="toc-倾向得分匹配" class="nav-link" data-scroll-target="#倾向得分匹配">倾向得分匹配</a></li>
+  <li><a href="#关键思想" id="toc-关键思想" class="nav-link" data-scroll-target="#关键思想">关键思想</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/xieliaing/CausalInferenceIntro/blob/main/chapters/11 第十一章 倾向得分.ipynb" class="toc-action"><i class="bi bi-github"></i>查看代码</a></li><li><a href="https://github.com/xieliaing/CausalInferenceIntro/issues/new" class="toc-action"><i class="bi empty"></i>反馈问题</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/01 第一章-因果关系入门.html">章节</a></li><li class="breadcrumb-item"><a href="../chapters/11 第十一章 倾向得分.html">第十一章: 倾向得分</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">第十一章: 倾向得分</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">作者</div>
+    <div class="quarto-title-meta-contents">
+             <p>CausalInferenceIntro </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">发布于</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">2026年3月2日</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="成长背后的心理学" class="level2">
+<h2 class="anchored" data-anchor-id="成长背后的心理学">成长背后的心理学</h2>
+<p>积极心理学领域研究人类行为如何带来美好生活。您可以将其视为自助式书籍与统计的学术严谨性之间的交集。积极心理学的著名发现之一是<strong>成长心态</strong>。其核心思想是人们可以拥有固化或是成长两种心态。如果你有固化的心态，那么你相信能力是在出生时或幼儿时期就被赋予的。因此，智力是固定的，终生无法改变。如果你现在没有它，你就无法获得它。这种想法的推论是你不应该在你不擅长的领域浪费时间，因为你永远不会学会如何处理它们。另一方面，如果你有成长的心态，你相信智力是可以发展的。这样做的直接后果是你认为失败不是最终没有坚持下来的结果，而是学习过程的一部分。</p>
+<p>我不想争论这些心态中哪一个是正确的（尽管它可能在中间的某个地方）。就我们的目的而言，这并不重要。重要的是，心理学家发现，拥有成长心态的人往往会在生活中做得更好。他们更有可能实现他们的目标。</p>
+<p>我们精通因果推理，因此我们已经学会以怀疑的态度看待这些陈述。是成长型思维模式让人们取得更多成就吗？或者仅仅是因为成功而获得更多成就的人容易形成成长心态？谁先来，先有蛋还是先有鸡？在潜在的结果符号中，我们有理由相信这些陈述存在偏见。 <span class="math inline">\(Y_0|T=1\)</span> 可能比 <span class="math inline">\(Y_0|T=0\)</span> 大，这意味着那些拥有成长型思维模式的人即使拥有固定型思维模式也会取得更多成就。</p>
+<p>为了解决问题，研究人员设计了 <a href="https://mindsetscholarsnetwork.org/about-the-network/current-initatives/national-mindset-study/#">The National Study of Learning Mindset</a> 这么一个调研项目。这个研究在美国公立高中进行随机抽样，从而试图发现成长心态的影响。其工作方式是这样的。学生通过在学校参与一个研讨会，得到成长心态这个概念的灌输。然后，研究者跟踪学生在大学期间的表现，以衡量他们在学业上的表现。衡量的结果被编译成标准化的成就分数。为了保护学生的隐私，本研究的真实数据不公开。但是，我们有一个与 <a href="https://arxiv.org/pdf/1902.07409.pdf">Athey 和 Wager</a> 提供的统计属性相同的模拟数据集，因此我们将改为使用这个数据来进行分析。</p>
+<div id="fa276080" class="cell" data-execution_count="22">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>warnings.filterwarnings(<span class="st">'ignore'</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib <span class="im">import</span> style</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib <span class="im">import</span> pyplot <span class="im">as</span> plt</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> statsmodels.formula.api <span class="im">as</span> smf</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> causalinference <span class="im">import</span> CausalModel</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> graphviz <span class="im">as</span> gr</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>matplotlib inline</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>style.use(<span class="st">"fivethirtyeight"</span>)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>pd.set_option(<span class="st">"display.max_columns"</span>, <span class="dv">6</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>除了干预变量和结果变量外，该研究还记录了其他一些特征：</p>
+<ul>
+<li>schoolid：学生所在学校的标识符；</li>
+<li>success_expect：自我报告的对未来成功的期望，代表先验成就，在随机分配之前测量；</li>
+<li>种族：学生种族/民族的分类变量；</li>
+<li>性别：学生性别的分类变量；</li>
+<li>frst_in_family：学生第一代身份的分类变量，即是否家庭中第一个上大学的人；</li>
+<li>school_urbanicity：学校级别在城市化程度上的分类变量，即农村、郊区等；</li>
+<li>school_mindset：学生固定心态的学校水平平均值，在随机分配之前报告，标准化；</li>
+<li>school_achievement：学校成绩水平，由前 4 批学生的考试成绩和大学准备来衡量，标准化；</li>
+<li>school_ethnic_minority：学校种族/少数民族组成，即标准化的黑人、拉丁裔或美洲原住民学生人数的百分比；</li>
+<li>school_poverty：学校贫困集中度，即来自家庭收入低于联邦贫困线的学生的百分比，标准化；</li>
+<li>school_size：学校所有四个年级的学生总数，标准化。</li>
+</ul>
+<div id="dd407f6a" class="cell" data-execution_count="23">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> pd.read_csv(<span class="st">"./data/learning_mindset.csv"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>data.sample(<span class="dv">5</span>, random_state<span class="op">=</span><span class="dv">5</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="23">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">schoolid</th>
+<th data-quarto-table-cell-role="th">intervention</th>
+<th data-quarto-table-cell-role="th">achievement_score</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">school_ethnic_minority</th>
+<th data-quarto-table-cell-role="th">school_poverty</th>
+<th data-quarto-table-cell-role="th">school_size</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">259</th>
+<td>73</td>
+<td>1</td>
+<td>1.480828</td>
+<td>...</td>
+<td>-0.515202</td>
+<td>-0.169849</td>
+<td>0.173954</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3435</th>
+<td>76</td>
+<td>0</td>
+<td>-0.987277</td>
+<td>...</td>
+<td>-1.310927</td>
+<td>0.224077</td>
+<td>-0.426757</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">9963</th>
+<td>4</td>
+<td>0</td>
+<td>-0.152340</td>
+<td>...</td>
+<td>0.875012</td>
+<td>-0.724801</td>
+<td>0.761781</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">4488</th>
+<td>67</td>
+<td>0</td>
+<td>0.358336</td>
+<td>...</td>
+<td>0.315755</td>
+<td>0.054586</td>
+<td>1.862187</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2637</th>
+<td>16</td>
+<td>1</td>
+<td>1.360920</td>
+<td>...</td>
+<td>-0.033161</td>
+<td>-0.982274</td>
+<td>1.591641</td>
+</tr>
+</tbody>
+</table>
+
+<p>5 rows × 13 columns</p>
+</div>
+</div>
+</div>
+<p>尽管这项研究是随机的，但这些数据似乎并非没有混淆。 如果我们查看其他特征，我们会注意到它们在干预和控制之间系统地变化。 造成这种情况的一个可能原因是干预变量是通过学生对研讨会的接受来衡量的。 因此，虽然参与的机会是随机的，但参与本身却不是。 我们正在处理一个不合规的案例。 这方面的一个证据是学生的成功期望如何与研讨会的参与度相关联。 自我报告的成功期望较高的学生更有可能参加成长心态研讨会。</p>
+<div id="0001b3f1" class="cell" data-execution_count="24">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>data.groupby(<span class="st">"success_expect"</span>)[<span class="st">"intervention"</span>].mean()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="24">
+<pre><code>success_expect
+1    0.271739
+2    0.265957
+3    0.294118
+4    0.271617
+5    0.311070
+6    0.354287
+7    0.362319
+Name: intervention, dtype: float64</code></pre>
+</div>
+</div>
+<p>不过，让我们看看 <span class="math inline">\(E[Y|T=1] - E[Y|T=0]\)</span> 的含义有何不同。 这将是一个比较有用的基准。</p>
+<div id="526c9925" class="cell" data-execution_count="25">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>smf.ols(<span class="st">"achievement_score ~ intervention"</span>, data<span class="op">=</span>data).fit().summary().tables[<span class="dv">1</span>]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="25">
+<table class="simpletable caption-top table table-sm table-striped small">
+<tbody>
+<tr class="odd">
+<td></td>
+<th data-quarto-table-cell-role="th">coef</th>
+<th data-quarto-table-cell-role="th">std err</th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">P&gt;|t|</th>
+<th data-quarto-table-cell-role="th">[0.025</th>
+<th data-quarto-table-cell-role="th">0.975]</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Intercept</th>
+<td>-0.1538</td>
+<td>0.012</td>
+<td>-13.201</td>
+<td>0.000</td>
+<td>-0.177</td>
+<td>-0.131</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">intervention</th>
+<td>0.4723</td>
+<td>0.020</td>
+<td>23.133</td>
+<td>0.000</td>
+<td>0.432</td>
+<td>0.512</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>简单地比较那些有和没有干预的人，我们可以看到，接受干预的人的成就得分平均比未经干预的人高 0.3185 (0.4723 - 0.1538)。但这是大还是小？我知道解释标准化结果可能具有挑战性，但请耐心等待。我认为值得一试，因为这不会是你最后一次遇到标准化分数。</p>
+<p>标准化的结果变量意味着它是用标准差来衡量的。因此，经过处理的偏差比未经处理的偏差高 0.3185。这就是这个意思。至于这是小还是大，让我们记住一些关于正态分布的东西。我们知道它 95% 的质量在 2 个标准偏差之间，一条尾巴留下 2.5%，另一条尾巴留下 2.5%。这也意味着，如果某人比平均值高 2 个标准差，那么所有个体中有 97.5%（95% 加上左侧 2.5% 的尾部）低于该人。通过查看正常的 CDF，我们还知道其质量的大约 0.85% 低于 1 个标准偏差，而其质量的 70% 低于 0.5 个标准偏差。由于被干预组的平均标准化分数约为 0.5，这意味着他们在个人成就方面低于 70%。或者，换句话说，他们在取得更多成就的前 30% 中。这是图片中的样子。</p>
+<div id="b10b5ab6" class="cell" data-execution_count="26">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>plt.hist(data[<span class="st">"achievement_score"</span>], bins<span class="op">=</span><span class="dv">20</span>, alpha<span class="op">=</span><span class="fl">0.3</span>, label<span class="op">=</span><span class="st">"All"</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>plt.hist(data.query(<span class="st">"intervention==0"</span>)[<span class="st">"achievement_score"</span>], bins<span class="op">=</span><span class="dv">20</span>, alpha<span class="op">=</span><span class="fl">0.3</span>, color<span class="op">=</span><span class="st">"C2"</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>plt.hist(data.query(<span class="st">"intervention==1"</span>)[<span class="st">"achievement_score"</span>], bins<span class="op">=</span><span class="dv">20</span>, alpha<span class="op">=</span><span class="fl">0.3</span>, color<span class="op">=</span><span class="st">"C3"</span>)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>plt.vlines(<span class="op">-</span><span class="fl">0.1538</span>, <span class="dv">0</span>, <span class="dv">300</span>, label<span class="op">=</span><span class="st">"Untreated"</span>, color<span class="op">=</span><span class="st">"C2"</span>)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>plt.vlines(<span class="op">-</span><span class="fl">0.1538</span><span class="op">+</span><span class="fl">0.4723</span>, <span class="dv">0</span>, <span class="dv">300</span>, label<span class="op">=</span><span class="st">"Treated"</span>, color<span class="op">=</span><span class="st">"C3"</span>)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>plt.legend()<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="11 第十一章 倾向得分_files/figure-html/cell-6-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>当然，我们仍然认为这个结果是有偏见的。干预和未干预之间的差异可能比这更小，因为我们认为偏差是积极的。我们已经看到，雄心勃勃的人更愿意参加研讨会，所以即使他们没有参加，他们可能也会取得更大的成就。为了控制这种偏差，我们可以使用回归或匹配，但现在是学习新技术的时候了。</p>
+</section>
+<section id="倾向得分" class="level2">
+<h2 class="anchored" data-anchor-id="倾向得分">倾向得分</h2>
+<p>倾向得分来自于意识到您不需要直接控制混杂因素 X 来实现条件独立 <span class="math inline">\((Y_1, Y_0) \perp T | X\)</span>。相反，控制平衡分数 <span class="math inline">\(E[T|X]\)</span> 就足够了。这个平衡分数通常是干预的条件概率，<span class="math inline">\(P(T|X)\)</span>，也称为倾向评分<span class="math inline">\(P(x)\)</span>。倾向得分使您不必以整个 X 为条件来实现干预潜在结果的独立性。以这个单一变量为条件就足够了，即倾向得分：</p>
+<p><span class="math display">\[
+(Y_1, Y_0) \perp T | P(x)
+\]</span></p>
+<p>有一个正式的证据来说明为什么会这样，但我们现在可以忘记它并以更直观的方式处理这个问题。倾向得分是接受干预的条件概率，对吗？因此，我们可以将其视为某种将 X 转换为干预 T 的函数。倾向得分在变量 X 和干预变量 T 之间形成了中间地带。如果我们在因果图中显示它，这就是它的样子喜欢。</p>
+<div id="ba8b0578" class="cell" data-execution_count="27">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>g <span class="op">=</span> gr.Digraph()</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"T"</span>, <span class="st">"Y"</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"X"</span>, <span class="st">"Y"</span>)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"X"</span>, <span class="st">"P(x)"</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"P(x)"</span>, <span class="st">"T"</span>)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>g</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="27">
+<div>
+<figure class="figure">
+<p><img src="11 第十一章 倾向得分_files/figure-html/cell-7-output-1.svg" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>如果我知道 P(x) 是什么，那么仅 X 就不会告诉我更多可以帮助我了解 T 是什么的信息。这意味着控制 P(x) 与直接控制 X 的方式相同。根据我们的心态计划来考虑它。干预和未干预最初是不可比较的，因为雄心勃勃的人更有可能接受干预并在生活中取得更多成就。但是，如果我选取 2 个个体，一个来自干预组，一个来自对照组，但接受干预的概率相同，它们是可比较的。想想看。如果他们接受干预的概率完全相同，那么他们中的一个接受干预而另一个没有接受干预的唯一原因是纯粹的机会。保持倾向得分不变可以使数据看起来和随机一样好。</p>
+<p>现在我们有了直觉，让我们看看数学证明。我们想证明 <span class="math inline">\((Y_1, Y_0) \perp T | P(x)\)</span> 等价于说</p>
+<p><span class="math display">\[
+E[T|P(x), X] = E[T|P(x)]
+\]</span></p>
+<p>这只是说，一旦我以 P(x) 为条件，X 就不能给我关于 T 的额外信息。这个证明很奇怪。我们将通过将上面的等式转换为一个简单的陈述来证明上面的等式是正确的。首先看一下左边的<span class="math inline">\(E[T|P(x), X]\)</span>。</p>
+<p><span class="math display">\[
+E[T|P(x), X] = E[T|X] = P(x)
+\]</span></p>
+<p>我们使用了 P(x) 只是 X 的函数这一事实，因此在我们以 X 本身为条件之后，以它为条件不会提供进一步的信息。然后，我们使用倾向得分 <span class="math inline">\(E[T|X]\)</span> 的定义。</p>
+<p>对于右手边，我们将使用迭代期望定律 <span class="math inline">\(E[A] = E[E[A|B]]\)</span> 这个定律说我们可以通过查看A的值被B分解然后取平均值。</p>
+<p><span class="math display">\[
+E[T|P(x)] = E[E[T|P(x),X]|P(x)] = E[P(x)|P(x)] = P(x)
+\]</span></p>
+<p>第一个相等来自迭代期望定律。第二个来自我们在处理左侧时发现的内容。由于左边和右边都等于 <span class="math inline">\(P(x)\)</span>，所以这个等式很简单。</p>
+</section>
+<section id="倾向加权" class="level2">
+<h2 class="anchored" data-anchor-id="倾向加权">倾向加权</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/ps/balance.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>好的，我们得到了倾向得分。怎么办？就像我说过的，我们需要做的就是以此为条件。例如，我们可以运行一个线性回归，它仅以倾向得分为条件，而不是所有的 X。现在，让我们看一下只使用倾向得分而不使用其他任何东西的技术。这个想法是用倾向得分写出均值的条件差</p>
+<p><span class="math display">\[
+E[Y|X,T=1]−E[Y|X,T=0] = E\bigg[\dfrac{Y}{P(x)}|X,T=1\bigg]P(x) - E\bigg[\dfrac{Y}{(1-P(x))}|X,T=0\bigg](1-P(x))
+\]</span></p>
+<p>我们可以进一步简化这一点，但让我们这样看一下，因为它让我们对倾向得分的作用有了一些很好的直觉。第一项是估计 <span class="math inline">\(Y_1\)</span>。它应用于所有接受干预的对象，并按接受干预的逆概率对它们的权重进行缩放。这样做的目的是使那些接受干预的可能性非常低的人权重增加。想想看，这是有道理的，对吧？如果某人接受干预的可能性很低，那么该人看起来就像未经干预的人。然而，同一个人受到了干预。这一定很有趣。我们有一个看起来像未经干预的被干预对象，因此我们将给予该实体较高的权重。这样做的目的是创建一个与原始全样本相同大小的群体，但每个人都受到干预。出于同样的原因，另一个术语着眼于未经干预的人，并赋予那些看起来像经过干预的人很高的权重。这个估计器被称为<strong>干预加权的逆概率（IPTW）</strong>，因为它通过接受除它所接受的干预之外的某种其他影响的概率来缩放每个单元的权重。</p>
+<p>在下面在图片中，就展示了这种加权的作用。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/ps/iptw.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>左上图显示了原始数据。蓝点是未干预的，红点是干预过的。底部图显示了倾向得分 <span class="math inline">\(P(x)\)</span>。注意它是如何在 0 和 1 之间的，并且随着 X 的增加而增长。最后，右上图是加权后的数据。注意更靠左的红色（处理过的）（倾向得分较低）的权重更高。同样，右侧的蓝色图也具有更高的权重。</p>
+<p>现在我们有了直觉，我们可以将上面的术语简化为</p>
+<p><span class="math display">\[
+E\bigg[Y \dfrac{T-P(x)}{P(x)(1-P(x))}\bigg|X\bigg]
+\]</span></p>
+<p>如果我们对 X 进行积分，它就会成为我们的倾向得分加权估计量。</p>
+<p><span class="math display">\[
+E\bigg[Y \dfrac{T-P(x)}{P(x)(1-P(x))}\bigg]
+\]</span></p>
+<p>请注意，此估计器要求 <span class="math inline">\(P(x)\)</span> 和 <span class="math inline">\(1-P(x)\)</span> 大于零。换句话说，这意味着每个人都需要至少有一些机会接受干预和不接受干预。说明这一点的另一种方式是干预和未干预样本的分布需要重叠。这是因果推理的<strong>正值假设（positivity assumption）</strong>。它也具有直觉意义。如果干预和未干预的样本不重叠，这意味着它们非常不同，我将无法将一组的效果外推到另一组。这种推断并非不可能（回归做到了），但它非常危险。这就像在实验中测试一种新药，只有男性接受治疗，然后假设女性对它的反应同样好。</p>
+</section>
+<section id="倾向得分估计" class="level2">
+<h2 class="anchored" data-anchor-id="倾向得分估计">倾向得分估计</h2>
+<p>在一个理想的世界中，我们会有真实的倾向得分 <span class="math inline">\(P(x)\)</span>。 然而，在实践中，分配干预的机制是未知的，我们需要用对它的估计来替换真实的倾向得分 <span class="math inline">\(\hat{P}(x)\)</span>。 这样做的一种常见方法是使用逻辑回归，但也可以使用其他机器学习方法，如梯度提升（尽管它需要一些额外的步骤来避免过度拟合）。</p>
+<p>在这里，我将坚持逻辑回归。 这意味着我必须将数据集中的分类特征转换为假人。</p>
+<div id="d6379082" class="cell" data-execution_count="28">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>categ <span class="op">=</span> [<span class="st">"ethnicity"</span>, <span class="st">"gender"</span>, <span class="st">"school_urbanicity"</span>]</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>cont <span class="op">=</span> [<span class="st">"school_mindset"</span>, <span class="st">"school_achievement"</span>, <span class="st">"school_ethnic_minority"</span>, <span class="st">"school_poverty"</span>, <span class="st">"school_size"</span>]</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>data_with_categ <span class="op">=</span> pd.concat([</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    data.drop(columns<span class="op">=</span>categ), <span class="co"># dataset without the categorical features</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    pd.get_dummies(data[categ], columns<span class="op">=</span>categ, drop_first<span class="op">=</span><span class="va">False</span>)<span class="co"># categorical features converted to dummies</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>], axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(data_with_categ.shape)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(10391, 32)</code></pre>
+</div>
+</div>
+<p>现在让我们使用逻辑回归（logistic regression）来估计倾向得分。</p>
+<div id="a65a6103" class="cell" data-execution_count="29">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LogisticRegression</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>T <span class="op">=</span> <span class="st">'intervention'</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>Y <span class="op">=</span> <span class="st">'achievement_score'</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> data_with_categ.columns.drop([<span class="st">'schoolid'</span>, T, Y])</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>ps_model <span class="op">=</span> LogisticRegression(C<span class="op">=</span><span class="fl">1e6</span>).fit(data_with_categ[X], data_with_categ[T])</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>data_ps <span class="op">=</span> data.assign(propensity_score<span class="op">=</span>ps_model.predict_proba(data_with_categ[X])[:, <span class="dv">1</span>])</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>data_ps[[<span class="st">"intervention"</span>, <span class="st">"achievement_score"</span>, <span class="st">"propensity_score"</span>]].head()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="29">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">intervention</th>
+<th data-quarto-table-cell-role="th">achievement_score</th>
+<th data-quarto-table-cell-role="th">propensity_score</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>1</td>
+<td>0.277359</td>
+<td>0.315488</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>1</td>
+<td>-0.449646</td>
+<td>0.263799</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>1</td>
+<td>0.769703</td>
+<td>0.344025</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>1</td>
+<td>-0.121763</td>
+<td>0.344025</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>1</td>
+<td>1.526147</td>
+<td>0.367788</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>首先，我们可以确保倾向得分权重确实重建了每个人都得到干预的人群。 通过产生权重<span class="math inline">\(1/P(x)\)</span>，它创建了每个人都被对待的群体，并通过提供权重<span class="math inline">\(1/(1-P(x))\)</span>，它创建了群体，其中 每个人都没有得到干预。</p>
+<div id="7c57e36c" class="cell" data-execution_count="30">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>weight_t <span class="op">=</span> <span class="dv">1</span><span class="op">/</span>data_ps.query(<span class="st">"intervention==1"</span>)[<span class="st">"propensity_score"</span>]</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>weight_nt <span class="op">=</span> <span class="dv">1</span><span class="op">/</span>(<span class="dv">1</span><span class="op">-</span>data_ps.query(<span class="st">"intervention==0"</span>)[<span class="st">"propensity_score"</span>])</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Original Sample Size"</span>, data.shape[<span class="dv">0</span>])</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Treated Population Sample Size"</span>, <span class="bu">sum</span>(weight_t))</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Untreated Population Sample Size"</span>, <span class="bu">sum</span>(weight_nt))</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Original Sample Size 10391
+Treated Population Sample Size 10388.604824722199
+Untreated Population Sample Size 10391.4305248224</code></pre>
+</div>
+</div>
+<p>我们还可以使用倾向得分来找到混淆的证据。 如果人群中的一个细分群体的倾向得分高于另一个群体，这意味着不是随机的东西导致了干预。 如果同样的事情也导致了结果，我们就会感到困惑。 在我们的案例中，我们可以看到自称更有野心的学生也更有可能参加成长心态研讨会。</p>
+<div id="3a9a3c34" class="cell" data-execution_count="31">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>sns.boxplot(x<span class="op">=</span><span class="st">"success_expect"</span>, y<span class="op">=</span><span class="st">"propensity_score"</span>, data<span class="op">=</span>data_ps)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Confounding Evidence"</span>)<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="11 第十一章 倾向得分_files/figure-html/cell-11-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>我们还必须检查干预和未干预人群之间是否存在重叠。 为此，我们可以看到倾向得分在未干预者和被干预者上的经验分布。 查看下图，我们可以看到没有人的倾向得分为零，即使在倾向得分较低的区域，我们也可以找到接受干预和未接受干预的个体。 这就是我们所说的经过良好平衡的干预和未干预人群。</p>
+<div id="f285cf0c" class="cell" data-execution_count="32">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>sns.distplot(data_ps.query(<span class="st">"intervention==0"</span>)[<span class="st">"propensity_score"</span>], kde<span class="op">=</span><span class="va">False</span>, label<span class="op">=</span><span class="st">"Non Treated"</span>)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>sns.distplot(data_ps.query(<span class="st">"intervention==1"</span>)[<span class="st">"propensity_score"</span>], kde<span class="op">=</span><span class="va">False</span>, label<span class="op">=</span><span class="st">"Treated"</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Positivity Check"</span>)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>plt.legend()<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="11 第十一章 倾向得分_files/figure-html/cell-12-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>最后，我们可以使用倾向得分加权估计器来估计平均干预效果（ATE）。</p>
+<div id="917eeb84" class="cell" data-execution_count="33">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>weight <span class="op">=</span> ((data_ps[<span class="st">"intervention"</span>]<span class="op">-</span>data_ps[<span class="st">"propensity_score"</span>]) <span class="op">/</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>          (data_ps[<span class="st">"propensity_score"</span>]<span class="op">*</span>(<span class="dv">1</span><span class="op">-</span>data_ps[<span class="st">"propensity_score"</span>])))</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>y1 <span class="op">=</span> <span class="bu">sum</span>(data_ps.query(<span class="st">"intervention==1"</span>)[<span class="st">"achievement_score"</span>]<span class="op">*</span>weight_t) <span class="op">/</span> <span class="bu">len</span>(data)</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>y0 <span class="op">=</span> <span class="bu">sum</span>(data_ps.query(<span class="st">"intervention==0"</span>)[<span class="st">"achievement_score"</span>]<span class="op">*</span>weight_nt) <span class="op">/</span> <span class="bu">len</span>(data)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>ate <span class="op">=</span> np.mean(weight <span class="op">*</span> data_ps[<span class="st">"achievement_score"</span>])</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Y1:"</span>, y1)</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Y0:"</span>, y0)</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"ATE"</span>, np.mean(weight <span class="op">*</span> data_ps[<span class="st">"achievement_score"</span>]))</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Y1: 0.2595774244866067
+Y0: -0.12892090981713242
+ATE 0.38849833430373715</code></pre>
+</div>
+</div>
+<p>倾向得分加权表示，就成就而言，我们应该期望接受干预的个体比未经干预的同伴高 0.38 个标准差。 我们还可以看到，如果没有人得到干预，我们应该期望成绩的总体水平比现在低 0.12 个标准差。 同样的道理，如果我们为每个人提供研讨会，我们应该期望一般成就水平高出 0.25 个标准差。 将此与我们通过简单比较干预和未干预得到的 0.47 ATE 估计值进行对比。 这证明我们的偏差确实是正向的，并且控制 X 让我们对成长心态的影响有了更适度的估计。</p>
+</section>
+<section id="标准误差" class="level2">
+<h2 class="anchored" data-anchor-id="标准误差">标准误差</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/ps/bootstrap.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>为了计算 IPTW 估计量的标准误差，我们可以使用加权平均方差的公式。</p>
+<p><span class="math display">\[
+\sigma^2_w = \dfrac{\sum_{i=1}^{n}w_i(y_i-\hat{\mu})^2}{\sum_{i=1}^{n}w_i}
+\]</span></p>
+<p>但是，只有当我们有真实的倾向得分时，我们才能使用它。 如果我们使用它的估计版本，<span class="math inline">\(\hat{P}(x)\)</span>，我们需要考虑这个估计过程中的错误。 最简单的方法是引导整个过程。 这是通过从原始数据中进行自助法采样（bootstrapping）并像我们上面所做的那样计算 ATE 来实现的。 然后我们重复多次以获得 ATE 估计的分布。</p>
+<div id="6e7b5e8b" class="cell" data-execution_count="34">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> joblib <span class="im">import</span> Parallel, delayed <span class="co"># for parallel processing</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="co"># define function that computes the IPTW estimator</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> run_ps(df, X, T, y):</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># estimate the propensity score</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    ps <span class="op">=</span> LogisticRegression(C<span class="op">=</span><span class="fl">1e6</span>).fit(df[X], df[T]).predict_proba(df[X])[:, <span class="dv">1</span>]</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>    weight <span class="op">=</span> (df[T]<span class="op">-</span>ps) <span class="op">/</span> (ps<span class="op">*</span>(<span class="dv">1</span><span class="op">-</span>ps)) <span class="co"># define the weights</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.mean(weight <span class="op">*</span> df[y]) <span class="co"># compute the ATE</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">88</span>)</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a><span class="co"># run 1000 bootstrap samples</span></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>bootstrap_sample <span class="op">=</span> <span class="dv">1000</span></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>ates <span class="op">=</span> Parallel(n_jobs<span class="op">=</span><span class="dv">4</span>)(delayed(run_ps)(data_with_categ.sample(frac<span class="op">=</span><span class="dv">1</span>, replace<span class="op">=</span><span class="va">True</span>), X, T, Y)</span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>                          <span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(bootstrap_sample))</span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>ates <span class="op">=</span> np.array(ates)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>ATE 是自助法采样样本的平均值。 为了获得置信区间，我们可以自助法采样分布的分位数。 对于 95% C.I.，我们使用 2.5 和 97.5 百分位数。</p>
+<div id="f8c70dfb" class="cell" data-execution_count="35">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"ATE: </span><span class="sc">{</span>ates<span class="sc">.</span>mean()<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"95% C.I.: </span><span class="sc">{</span>(np.percentile(ates, <span class="fl">2.5</span>), np.percentile(ates, <span class="fl">97.5</span>))<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>ATE: 0.3877452824895804
+95% C.I.: (0.35448188811098386, 0.41992764030841984)</code></pre>
+</div>
+</div>
+<p>我们还可以直观地了解引导样本的外观以及置信区间。</p>
+<div id="748be1b1" class="cell" data-execution_count="36">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>sns.distplot(ates, kde<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>plt.vlines(np.percentile(ates, <span class="fl">2.5</span>), <span class="dv">0</span>, <span class="dv">30</span>, linestyles<span class="op">=</span><span class="st">"dotted"</span>)</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>plt.vlines(np.percentile(ates, <span class="fl">97.5</span>), <span class="dv">0</span>, <span class="dv">30</span>, linestyles<span class="op">=</span><span class="st">"dotted"</span>, label<span class="op">=</span><span class="st">"95% CI"</span>)</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"ATE Bootstrap Distribution"</span>)</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>plt.legend()<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="11 第十一章 倾向得分_files/figure-html/cell-16-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="倾向得分的常见问题" class="level2">
+<h2 class="anchored" data-anchor-id="倾向得分的常见问题">倾向得分的常见问题</h2>
+<p>作为一名数据科学家，我知道使用机器学习工具包的所有功能来使倾向得分估计尽可能精确是很诱人的。你很快就会被 AUC 优化、交叉验证和贝叶斯超参数调优这些很炫的技术所吸引。我现在并不是说你不应该那样做。事实上，所有关于倾向得分和机器学习的理论都是最近才出现的，所以还有很多我们还不知道的。但首先对一些基础的东西加以理解是值得的。</p>
+<p>首先，倾向得分的预测质量并不能转化为它的平衡特性。对于来自机器学习领域的人来说，要学好因果推理，最具挑战性的方面之一就是放弃将所有事情都视为预测问题。事实上，最大化倾向得分的预测能力甚至会损害因果推理的目标。 <strong>倾向评分不需要很好地预测干预。它只需要包含所有混淆变量</strong>。如果我们包括在预测干预方面非常好的变量，但对结果没有影响，这实际上会增加倾向评分估计量的方差。当我们包含与干预相关但与结果无关的变量时，这类似于线性回归面临的问题。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/ps/ml-trap.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>要了解这一点，请考虑以下示例（改编自 Hernán’s 的书 <a href="https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/">Causal Inference: What If</a>）。 假设有 2 所学校，其中一所将成长心态研讨会应用于 99% 的学生，另一所则应用于 1%。 假设学校对干预效果没有影响（即只通过干预分配进行影响），则无需对其进行控制。 如果将学校变量添加到倾向得分模型中，它将具有非常高的预测能力。 然而，有一种可能，我们最终得到一个样本，其中学校 A 的每个人都接受了干预，导致该学校的倾向得分为 1，这将导致无限方差。 这是一个极端的例子，但让我们通过模拟数据来看看具体是怎么实现的。</p>
+<div id="0cefad52" class="cell" data-execution_count="37">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">42</span>)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>school_a <span class="op">=</span> pd.DataFrame(<span class="bu">dict</span>(T<span class="op">=</span>np.random.binomial(<span class="dv">1</span>, <span class="fl">.99</span>, <span class="dv">400</span>), school<span class="op">=</span><span class="dv">0</span>, intercept<span class="op">=</span><span class="dv">1</span>))</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>school_b <span class="op">=</span> pd.DataFrame(<span class="bu">dict</span>(T<span class="op">=</span>np.random.binomial(<span class="dv">1</span>, <span class="fl">.01</span>, <span class="dv">400</span>), school<span class="op">=</span><span class="dv">1</span>, intercept<span class="op">=</span><span class="dv">1</span>))</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>ex_data <span class="op">=</span> pd.concat([school_a, school_b]).assign(y <span class="op">=</span> <span class="kw">lambda</span> d: np.random.normal(<span class="dv">1</span> <span class="op">+</span> <span class="fl">0.1</span> <span class="op">*</span> d[<span class="st">"T"</span>]))</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>ex_data.head()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="37">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">T</th>
+<th data-quarto-table-cell-role="th">school</th>
+<th data-quarto-table-cell-role="th">intercept</th>
+<th data-quarto-table-cell-role="th">y</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0.309526</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1.571468</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>2.982024</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>2.445420</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>2.693187</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>在模拟了这些数据后，我们运行两次自助法采样（bootstrapping），并对采样样本使用倾向得分算法。 第一次，倾向评分模型中包括了学校作为一个特征。 第二次，模型中不包括学校。</p>
+<div id="4e834fd8" class="cell" data-execution_count="38">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>ate_w_f <span class="op">=</span> np.array([run_ps(ex_data.sample(frac<span class="op">=</span><span class="dv">1</span>, replace<span class="op">=</span><span class="va">True</span>), [<span class="st">"school"</span>], <span class="st">"T"</span>, <span class="st">"y"</span>) <span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">500</span>)])</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>ate_wo_f <span class="op">=</span> np.array([run_ps(ex_data.sample(frac<span class="op">=</span><span class="dv">1</span>, replace<span class="op">=</span><span class="va">True</span>), [<span class="st">"intercept"</span>], <span class="st">"T"</span>, <span class="st">"y"</span>) <span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">500</span>)])</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="beb4cbea" class="cell" data-execution_count="39">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>sns.distplot(ate_w_f, kde<span class="op">=</span><span class="va">False</span>, label<span class="op">=</span><span class="st">"PS W School"</span>)</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>sns.distplot(ate_wo_f, kde<span class="op">=</span><span class="va">False</span>, label<span class="op">=</span><span class="st">"PS W/O School"</span>)</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>plt.legend()<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="11 第十一章 倾向得分_files/figure-html/cell-19-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>如你所见，添加学校这个特征的倾向得分估计器具有巨大的方差，而没有这个特征的倾向得分估计器表现得更好。 此外，由于学校不是混淆因子，因此没有它的模型也没有偏差。 正如我所说，简单地预测是否进行了干预并不是重点。 我们在进行预测的时候，实际上需要以控制混淆因子为目的来构建模型，而不是以对干预变量本身进行预测为目的。</p>
+<p>这导致了倾向评分方法中经常遇到的另一个问题。 比如在我们的心态案例中，数据显然是非常平衡的。 但实际情况并非总是如此。 在某些情况下，接受干预的人比未经干预的人有更高的被干预概率，从而导致倾向得分分布没有太多重叠。（从而违背了positivity这个假设：译者著）</p>
+<div id="a3fea4a5" class="cell" data-execution_count="40">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>sns.distplot(np.random.beta(<span class="dv">4</span>,<span class="dv">1</span>,<span class="dv">500</span>), kde<span class="op">=</span><span class="va">False</span>, label<span class="op">=</span><span class="st">"Non Treated"</span>)</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>sns.distplot(np.random.beta(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">500</span>), kde<span class="op">=</span><span class="va">False</span>, label<span class="op">=</span><span class="st">"Treated"</span>)</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Positivity Check"</span>)</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>plt.legend()<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="11 第十一章 倾向得分_files/figure-html/cell-20-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>如果发生这种情况，则意味着正值性（positivity）不是很强。如果接受干预的人的倾向得分为 0.9，而未经干预的人的最大倾向得分为 0.7，那么我们将没有任何未经干预的人与倾向得分为 0.9 的个体进行比较。这种缺乏平衡会产生一些偏差，因为我们必须将干预结果外推到未知区域。不仅如此，倾向得分非常高或非常低的实体具有非常高的权重，这会增加方差。作为一般经验法则，如果任何权重高于 20（倾向得分为 0.95 的未干预样本或倾向得分为 0.05 的被干预样本都会发生这种情况），您就会遇到麻烦。</p>
+<p>另一种方法是将权重限制为最大 20。这将减少方差，但实际上会产生更多偏差。老实说，虽然这是减少差异的常见做法，但我并不喜欢它。你永远不会知道你用剪裁（clipping）引起的偏差是否太大。此外，如果分布不重叠，那么您的数据可能还不足以得出因果结论。为了进一步了解这一点，我们可以研究一种结合倾向得分和匹配的技术</p>
+</section>
+<section id="倾向得分匹配" class="level2">
+<h2 class="anchored" data-anchor-id="倾向得分匹配">倾向得分匹配</h2>
+<p>正如我之前所说，当你有倾向得分时，你不需要控制 X。 控制它就足够了。 因此，您可以将倾向得分视为对特征空间执行一种降维。 它将 X 中的所有特征浓缩到一个单一的处理分配维度中。 因此，我们可以将倾向得分视为其他模型的输入特征。 以回归模型为例。</p>
+<div id="d90a4f95" class="cell" data-execution_count="41">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>smf.ols(<span class="st">"achievement_score ~ intervention + propensity_score"</span>, data<span class="op">=</span>data_ps).fit().summary().tables[<span class="dv">1</span>]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="41">
+<table class="simpletable caption-top table table-sm table-striped small">
+<tbody>
+<tr class="odd">
+<td></td>
+<th data-quarto-table-cell-role="th">coef</th>
+<th data-quarto-table-cell-role="th">std err</th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">P&gt;|t|</th>
+<th data-quarto-table-cell-role="th">[0.025</th>
+<th data-quarto-table-cell-role="th">0.975]</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Intercept</th>
+<td>-3.0770</td>
+<td>0.065</td>
+<td>-47.064</td>
+<td>0.000</td>
+<td>-3.205</td>
+<td>-2.949</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">intervention</th>
+<td>0.3930</td>
+<td>0.019</td>
+<td>20.974</td>
+<td>0.000</td>
+<td>0.356</td>
+<td>0.430</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">propensity_score</th>
+<td>9.0553</td>
+<td>0.200</td>
+<td>45.317</td>
+<td>0.000</td>
+<td>8.664</td>
+<td>9.447</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>如果我们控制倾向得分，我们现在估计 ATE 为 0.39，低于我们之前使用回归模型而不控制倾向得分得到的 0.47。 我们还可以在倾向得分上使用匹配。 这一次，我们可以找到仅具有相同倾向得分的匹配，而不是试图找到所有 X 特征中相似的匹配。</p>
+<p>这是对匹配估计器的巨大改进，因为它处理了维度灾难。 此外，如果一个特征对干预的分配不重要，倾向评分模型将学习这一点，并在拟合干预机制时对其给予较低的重要性。 另一方面，特征匹配仍然会尝试找到个人在这个不重要特征上相似的匹配。</p>
+<div id="0914a75c" class="cell" data-execution_count="42">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>cm <span class="op">=</span> CausalModel(</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>    Y<span class="op">=</span>data_ps[<span class="st">"achievement_score"</span>].values, </span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>    D<span class="op">=</span>data_ps[<span class="st">"intervention"</span>].values, </span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>    X<span class="op">=</span>data_ps[[<span class="st">"propensity_score"</span>]].values</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>cm.est_via_matching(matches<span class="op">=</span><span class="dv">1</span>, bias_adj<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(cm.estimates)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Treatment Effect Estimates: Matching
+
+                     Est.       S.e.          z      P&gt;|z|      [95% Conf. int.]
+--------------------------------------------------------------------------------
+           ATE      0.390      0.025     15.600      0.000      0.341      0.439
+           ATC      0.380      0.027     13.876      0.000      0.326      0.434
+           ATT      0.410      0.027     15.349      0.000      0.357      0.462
+</code></pre>
+</div>
+</div>
+<p>正如我们所看到的，我们也得到了 0.38 的 ATE，这更符合我们之前通过倾向得分加权看到的结果。 倾向得分的匹配也让我们对为什么在干预和未干预之间的倾向得分有小的重叠是危险的有一些直觉。 如果发生这种情况，倾向得分差异的匹配将很大，这将导致偏差，正如我们在匹配章节中看到的那样。</p>
+<p>最后要注意的是，上述标准误差是错误的，因为它们没有考虑倾向得分估计的不确定性。 不幸的是，<a href="https://economics.mit.edu/files/11862">自助法（bootstrap）不适用于匹配</a>。 此外，上述理论太新了，以至于没有具有正确标准误差的倾向评分方法的 Python 实现。 出于这个原因，我们在 Python 中看不到很多倾向得分匹配。</p>
+</section>
+<section id="关键思想" class="level2">
+<h2 class="anchored" data-anchor-id="关键思想">关键思想</h2>
+<p>在这里，我们了解到接受干预的概率称为倾向得分，我们可以将其用作平衡得分。这意味着，如果我们有倾向得分，我们就不需要直接控制混杂因素。为了识别因果效应，控制倾向得分就足够了。我们看到了倾向得分如何作为混杂空间的降维。</p>
+<p>这些属性使我们能够推导出因果推理的加权估计量。不仅如此，我们还看到了如何将倾向得分与其他方法一起使用来控制混杂偏差。</p>
+<p>然后，我们研究了倾向得分和一般因果推理可能出现的一些常见问题。第一个是当我们被分配干预机制的任务所迷惑时。我们看到，以一种非常违反直觉（因此很容易出错）的方式，提高接受干预可能的预测性反而<strong>不会</strong>转化为更好的因果估计，因为它会增加方差。</p>
+<p>最后，我们研究了一些外推问题，如果我们无法在干预和未干预的倾向得分分布之间有良好的重叠，我们可能会遇到这些问题。</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "已复制");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "已复制");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../chapters/10 第十章 匹配.html" class="pagination-link" aria-label="第十章: 匹配">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">第十章: 匹配</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../chapters/12 第十二章 双重稳健估计.html" class="pagination-link" aria-label="第十二章: 双重稳健估计">
+        <span class="nav-page-text">第十二章: 双重稳健估计</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>内容基于《Causal Inference for the Brave and True》中文翻译整理。</p>
+</div>   
+    <div class="nav-footer-center">
+<p>用 Quarto 构建，面向在线阅读与本地复现。</p>
+<div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/xieliaing/CausalInferenceIntro/blob/main/chapters/11 第十一章 倾向得分.ipynb" class="toc-action"><i class="bi bi-github"></i>查看代码</a></li><li><a href="https://github.com/xieliaing/CausalInferenceIntro/issues/new" class="toc-action"><i class="bi empty"></i>反馈问题</a></li></ul></div></div>
+    <div class="nav-footer-right">
+<p><a href="https://github.com/xieliaing/CausalInferenceIntro">GitHub 仓库</a></p>
+</div>
+  </div>
+</footer>
+
+
+
+
+<script src="../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

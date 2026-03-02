@@ -1,0 +1,1618 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-CN" xml:lang="zh-CN"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="CausalInferenceIntro">
+
+<title>第十七章: 预测模型 101 – 因果推断：从概念到实践</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../chapters/18 第十八章 异质干预效应与个性化.html" rel="next">
+<link href="../chapters/16 第十六章 断点回归.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-f1a637e51edb8e5d5a953483935b5072.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "没有结果",
+    "search-matching-documents-text": "匹配的文档",
+    "search-copy-link-title": "复制搜索链接",
+    "search-hide-matches-text": "隐藏其它匹配结果",
+    "search-more-match-text": "更多匹配结果",
+    "search-more-matches-text": "更多匹配结果",
+    "search-clear-button-title": "清除",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "取消",
+    "search-submit-button-title": "提交",
+    "search-label": "搜索"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-sidebar docked nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    </a>
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">因果推断：从概念到实践</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="搜索"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="展开或折叠导航栏" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="../index.html" aria-current="page"> 
+<span class="menu-text">首页</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/xieliaing/CausalInferenceIntro"> 
+<span class="menu-text">GitHub</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/matheusfacure/python-causality-handbook"> 
+<span class="menu-text">原书</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="展开或折叠侧边栏导航" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/01 第一章-因果关系入门.html">章节</a></li><li class="breadcrumb-item"><a href="../chapters/17 第十七章 预测模型 101.html">第十七章: 预测模型 101</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="展开或折叠侧边栏导航" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="搜索" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+      <a href="../index.html" class="sidebar-logo-link">
+      </a>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="搜索"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">章节</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="展开或折叠此栏">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/01 第一章-因果关系入门.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第一章: 因果关系入门</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/02 第二章-随机试验.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二章: 随机试验</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/03 第三章 统计学回顾：最危险的公式.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第三章: 统计学回顾</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/04 第四章 图因果模型.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第四章: 图因果模型</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/05 第五章 线性回归超乎寻常的有效性.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第五章: 线性回归的有效性</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/06 第六章 分组和虚拟变量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第六章: 分组和虚拟变量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/07 第七章 控制混淆因素之外的考虑.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第七章: 控制混淆之外</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/08 第八章 工具变量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第八章: 工具变量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/09 第九章 非服从性与局部平均效应.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第九章: 非服从性与 LATE</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/10 第十章 匹配.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十章: 匹配</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/11 第十一章 倾向得分.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十一章: 倾向得分</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/12 第十二章 双重稳健估计.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十二章: 双重稳健估计</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/13 第十三章 面板数据与固定效应.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十三章: 面板数据与固定效应</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/14 第十四章 双重差分.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十四章: 双重差分</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/15 第十五章 合成控制.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十五章: 合成控制</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/16 第十六章 断点回归.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十六章: 断点回归</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/17 第十七章 预测模型 101.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">第十七章: 预测模型 101</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/18 第十八章 异质干预效应与个性化.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十八章: 异质干预效应</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/19 第十九章 评估因果模型.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十九章: 评估因果模型</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/20 第二十章 即插即用估计量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二十章: 即插即用估计量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/21 第二十一章 元学习器.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二十一章: 元学习器</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="2">
+    <h2 id="toc-title">本页目录</h2>
+   
+  <ul>
+  <li><a href="#工业界中的机器学习" id="toc-工业界中的机器学习" class="nav-link active" data-scroll-target="#工业界中的机器学习">工业界中的机器学习</a></li>
+  <li><a href="#机器学习速成课程" id="toc-机器学习速成课程" class="nav-link" data-scroll-target="#机器学习速成课程">机器学习速成课程</a></li>
+  <li><a href="#交叉验证" id="toc-交叉验证" class="nav-link" data-scroll-target="#交叉验证">交叉验证</a></li>
+  <li><a href="#预测和策略" id="toc-预测和策略" class="nav-link" data-scroll-target="#预测和策略">预测和策略</a></li>
+  <li><a href="#单特征策略" id="toc-单特征策略" class="nav-link" data-scroll-target="#单特征策略">单特征策略</a></li>
+  <li><a href="#将机器学习模型作为策略的输入" id="toc-将机器学习模型作为策略的输入" class="nav-link" data-scroll-target="#将机器学习模型作为策略的输入">将机器学习模型作为策略的输入</a></li>
+  <li><a href="#细粒度策略" id="toc-细粒度策略" class="nav-link" data-scroll-target="#细粒度策略">细粒度策略</a></li>
+  <li><a href="#关键思想" id="toc-关键思想" class="nav-link" data-scroll-target="#关键思想">关键思想</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/xieliaing/CausalInferenceIntro/blob/main/chapters/17 第十七章 预测模型 101.ipynb" class="toc-action"><i class="bi bi-github"></i>查看代码</a></li><li><a href="https://github.com/xieliaing/CausalInferenceIntro/issues/new" class="toc-action"><i class="bi empty"></i>反馈问题</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/01 第一章-因果关系入门.html">章节</a></li><li class="breadcrumb-item"><a href="../chapters/17 第十七章 预测模型 101.html">第十七章: 预测模型 101</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">第十七章: 预测模型 101</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">作者</div>
+    <div class="quarto-title-meta-contents">
+             <p>CausalInferenceIntro </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">发布于</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">2026年3月2日</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>我们将离开本书的第一部分。那部分涵盖了因果推理的核心。那里的技术是众所周知和成熟的。他们经受住了时间的考验。第一部分建立了我们可以依赖的坚实基础。用更专业的术语来说，第一部分侧重于定义什么是因果推理，哪些偏差会阻止相关性成为因果关系，调整这些偏差的多种方法（回归、匹配和倾向得分）和规范识别策略（工具变量、双重差分 和 断点回归）。总之，第一部分重点介绍了我们用来确定平均干预效果 <span class="math inline">\(E[Y_1 - Y_0]\)</span> 的标准技术。</p>
+<p>当我们进入第二部分时，事情会变得有点不稳定。我们将介绍因果推理文献的最新发展、它与机器学习的关系以及行业中的应用。从这个意义上说，我们在学术严谨性与适用性和经验主义之间进行了权衡。第 II 部分中介绍的一些方法没有关于它们为什么起作用的可靠理论。尽管如此，当我们尝试它们时，它们似乎仍然有效。从这个意义上说，对于想要在日常工作中使用因果推理的行业从业者，而不是想要研究世界上基本因果关系的科学家，第二部分可能更有用。</p>
+<p>第二部分的前几章将侧重于估计异质治疗效果。我们将从一个只关心平均治疗效果 <span class="math inline">\(E[Y_1 - Y_0]\)</span> 的世界转移到一个我们想知道不同单位对治疗有何不同反应的世界<span class="math inline">\(E[ Y_1 - Y_0 | X]\)</span>。这是个性化至关重要的世界。我们希望优先治疗那些治疗效果最有影响的人，我们不想治疗那些治疗对他们有害的人。从某种意义上说，我们也在从一个关于平均治疗效果的积极问题转向一个规范性问题：我们应该治疗谁？</p>
+<p>这是大多数企业问自己的问题，尽管措辞略有不同：我应该给谁打折？我应该对贷款收取多少利率？我应该向该用户推荐什么项目？我应该向每位客户展示什么页面布局？这些都是治疗效果异质性问题，我们可以使用第二部分中提供的工具来回答。但在我们这样做之前，我只公平地介绍一下机器学习对行业的意义，因为这将成为我们稍后将用于因果推理的基本工具。</p>
+<section id="工业界中的机器学习" class="level2">
+<h2 class="anchored" data-anchor-id="工业界中的机器学习">工业界中的机器学习</h2>
+<p>本章的重点是谈谈我们在工业界中通常是如何使用<strong>机器学习</strong>的。如果您不熟悉机器学习，可以将本章视为机器学习速成课程。如果您以前从未使用过 ML，我强烈建议您至少学习基础知识，以充分利用即将发生的事情。但这并不意味着如果您已经精通机器学习，就应该跳过本章。我仍然认为你会从阅读中受益。与其他机器学习材料不同，这本书<strong>不会</strong>讨论决策树或神经网络等算法的来龙去脉。相反，它将专注于<strong>机器学习在现实世界中的应用</strong>。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/industry-ml/ml-meme.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>我想首先说明的是，为什么我们要在因果推理书中谈论机器学习？简短的回答是因为我认为理解因果关系的最佳方法之一是将其与机器学习带来的预测模型方法进行对比。长答案是双重的。首先，如果你已经读到本书的这一点，那么你很有可能已经熟悉机器学习。其次，即使你不是，鉴于这些主题目前的流行，你可能已经对它们是什么有了一些了解。唯一的问题是，在机器学习大肆宣传的情况下，我可能不得不带你回到现实，并用非常实用的术语解释它的真正作用。最后，因果推理的最新发展大量使用机器学习算法，所以也有。</p>
+<p>非常直接，<strong>机器学习是一种快速、自动和良好预测的方法</strong>。这不是全部，但它涵盖了其中的 90%。它是在有监督的机器学习领域取得了大多数很酷的进步，如计算机视觉、自动驾驶汽车、语言翻译和诊断。请注意，起初，这些看起来不像是预测任务。语言翻译是如何预测的？这就是机器学习的美妙之处。我们可以通过预测解决比最初显而易见的问题更多的问题。在语言翻译的情况下，您可以将其构建为一个预测问题，即您向机器展示一个句子，并且它必须用另一种语言预测同一个句子。请注意，我<strong>不是</strong>在预测或预测未来的意义上使用预测这个词。预测只是从一个定义的输入映射到一个最初未知但同样定义良好且可观察的输出。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/industry-ml/translation.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>机器学习真正做的是学习这个映射函数，即使它是一个非常复杂的映射函数。底线是，如果您可以将问题描述为从输入到输出的映射，那么机器学习可能是解决该问题的不错选择。至于自动驾驶汽车，你可以认为它不是一个，而是多个复杂的预测问题：从汽车前部的传感器预测车轮的正确角度，从汽车周围的摄像头预测刹车的压力，根据 gps 数据预测加速器中的压力。解决这些（以及更多）预测问题是制造自动驾驶汽车的原因。</p>
+<p>考虑 ML 的一种更具技术性的方式是估计（可能非常复杂）期望函数：</p>
+<p><span class="math display">\[
+E[Y|X]
+\]</span></p>
+<p>其中 <span class="math inline">\(Y\)</span> 是您想知道的（翻译句子，诊断），而 <span class="math inline">\(X\)</span> 是您已经知道的（输入句子，X 射线图像）。机器学习只是一种估计条件期望函数的方法。</p>
+<p>好的……您现在了解预测如何比我们最初想象的更强大。自动驾驶汽车和语言翻译很酷，但它们相距甚远，除非你在谷歌或优步这样的大型科技公司工作。所以，为了让事情更相关，让我们来谈谈几乎每个公司都有的问题：客户获取（即获得新客户）。</p>
+<p>从客户获取的角度来看，您通常需要做的是弄清楚谁是有利可图的客户。在这个问题中，每个客户都有获取成本（可能是营销成本、入职成本、运输成本……），并有望为公司带来正现金流。例如，假设您是一家互联网提供商或一家天然气公司。您的典型客户可能有一个看起来像这样的现金流。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/industry-ml/cashflow-1.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>每个条形代表您与客户关系中的一个金钱事件。例如，要立即获得客户，您需要投资于营销。然后，在某人决定与您开展业务后，您可能会产生某种入职成本（您必须向客户解释如何使用您的产品）或安装成本。只有这样，客户才开始产生每月收入。在某些时候，客户可能需要一些帮助，而您将承担维护费用。最后，如果客户决定终止合同，您可能也会为此承担一些最终成本。</p>
+<p>要查看这是否是一个有利可图的客户，我们可以在所谓的级联图中重新排列条形图。希望现金事件的总和最终高于零线。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/industry-ml/cascade-1.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>相反，客户很可能会产生比收入更多的成本。如果他或她很少使用你的产品并且有很高的维护需求，当我们堆积现金事件时，它们最终可能会低于零线。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/industry-ml/cascade-2.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>当然，这种现金流可能更简单或更复杂，具体取决于业务类型。你可以用利率做时间折扣之类的事情，然后为此疯狂，但我认为这里的重点是正确的。</p>
+<p>但是你能做些什么呢？好吧，如果你有很多盈利和非盈利客户的例子，你可以训练一个机器学习模型来识别它们。这样，您就可以将营销策略集中在只针对有利可图的客户身上。或者，如果您的合同允许，您可以在客户产生更多成本之前终止与客户的关系。本质上，您在这里所做的是<strong>将业务问题构建为预测问题，以便您可以通过机器学习解决它</strong>：您想要预测或识别有利可图和无利可图的客户，以便您只与有利可图的客户互动。</p>
+<div id="cell-2" class="cell" data-tags="[&quot;hide-input&quot;]" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn <span class="im">import</span> ensemble</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.pipeline <span class="im">import</span> Pipeline</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> r2_score</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib <span class="im">import</span> pyplot <span class="im">as</span> plt</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib <span class="im">import</span> style</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>style.use(<span class="st">"ggplot"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>例如，假设您有 10000 个客户的 30 天交易数据。 您还需要购买 <code>cacq</code> 的成本。 如果您进行在线营销，这可能是您为他们提出的出价，也可能是运输成本或您必须与客户进行的任何培训，以便他们可以使用您的产品。 此外，为了简单起见（这是一门速成课程，而不是关于客户评估的一个学期），让我们假设您可以完全控制与您开展业务的客户。 换句话说，即使客户想与您做生意，您也有权拒绝客户。 如果是这种情况，您现在的任务就是事先确定谁将获利，因此您可以选择只与他们互动。</p>
+<div id="cell-4" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>transactions <span class="op">=</span> pd.read_csv(<span class="st">"data/customer_transactions.csv"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(transactions.shape)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>transactions.head()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(10000, 32)</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="2">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">customer_id</th>
+<th data-quarto-table-cell-role="th">cacq</th>
+<th data-quarto-table-cell-role="th">day_0</th>
+<th data-quarto-table-cell-role="th">day_1</th>
+<th data-quarto-table-cell-role="th">day_2</th>
+<th data-quarto-table-cell-role="th">day_3</th>
+<th data-quarto-table-cell-role="th">day_4</th>
+<th data-quarto-table-cell-role="th">day_5</th>
+<th data-quarto-table-cell-role="th">day_6</th>
+<th data-quarto-table-cell-role="th">day_7</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">day_20</th>
+<th data-quarto-table-cell-role="th">day_21</th>
+<th data-quarto-table-cell-role="th">day_22</th>
+<th data-quarto-table-cell-role="th">day_23</th>
+<th data-quarto-table-cell-role="th">day_24</th>
+<th data-quarto-table-cell-role="th">day_25</th>
+<th data-quarto-table-cell-role="th">day_26</th>
+<th data-quarto-table-cell-role="th">day_27</th>
+<th data-quarto-table-cell-role="th">day_28</th>
+<th data-quarto-table-cell-role="th">day_29</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>0</td>
+<td>-110</td>
+<td>6</td>
+<td>0</td>
+<td>73</td>
+<td>10</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>21</td>
+<td>...</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>1</td>
+<td>-58</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>15</td>
+<td>0</td>
+<td>3</td>
+<td>2</td>
+<td>0</td>
+<td>...</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>2</td>
+<td>-7</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>...</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>3</td>
+<td>-30</td>
+<td>0</td>
+<td>3</td>
+<td>2</td>
+<td>0</td>
+<td>9</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>...</td>
+<td>0</td>
+<td>0</td>
+<td>40</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>4</td>
+<td>-42</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>...</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+
+<p>5 rows × 32 columns</p>
+</div>
+</div>
+</div>
+<p>我们现在需要做的是根据这个交易数据来区分好客户和坏客户。为了简单起见，我只总结所有交易和CACQ。请记住，这会带来很多细微差别，例如区分被流失的客户和那些在一次购买和下一次购买之间处于休息状态的客户。</p>
+<p>然后，我将把这个总和（我称之为<code>net_value</code>）与客户特定的功能结合起来。由于我的目标是在决定与他们互动<strong>之前</strong>确定哪个客户将有利可图，因此您只能在获取期之前使用数据。在我们的例子中，这些功能是年龄，地区和收入，所有这些都可以在另一个<code>csv</code>文件中找到。</p>
+<div id="cell-6" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>profitable <span class="op">=</span> (transactions[[<span class="st">"customer_id"</span>]]</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>              .assign(net_value <span class="op">=</span> transactions</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>                      .drop(columns<span class="op">=</span><span class="st">"customer_id"</span>)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>                      .<span class="bu">sum</span>(axis<span class="op">=</span><span class="dv">1</span>)))</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>customer_features <span class="op">=</span> (pd.read_csv(<span class="st">"data/customer_features.csv"</span>)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>                     .merge(profitable, on<span class="op">=</span><span class="st">"customer_id"</span>))</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>customer_features.head()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="3">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">customer_id</th>
+<th data-quarto-table-cell-role="th">region</th>
+<th data-quarto-table-cell-role="th">income</th>
+<th data-quarto-table-cell-role="th">age</th>
+<th data-quarto-table-cell-role="th">net_value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>0</td>
+<td>30</td>
+<td>1025</td>
+<td>24</td>
+<td>130</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>1</td>
+<td>41</td>
+<td>1649</td>
+<td>26</td>
+<td>10</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>2</td>
+<td>18</td>
+<td>2034</td>
+<td>33</td>
+<td>-6</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>3</td>
+<td>20</td>
+<td>1859</td>
+<td>35</td>
+<td>136</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>4</td>
+<td>1</td>
+<td>1243</td>
+<td>26</td>
+<td>-8</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>好！我们的任务正变得越来越不抽象。我们希望从非盈利客户中识别出有利可图的客户（<code>net_value &gt;0</code>）。让我们尝试不同的东西，看看哪一个更好。但在此之前，我们需要快速了解一下机器学习（如果你知道ML是如何工作的，请随意跳过）</p>
+</section>
+<section id="机器学习速成课程" class="level2">
+<h2 class="anchored" data-anchor-id="机器学习速成课程">机器学习速成课程</h2>
+<p>出于我们的意图和目的，我们可以将ML视为一种进行预测的强力方法。为了使其正常工作，你需要一些带有标签的数据或你所预测的基本事实。然后，您可以根据该数据训练 ML 模型，并使用它来在基本事实尚未知的情况下进行预测。下图举例说明了典型的机器学习流程。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/industry-ml/ml-flow.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>首先，您需要知道基本事实（此处为<code>net_value</code>）的数据。然后，您训练一个 ML 模型，该模型将使用特征（在本例中为区域、收入和年龄）来预测<code>net_value</code>。此训练或估计步骤将生成一个机器学习模型，当您还没有真正的<code>net_value</code>时，该模型可用于预测<code>net_value</code>。这显示在图像的左侧。你有一些新的数据，你有特征（地区，收入和年龄），但你还不知道<code>net_value</code>。因此，您将这些数据传递到模型中，它为您提供了<code>net_value</code>预测。</p>
+<p>如果你更喜欢技术符号，那么理解机器学习的另一种方法是估计条件期望<span class="math inline">\(E[Y|X]\)</span>，其中 <span class="math inline">\(Y\)</span> 称为目标变量或结果，<span class="math inline">\(X\)</span> 称为特征变量。ML 只是获取<span class="math inline">\(\hat{E}[Y|X]\)</span>的一种强大方式，通常通过优化一些错误或损失函数来实现。</p>
+<p>ML 模型的一个棘手问题是，它们几乎可以近似任何函数。换一种说法就是，它们可以被设计得强大到完美地拟合训练集中的数据。机器学习模型通常具有我们所说的复杂性超参数。这些东西可以调整模型的强大或复杂程度。在下图中，您可以看到简单模型（左）、中间模型（中）和复杂而强大的模型（右）的示例。请注意复杂模型如何与训练数据完美拟合。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/industry-ml/model-fit.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>这就提出了一些问题。也就是说，在使用我们的模型在现实世界中进行预测之前，我们如何知道模型是否有效？我们的一种方法是将预测与数据集上的实际值进行比较，其中我们有基本事实。这些是所谓的拟合优度指标，如 （R^2）。但请记住，模型可以变得如此强大，以完美地拟合数据。如果发生这种情况，预测将完全符合基本事实。这是有问题的，因为这意味着这种验证具有误导性，因为我们可以通过使我的模型更强大和复杂来保证当前数据上的验证是完美的。</p>
+<p>此外，拥有一个非常复杂的模型通常<strong>不</strong>是一件好事。你对为什么不好其实已经有一些直觉。例如，在上图中，您更倾向哪个模型？是更复杂，能得到所有的正确预测哪个吗？可能不是。您可能更倾向于中间的那个。它更平滑，更简单，同时，它仍然能做出一些很好的预测，即使它不是无误差地拟合了数据。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/industry-ml/overfitting.jpg" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>你的直觉是对的。如果给模型过于强大的拟合能力，会发生的情况是，它不仅会学习数据中的模式，还会学习随机噪声。但是当您使用模型在现实世界中进行预测时，噪声会有所不同（毕竟它是随机的），因此您的”完美”模型会犯错误。在 ML 术语中，我们说过于复杂的模型有”过拟合”问题，不能很好地泛化。那么，我们能做些什么呢？</p>
+<p>我们将假装我们无法访问部分数据。这个想法是将我们拥有基本事实的数据集一分为二。然后，我们可以为模型提供一个用于训练的部分，另一个部分可用于验证模型预测。这称为交叉验证。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/industry-ml/test.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>对于上面的数据集，模型在训练期间没有看到，因此复杂的模型不能很好地进行预测。另一方面，上面提到的图中间的模型似乎表现更好。为了选择正确的模型复杂性，我们可以训练不同的模型，每个模型具有不同的复杂性，并查看它们在一些数据上的表现，这些数据具有基本事实，但未用于训练模型。交叉验证非常重要，我们可能应该花更多的时间在上面。</p>
+</section>
+<section id="交叉验证" class="level2">
+<h2 class="anchored" data-anchor-id="交叉验证">交叉验证</h2>
+<p>交叉验证对于选择模型复杂性至关重要，但除此之外，它还很有用。每当我们想尝试许多不同的事情并估计它们在现实世界中的表现时，我们都可以使用它。交叉验证的想法是模仿现实世界，在那里我们根据我们拥有的数据估计模型，但我们对新的，看不见的数据进行预测。我们假装没有的坚持数据可以作为我们将在野外遇到的代理。</p>
+<p>让我们看看如何将交叉验证应用于确定哪些客户有利可图或不有利可图的整个问题。以下是我们应该做什么的概述：</p>
+<ol type="1">
+<li>我们有现有客户的数据。根据这些数据，我们知道哪些是有利可图的，哪些不是（我们知道基本事实）。让我们将内部数据称为训练集。</li>
+<li>我们将使用内部数据来<em>学习</em>一条规则，告诉我们哪个客户是有利可图的（因此培训）。</li>
+<li>我们将规则应用于用于学习规则的维持数据。这应该模拟在一个数据集中学习规则并将其应用于另一个数据集的过程，当我们进入生产并对真正看不见的数据进行评分时，这个过程将是不可避免的。</li>
+</ol>
+<p>下面是交叉验证的图片。在图像的最右边有真正看不见的数据，然后有一些我们只是假装在学习时没有的数据。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/industry-ml/cross-validation.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>总而言之，我们将内部数据划分为训练集和测试集。我们可以使用训练集来提出模型或规则来预测客户是否盈利，但我们将在数据集的另一个分区（测试集）中验证这些规则。此测试集将隐藏在我们的学习过程中。</p>
+<p>作为旁注，除了这个简单的训练测试拆分（例如，k-fold交叉验证或时间交叉验证）之外，还有很多方法可以使交叉验证更好，但是为了我们在这里要做的事情，这就足够了。请记住，交叉验证的精神是模拟进入生产环境后会发生什么。通过这样做，我们希望得到更现实的估计。</p>
+<p>对于我们的情况，我不会做任何花哨的事情。我将数据集一分为二。70%将用于构建一种方法，使我们能够识别有利可图的客户，30%将用于评估该方法有多好。</p>
+<div id="cell-9" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>train, test <span class="op">=</span> train_test_split(customer_features, test_size<span class="op">=</span><span class="fl">0.3</span>, random_state<span class="op">=</span><span class="dv">13</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>train.shape, test.shape</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="4">
+<pre><code>((7000, 5), (3000, 5))</code></pre>
+</div>
+</div>
+</section>
+<section id="预测和策略" class="level2">
+<h2 class="anchored" data-anchor-id="预测和策略">预测和策略</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/industry-ml/profit.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>我们一直在谈论识别有利可图的客户的方法和方法，但现在是我们更精确地使用我们的概念的时候了。让我们介绍两个新的。<strong>预测</strong>是估计或预测某事的数字。它是 <span class="math inline">\(\hat{E}[y_i|X_i]\)</span> 的估计。例如，我们可以尝试预测客户的盈利能力，预测值约为 16 巴西雷亚尔，这意味着我们预测该客户将产生 16 巴西雷亚尔的收入。这里的要点是，预测是一个简单的数字。</p>
+<p>第二个概念是<strong>策略</strong>。策略是自动决策规则。虽然预测是一个数字，但策略是一个决策。例如，我们可以制定一项政策，与收入超过 1000 的客户互动，否则不会参与。我们通常在预测的基础上构建策略：与盈利能力预测高于 10 且不以其他方式参与的所有客户互动， <span class="math inline">\(\hat{E}[y_i|X_i] &gt; 10\)</span>。机器学习通常会处理第一个概念，即预测。但请注意，仅靠预测是无用的。我们需要附加一些决定或政策。</p>
+<p>我们可以做非常简单的政策和模型，也可以做非常复杂的政策和模型。对于策略和预测，我们需要使用交叉验证，即估计一个数据分区中的策略或预测，并在另一个分区中验证其有用性。由于我们已经将数据一分为二，因此我们很好。</p>
+</section>
+<section id="单特征策略" class="level2">
+<h2 class="anchored" data-anchor-id="单特征策略">单特征策略</h2>
+<p>在我们疯狂地研究这个盈利能力问题之前，让我们先尝试一些简单的东西。80%的收益与20%的努力的东西。他们经常创造奇迹，令人惊讶的是，大多数数据科学家都忘记了它们。那么，我们能做的最简单的事情是什么呢？当然，<strong>与所有客户互动！</strong>。与其弄清楚哪些客户是有利可图的，不如与每个人做生意，并希望有利可图的客户比补偿无利润的客户更多。</p>
+<p>为了检查这是否是一个好主意，我们可以看到客户的平均净值。如果结果是积极的，这意味着，平均而言，我们将在客户身上赚钱。当然，会有盈利和无利可图的，但平均而言，如果我们有足够的客户，我们就会赚钱。另一方面，如果这个值为负，这意味着如果我们与所有客户互动，我们将赔钱。</p>
+<div id="cell-11" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>train[<span class="st">"net_value"</span>].mean()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="5">
+<pre><code>-29.169428571428572</code></pre>
+</div>
+</div>
+<p>这太可惜了…如果我们与所有人合作，我们将为与我们开展业务的客户损失约30雷亚尔。我们的第一件非常简单的事情没有奏效，如果我们不想倒闭，我们最好找到更有前途的事情。这里只是一个简短的旁注，请记住，这是一个教学示例。虽然非常简单的”一视同仁”政策在这里行不通，但在现实生活中却经常如此。通常情况下，向每个人发送营销电子邮件比不发送要好，或者向每个人提供折扣券通常比不给他们更好。</p>
+<p>展望未来，我们能想到的下一件最简单的事情是什么？一个想法是采用我们的功能，看看它们是否单独区分好客户和坏客户。以<code>收入</code>为例。直觉上，更富有的客户应该更有利可图，对吧？如果我们只与最富有的客户做生意呢？这是个好主意吗？</p>
+<p>为了弄清楚这一点，我们可以将数据划分为收入分位数（分位数具有将数据划分为大小相等的分区的适当性，这就是我喜欢它们的原因）。然后，对于每个收入分位数，让我们计算平均净值。这里的希望是，尽管平均净值为负， <span class="math inline">\(E[NetValue]&lt;0\)</span>，但可能存在一些由收入定义的子人口，其中净值为正，<span class="math inline">\(E[NetValue|Income=x]&lt;0\)</span>，可能是更高的收入水平。</p>
+<div id="cell-13" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">12</span>,<span class="dv">6</span>))</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">123</span>) <span class="co">## seed because the CIs from seaborn uses boostrap</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co"># pd.qcut create quantiles of a column</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>sns.barplot(data<span class="op">=</span>train.assign(income_quantile<span class="op">=</span>pd.qcut(train[<span class="st">"income"</span>], q<span class="op">=</span><span class="dv">20</span>)), </span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>            x<span class="op">=</span><span class="st">"income_quantile"</span>, y<span class="op">=</span><span class="st">"net_value"</span>)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Profitability by Income"</span>)</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>plt.xticks(rotation<span class="op">=</span><span class="dv">70</span>)<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="17 第十七章 预测模型 101_files/figure-html/cell-7-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>而且，可悲的是，没有。然而，所有收入水平的平均净值均为负数。虽然富裕客户确实比非富裕客户”不那么糟糕”，但平均而言，他们仍然会产生负净值。所以收入在这里对我们没有多大帮助，但是其他变量呢，比如地区呢？如果我们的大部分成本来自不得不在遥远的地方为客户服务，我们应该期望该地区将有利可图的客户与无利可图的客户区分开来。</p>
+<p>由于 region 已经是一个分类变量，因此我们不需要在此处使用分位数。让我们看看每个地区的平均净值。</p>
+<div id="cell-15" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">12</span>,<span class="dv">6</span>))</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">123</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>region_plot <span class="op">=</span> sns.barplot(data<span class="op">=</span>train, x<span class="op">=</span><span class="st">"region"</span>, y<span class="op">=</span><span class="st">"net_value"</span>)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Profitability by Region"</span>)<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="17 第十七章 预测模型 101_files/figure-html/cell-8-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>太棒了！我们可以清楚地看到，有些地区是盈利的，比如区域2、17、39，有些是无利可图的，比如区域0、9、29和特别差的区域26。这看起来超级有希望！我们可以将此转化为一项政策：根据我们在这里获得的数据，仅与显示有利可图的地区开展业务*</p>
+<p>需要注意的一件事是，我们正在做的是ML会做的事情，但以一种更简单的方式。也就是说，我们估计每个地区净值的预期值：<span class="math inline">\(E[NetValue|Region]\)</span>。现在，我们需要接受这个估计，并用它做点什么。</p>
+<p>为了构建此策略，我们将执行一些非常简单的操作。我们将围绕一个地区的预期净值构建一个95%的置信区间。如果它大于零，我们将与该地区做生意.</p>
+<p>下面的代码生成一个字典，其中键是区域，值是 95% CI 的下限。然后，字典生成器仅筛选预期净值为正的区域。结果是我们将根据我们的政策与之开展业务的地区。</p>
+<div id="cell-17" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># extract the lower bound of the 95% CI from the plot above</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>regions_to_net <span class="op">=</span> train.groupby(<span class="st">'region'</span>)[<span class="st">'net_value'</span>].agg([<span class="st">'mean'</span>, <span class="st">'count'</span>, <span class="st">'std'</span>])</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>regions_to_net <span class="op">=</span> regions_to_net.assign(</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    lower_bound<span class="op">=</span>regions_to_net[<span class="st">'mean'</span>] <span class="op">-</span> <span class="fl">1.96</span><span class="op">*</span>regions_to_net[<span class="st">'std'</span>]<span class="op">/</span>(regions_to_net[<span class="st">'count'</span>]<span class="op">**</span><span class="fl">0.5</span>)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>regions_to_net_lower_bound <span class="op">=</span> regions_to_net[<span class="st">'lower_bound'</span>].to_dict()</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>regions_to_net <span class="op">=</span> regions_to_net[<span class="st">'mean'</span>].to_dict()</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="co"># filters regions where the net value lower bound is &gt; 0.</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>regions_to_invest <span class="op">=</span> {region: net </span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>                     <span class="cf">for</span> region, net <span class="kw">in</span> regions_to_net_lower_bound.items()</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>                     <span class="cf">if</span> net <span class="op">&gt;</span> <span class="dv">0</span>}</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>regions_to_invest</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="8">
+<pre><code>{1: 2.9729729729729737,
+ 2: 20.543302704837856,
+ 4: 10.051075065003388,
+ 9: 32.08862469914759,
+ 11: 37.434210420891255,
+ 12: 37.44213667009523,
+ 15: 32.09847683044394,
+ 17: 39.52753893574483,
+ 18: 41.86162250217046,
+ 19: 15.62406327716401,
+ 20: 22.06654814414531,
+ 21: 24.621030401718578,
+ 25: 33.97022928360584,
+ 35: 11.68776141117673,
+ 37: 27.83183541449011,
+ 38: 49.740709395699994,
+ 45: 2.286387928016998,
+ 49: 17.01853709535029}</code></pre>
+</div>
+</div>
+<p><code>regions_to_invest</code>拥有我们将要接触的所有地区。现在让我们看看这个策略在我们的测试集中是如何执行的，我们假装没有这个测试集。这是评估我们政策的关键一步，因为很可能只是偶然地，我们培训集中的某个地区似乎正在盈利。如果这只是由于随机性，我们不太可能在测试集中找到相同的模式。</p>
+<p>为此，我们将筛选测试集，以仅包含定义为盈利的区域中的客户（根据我们的训练集）。然后，我们将绘制这些客户的净收入分布图，并显示我们保单的平均净收入。</p>
+<div id="cell-19" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>region_policy <span class="op">=</span> (test[test[<span class="st">"region"</span>]</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>                      <span class="co"># filter regions in regions_to_invest</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>                      .isin(regions_to_invest.keys())]) </span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>sns.histplot(data<span class="op">=</span>region_policy, x<span class="op">=</span><span class="st">"net_value"</span>)</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="co"># average has to be over all customers, not just the one we've filtered with the policy</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Average Net Income: </span><span class="sc">%.2f</span><span class="st">"</span> <span class="op">%</span> (region_policy[<span class="st">"net_value"</span>].<span class="bu">sum</span>() <span class="op">/</span> test.shape[<span class="dv">0</span>]))<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="17 第十七章 预测模型 101_files/figure-html/cell-10-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="将机器学习模型作为策略的输入" class="level2">
+<h2 class="anchored" data-anchor-id="将机器学习模型作为策略的输入">将机器学习模型作为策略的输入</h2>
+<p>如果你愿意做得更好，我们现在可以使用机器学习的力量。请记住，这可能会给整个事情增加复杂性，通常只有边际收益。但是，根据具体情况，边际收益可以转化为巨额资金，这就是为什么机器学习现在如此有价值。</p>
+<p>在这里，我将使用渐变提升模型。这是一个相当复杂的模型，但使用起来非常简单。出于我们的目的，我们不需要深入了解它是如何工作的。相反，请记住我们在ML速成课程中看到的内容：ML模型是一个超级强大的预测机器，具有一些复杂性参数。它是一个估计<span class="math inline">\(E[Y|X]\)</span>。越复杂，模型就越强大。但是，如果复杂性太高，模型将过度拟合，学习噪声，并且不能很好地泛化到看不见的数据。因此，我们需要在此处使用交叉验证来查看模型是否具有正确的复杂性。</p>
+<p>现在，我们需要问，如何利用良好的预测来改进我们简单的区域政策，以识别和吸引有利可图的客户？我认为，我们可以在这方面作出两项主要改进。首先，您必须同意，遍历所有功能以查找区分好客户和坏客户的功能是一个繁琐的过程。在这里，我们只有3个（年龄，收入和地区），所以它不是那么糟糕，但想象一下，如果我们有超过100个。此外，您必须小心<a href="https://en.wikipedia.org/wiki/Multiple_comparisons_problem">多次测试</a>和假阳性率的问题。第二个原因是，您可能需要多个功能来区分客户。在我们的示例中，我们认为区域以外的功能也具有一些有关客户盈利能力的信息。当然，当我们单独看收入时，它并没有给我们带来多少，但是那些几乎没有盈利的地区的收入呢？也许，在这些地区，如果我们只关注更富有的客户，我们仍然可以获得一些利润。从技术上讲，我们说的是<span class="math inline">\(E[NetValue|Region, Income, Age]\)</span> 是比<span class="math inline">\(E[NetValue|Region]\)</span> 更好的<code>净值</code>预测因子。这很有道理。在地区之上使用更多关于收入和年龄的信息应该使我们能够更好地预测净值。</p>
+<p>提出这些涉及交互多个功能的更复杂的策略可能非常复杂。我们必须考虑的组合随着功能数量的增加而呈指数级增长，这根本不是一件实际的事情。Istead，我们能做的就是把所有这些特征都放到机器学习模型中，让它为我们学习这些交互。这正是我们下一步要做的。</p>
+<p>该模型的目标是使用<code>region</code>，<code>income</code>，<code>age</code>来预测<code>net_value</code>。为了帮助它，我们将采用区域特征（这是分类的），并使用数值对其进行编码。我们将用训练集上区域的平均净值替换每个区域。还记得我们把它们存储在<code>regions_to_net</code>字典中吗？有了这个，我们所要做的就是调用方法<code>.replace()</code>并将此字典作为参数传递。我将为此创建一个函数，因为我们将多次执行此替换。这种转换特征以促进学习的过程通常称为特征工程。</p>
+<div id="cell-21" class="cell" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> encode(df): </span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> df.replace({<span class="st">"region"</span>: regions_to_net})</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>接下来，我们的模型将从 <a href="https://scikit-learn.org/stable/">Sklearn</a> 导入。他们所有的模型都有一个非常标准的用法。首先，实例化传入复杂性参数的模型。对于此模型，我们将估计器的数量设置为 400，最大深度设置为 4，依此类推。模型越深，估计器的数量越多，模型就越强大。当然，我们不能让它太强大，否则它会学习训练数据中的噪声或过度拟合。同样，您不需要知道这些参数的作用的详细信息。请记住，这是一个非常好的预测模型。然后，为了训练我们的模型，我们将调用<code>.fit()</code>方法，传递特征’X’和我们要预测的变量 - 或目标变量 - <code>net_value</code>。</p>
+<div id="cell-23" class="cell" data-execution_count="11">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>model_params <span class="op">=</span> {<span class="st">'n_estimators'</span>: <span class="dv">400</span>,</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>                <span class="st">'max_depth'</span>: <span class="dv">4</span>,</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>                <span class="st">'min_samples_split'</span>: <span class="dv">10</span>,</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>                <span class="st">'learning_rate'</span>: <span class="fl">0.01</span>,</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>                <span class="st">'loss'</span>: <span class="st">'ls'</span>}</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>features <span class="op">=</span> [<span class="st">"region"</span>, <span class="st">"income"</span>, <span class="st">"age"</span>]</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>target <span class="op">=</span> <span class="st">"net_value"</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">123</span>)</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>reg <span class="op">=</span> ensemble.GradientBoostingRegressor(<span class="op">**</span>model_params)</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a><span class="co"># fit model on the training set</span></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>encoded_train <span class="op">=</span> train[features].pipe(encode)</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>reg.fit(encoded_train, train[target])<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>现在已训练该模型。接下来，我们需要检查它是否是好的。为此，我们可以在<strong>测试集</strong>上查看此模型的预测性能。有大量的指标可以评估机器学习模型的预测性能。在这里，我将使用一个名为 <span class="math inline">\(R^2\)</span> 的函数。我们不需要在这里详细介绍。可以说<span class="math inline">\(R^2\)</span>用于评估预测连续变量的模型（如<code>net_income</code>）。此外，<span class="math inline">\(R^2\)</span>可以从负无穷大（如果预测值低于平均值，则为负）变为 1.0。<span class="math inline">\(R^2\)</span>告诉我们<code>net_income</code>中的方差有多少是由我们的模型解释的。</p>
+<div id="cell-25" class="cell" data-execution_count="12">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>train_pred <span class="op">=</span> (encoded_train</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>              .assign(predictions<span class="op">=</span>reg.predict(encoded_train[features])))</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Train R2: "</span>, r2_score(y_true<span class="op">=</span>train[target], y_pred<span class="op">=</span>train_pred[<span class="st">"predictions"</span>]))</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Test R2: "</span>, r2_score(y_true<span class="op">=</span>test[target], y_pred<span class="op">=</span>reg.predict(test[features].pipe(encode))))</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Train R2:  0.7108790300152951
+Test R2:  0.6938513063048141</code></pre>
+</div>
+</div>
+<p>在本例中，模型解释了训练集中约 71% 的<code>net_income</code>方差，但仅解释了测试集中约 69% 的<code>net_income</code>方差。这是预料之中的。由于模型可以访问训练集，因此通常会高估那里的性能。只是为了好玩（并了解有关过拟合的更多信息），请尝试将模型的<code>max_depth</code>设置为14，看看会发生什么。您可能会看到列车 <span class="math inline">\(R^2\)</span> 飙升，但测试集 <span class="math inline">\(R^2\)</span> 变低。这就是过度拟合的样子。</p>
+<p>接下来，为了制定我们的策略，我们将测试集预测存储在”预测”列中。此预测是<span class="math inline">\(E[NetValue|Age, Income, Region ]\)</span>。</p>
+<div id="cell-27" class="cell" data-execution_count="13">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>model_policy <span class="op">=</span> test.assign(prediction<span class="op">=</span>reg.predict(test[features].pipe(encode)))</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>model_policy.head()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="13">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">customer_id</th>
+<th data-quarto-table-cell-role="th">region</th>
+<th data-quarto-table-cell-role="th">income</th>
+<th data-quarto-table-cell-role="th">age</th>
+<th data-quarto-table-cell-role="th">net_value</th>
+<th data-quarto-table-cell-role="th">prediction</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">5952</th>
+<td>5952</td>
+<td>19</td>
+<td>1983</td>
+<td>23</td>
+<td>21</td>
+<td>47.734883</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1783</th>
+<td>1783</td>
+<td>31</td>
+<td>914</td>
+<td>31</td>
+<td>-46</td>
+<td>-36.026935</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4811</th>
+<td>4811</td>
+<td>33</td>
+<td>1349</td>
+<td>25</td>
+<td>-19</td>
+<td>22.553420</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">145</th>
+<td>145</td>
+<td>20</td>
+<td>1840</td>
+<td>26</td>
+<td>55</td>
+<td>48.306256</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">7146</th>
+<td>7146</td>
+<td>19</td>
+<td>3032</td>
+<td>34</td>
+<td>-17</td>
+<td>7.039414</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>就像我们对<code>region</code>特征所做的那样，我们可以通过对模型的预测来显示平均净值。由于模型是连续的而不是分类的，因此我们需要首先使其离散。这样做的一种方法是使用pandas的<code>pd.qcut</code>（天！我超喜欢这个函数！），它使用模型预测将数据划分为分位数。让我们使用 50 个分位数，因为 50 是我们拥有的区域数。作为惯例，我倾向于将这些模型分位数称为<strong>模型波段</strong>，因为它给人的直觉是，这个组在一个波段内有模型预测，比如说，从-10到200。</p>
+<div id="cell-29" class="cell" data-execution_count="14">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">12</span>,<span class="dv">6</span>))</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>n_bands <span class="op">=</span> <span class="dv">50</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>bands <span class="op">=</span> [<span class="ss">f"band_</span><span class="sc">{</span>b<span class="sc">}</span><span class="ss">"</span> <span class="cf">for</span> b <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,n_bands<span class="op">+</span><span class="dv">1</span>)]</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">123</span>)</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>model_plot <span class="op">=</span> sns.barplot(data<span class="op">=</span>model_policy</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>                         .assign(model_band <span class="op">=</span> pd.qcut(model_policy[<span class="st">"prediction"</span>], q<span class="op">=</span>n_bands)),</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>                         x<span class="op">=</span><span class="st">"model_band"</span>, y<span class="op">=</span><span class="st">"net_value"</span>)</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Profitability by Model Prediction Quantiles"</span>)</span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>plt.xticks(rotation<span class="op">=</span><span class="dv">70</span>)<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="17 第十七章 预测模型 101_files/figure-html/cell-15-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>这里需要注意的是，有些模型波段的净值是超负的，而也有一些波段的净值非常正。此外，有些波段我们不知道净值是负数还是正数。最后，注意它们如何从左到右呈上升趋势。由于我们预测的是净收入，因此预测值将与被预测对象的实际值成正比。</p>
+<p>现在，要将使用机器学习模型的策略与仅使用区域的策略进行比较，我们还可以显示净收益的直方图以及测试集中的总净值。</p>
+<div id="cell-31" class="cell" data-tags="[&quot;hide-input&quot;]" data-execution_count="15">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">10</span>,<span class="dv">6</span>))</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>model_plot_df <span class="op">=</span> (model_policy[model_policy[<span class="st">"prediction"</span>]<span class="op">&gt;</span><span class="dv">0</span>])</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>sns.histplot(data<span class="op">=</span>model_plot_df, x<span class="op">=</span><span class="st">"net_value"</span>, color<span class="op">=</span><span class="st">"C2"</span>, label<span class="op">=</span><span class="st">"model_policy"</span>)</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>region_plot_df <span class="op">=</span> (model_policy[model_policy[<span class="st">"region"</span>].isin(regions_to_invest.keys())])</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>sns.histplot(data<span class="op">=</span>region_plot_df, x<span class="op">=</span><span class="st">"net_value"</span>, label<span class="op">=</span><span class="st">"region_policy"</span>)</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Model Net Income: </span><span class="sc">%.2f</span><span class="st">;    Region Policy Net Income </span><span class="sc">%.2f</span><span class="st">."</span> <span class="op">%</span> </span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>          (model_plot_df[<span class="st">"net_value"</span>].<span class="bu">sum</span>() <span class="op">/</span> test.shape[<span class="dv">0</span>],</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>           region_plot_df[<span class="st">"net_value"</span>].<span class="bu">sum</span>() <span class="op">/</span> test.shape[<span class="dv">0</span>]))</span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>plt.legend()<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="17 第十七章 预测模型 101_files/figure-html/cell-16-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>正如我们所看到的，该模型生成的策略比仅使用”区域”功能更好，但并不多。虽然模型策略将使我们在测试集上达到约16.6雷亚尔/客户，但区域政策将使我们仅获得15.5雷亚尔/客户。它只是稍微好一点，但如果你有大量的客户，这可能已经证明使用模型而不是简单的单一功能策略是合理的。</p>
+</section>
+<section id="细粒度策略" class="level2">
+<h2 class="anchored" data-anchor-id="细粒度策略">细粒度策略</h2>
+<p>回顾一下，到目前为止，我们测试了所有策略中最简单的策略，即与所有客户互动。此策略可以看作是估计边际净值 <span class="math inline">\(\hat{E}[NetValue] &gt; 0\)</span>。由于这不起作用（每个客户的平均净收入为负），我们开发了一个基于区域的单一功能策略：我们将在某些区域开展业务，但在其他区域不开展业务，或者 <span class="math inline">\(\hat{E}[NetValue|Region] &gt; 0\)</span>。这已经给了我们非常好的结果。接下来，我们进行了全面的机器学习，使用了一个使用所有功能的预测模型： <span class="math inline">\(\hat{E}[NetValue|Region, Income, Age] &gt; 0\)</span>。然后，我们使用该模型作为策略的输入，并选择与净收入预测高于零的所有客户开展业务。</p>
+<p>在这里，策略处理的决定非常简单：与客户互动或不与客户互动。到目前为止，我们制定的政策是处理二元情况的。它们以以下形式出现</p>
+<pre><code>如果预测值&gt;0，那么做生意，否则就不做生意。</code></pre>
+<p>这就是我们所说的<strong>阈值</strong>。如果预测超过某个阈值（在我们的例子中为零，但可能是其他东西），我们做出一个决定，如果没有，我们采取另一个决定。在现实生活中可以应用的另一个例子是交易欺诈检测：如果检测到欺诈的模型的预测分数高于某个阈值”X”，我们将拒绝交易，否则我们批准它。</p>
+<p>阈值在许多实际案例场景中都有效，当决策的性质是二元的时，它特别有用。但是，我们可以想到事情往往更微妙的情况。例如，您可能愿意在营销上花费更多，以引起非常有利可图的客户的注意。或者，您可能希望将他们添加到一些主要客户列表中，在那里您可以给予他们特殊待遇，但这样做也会花费更多。请注意，如果我们包括这些可能性，您的决定将从二元（参与与不参与）到持续：您应该在客户身上投入多少。</p>
+<p>在这里，对于下一个示例，假设您的决定不仅仅是与谁做生意，而是您应该在每个客户身上投入多少营销成本。为了这个例子，假设你正在与其他公司竞争，谁在特定客户身上的营销上花更多的钱，谁就赢得了这个客户（很像一个竞标机制）。在这种情况下，在高利润客户身上投入更多资金是有道理的，在利润微薄的客户身上投资得更少，在非盈利客户身上投资更少。</p>
+<p>一种方法是将你的预测分解为波段。我们之前已经这样做了，用于模型比较，但在这里我们将这样做是为了决策。让我们创建 20 个波段。我们可以将它们视为分位数或等大小的组。根据我们的预测，第一个波段将包含利润减少5%的客户*，第二个波段将包含从5%到10%的利润减少的客户，依此类推。最后一个乐队，20个，将包含最有利可图的客户。</p>
+<p>请注意，装箱也必须在训练集上进行估计，并应用于测试集！因此，我们将在训练集上使用 <code>pd.qcut</code> 计算区段。为了实际进行装箱，我们将使用<code>np.digitize</code>，传递在训练集上预先计算的箱子。</p>
+<div id="cell-33" class="cell" data-execution_count="16">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> model_binner(prediction_column, bins):</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>    <span class="co"># find the bins according to the training set</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    bands <span class="op">=</span> pd.qcut(prediction_column, q<span class="op">=</span>bins, retbins<span class="op">=</span><span class="va">True</span>)[<span class="dv">1</span>]</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> binner_function(prediction_column):</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> np.digitize(prediction_column, bands)</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> binner_function</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a><span class="co"># train the binning function</span></span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>binner_fn <span class="op">=</span> model_binner(train_pred[<span class="st">"predictions"</span>], <span class="dv">20</span>)</span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a><span class="co"># apply the binning</span></span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>model_band <span class="op">=</span> model_policy.assign(bands <span class="op">=</span> binner_fn(model_policy[<span class="st">"prediction"</span>]))</span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>model_band.head()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="16">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">customer_id</th>
+<th data-quarto-table-cell-role="th">region</th>
+<th data-quarto-table-cell-role="th">income</th>
+<th data-quarto-table-cell-role="th">age</th>
+<th data-quarto-table-cell-role="th">net_value</th>
+<th data-quarto-table-cell-role="th">prediction</th>
+<th data-quarto-table-cell-role="th">bands</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">5952</th>
+<td>5952</td>
+<td>19</td>
+<td>1983</td>
+<td>23</td>
+<td>21</td>
+<td>47.734883</td>
+<td>18</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1783</th>
+<td>1783</td>
+<td>31</td>
+<td>914</td>
+<td>31</td>
+<td>-46</td>
+<td>-36.026935</td>
+<td>7</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4811</th>
+<td>4811</td>
+<td>33</td>
+<td>1349</td>
+<td>25</td>
+<td>-19</td>
+<td>22.553420</td>
+<td>15</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">145</th>
+<td>145</td>
+<td>20</td>
+<td>1840</td>
+<td>26</td>
+<td>55</td>
+<td>48.306256</td>
+<td>18</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">7146</th>
+<td>7146</td>
+<td>19</td>
+<td>3032</td>
+<td>34</td>
+<td>-17</td>
+<td>7.039414</td>
+<td>13</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div id="cell-34" class="cell" data-tags="[&quot;hide-input&quot;]" data-execution_count="17">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">10</span>,<span class="dv">6</span>))</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>sns.barplot(data<span class="op">=</span>model_band, x<span class="op">=</span><span class="st">"bands"</span>, y<span class="op">=</span><span class="st">"net_value"</span>)</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Model Bands"</span>)<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="17 第十七章 预测模型 101_files/figure-html/cell-18-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>有了这些频段，我们可以将大部分营销投资分配给20和19频段。请注意，我们是如何从二元决策（参与与不参与）转变为连续决策：为每个客户在营销上投入多少资金。当然，您可以进一步微调它，添加更多波段。在限制中，您根本没有装箱。相反，您正在使用模型的原始预测，并且可以创建决策规则，例如</p>
+<pre><code>mkt_investments_i = model_prediction_i * 0.3</code></pre>
+<p>对于每个客户<span class="math inline">\(i\)</span>，您投资了模型预测的net_value的30%（30%是任意数字，但您明白了）。</p>
+</section>
+<section id="关键思想" class="level2">
+<h2 class="anchored" data-anchor-id="关键思想">关键思想</h2>
+<p>我们在很短的时间内已经在这里涵盖了很多领域，所以我认为这个回顾对于我们看看我们在这里取得的成就非常重要。首先，我们了解到大多数机器学习应用程序只涉及做出良好的预测，其中预测被理解为从已知输入到最初未知但定义明确的输出的映射。我们也可以把预测理解为估计一个期望函数 <span class="math inline">\(E[Y|X]\)</span>。但当我说”仅此而已”时，我并不完全公平。我们还看到了好的预测可以解决比我们乍一看可能意识到的更多的问题，比如语言翻译和自动驾驶汽车。</p>
+<p>然后，我们回到现实，看看好的预测如何帮助我们完成更常见的任务，比如弄清楚我们应该引入哪个客户以及避免哪些客户。具体来说，我们研究了如何预测客户利润。根据这一预测，我们制定了一项政策，决定我们应该与谁做生意。请注意，这只是可以应用预测模型的示例。肯定还有其他应用的基调，例如信用卡承销，欺诈检测，癌症诊断以及任何可能有用的良好预测。</p>
+<p>这里的关键点是，<strong>如果你能将你的业务问题描述为预测问题，那么机器学习可能是这项工作的正确工具</strong>。我真的想多强调这一点。随着围绕机器学习的所有炒作，我觉得人们忘记了这一非常重要的一点，并且经常最终制作出非常擅长预测完全无用的东西的模型。他们不是考虑如何将业务问题构建为预测问题，然后用机器学习来解决它，而是经常构建一个预测模型，并试图看看哪些业务问题可以从该预测中受益。这可能有效，但通常情况下，这是一个黑暗中的镜头，只会在寻找问题时生成解决方案。</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "已复制");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "已复制");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../chapters/16 第十六章 断点回归.html" class="pagination-link" aria-label="第十六章: 断点回归">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">第十六章: 断点回归</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../chapters/18 第十八章 异质干预效应与个性化.html" class="pagination-link" aria-label="第十八章: 异质干预效应">
+        <span class="nav-page-text">第十八章: 异质干预效应</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>内容基于《Causal Inference for the Brave and True》中文翻译整理。</p>
+</div>   
+    <div class="nav-footer-center">
+<p>用 Quarto 构建，面向在线阅读与本地复现。</p>
+<div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/xieliaing/CausalInferenceIntro/blob/main/chapters/17 第十七章 预测模型 101.ipynb" class="toc-action"><i class="bi bi-github"></i>查看代码</a></li><li><a href="https://github.com/xieliaing/CausalInferenceIntro/issues/new" class="toc-action"><i class="bi empty"></i>反馈问题</a></li></ul></div></div>
+    <div class="nav-footer-right">
+<p><a href="https://github.com/xieliaing/CausalInferenceIntro">GitHub 仓库</a></p>
+</div>
+  </div>
+</footer>
+
+
+
+
+<script src="../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

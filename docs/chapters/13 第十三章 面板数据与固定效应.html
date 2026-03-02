@@ -1,0 +1,1684 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-CN" xml:lang="zh-CN"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="CausalInferenceIntro">
+
+<title>第十三章: 面板数据与固定效应 – 因果推断：从概念到实践</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../chapters/14 第十四章 双重差分.html" rel="next">
+<link href="../chapters/12 第十二章 双重稳健估计.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-f1a637e51edb8e5d5a953483935b5072.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "没有结果",
+    "search-matching-documents-text": "匹配的文档",
+    "search-copy-link-title": "复制搜索链接",
+    "search-hide-matches-text": "隐藏其它匹配结果",
+    "search-more-match-text": "更多匹配结果",
+    "search-more-matches-text": "更多匹配结果",
+    "search-clear-button-title": "清除",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "取消",
+    "search-submit-button-title": "提交",
+    "search-label": "搜索"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-sidebar docked nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    </a>
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">因果推断：从概念到实践</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="搜索"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="展开或折叠导航栏" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="../index.html" aria-current="page"> 
+<span class="menu-text">首页</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/xieliaing/CausalInferenceIntro"> 
+<span class="menu-text">GitHub</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/matheusfacure/python-causality-handbook"> 
+<span class="menu-text">原书</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="展开或折叠侧边栏导航" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/01 第一章-因果关系入门.html">章节</a></li><li class="breadcrumb-item"><a href="../chapters/13 第十三章 面板数据与固定效应.html">第十三章: 面板数据与固定效应</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="展开或折叠侧边栏导航" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="搜索" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+      <a href="../index.html" class="sidebar-logo-link">
+      </a>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="搜索"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">章节</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="展开或折叠此栏">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/01 第一章-因果关系入门.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第一章: 因果关系入门</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/02 第二章-随机试验.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二章: 随机试验</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/03 第三章 统计学回顾：最危险的公式.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第三章: 统计学回顾</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/04 第四章 图因果模型.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第四章: 图因果模型</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/05 第五章 线性回归超乎寻常的有效性.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第五章: 线性回归的有效性</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/06 第六章 分组和虚拟变量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第六章: 分组和虚拟变量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/07 第七章 控制混淆因素之外的考虑.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第七章: 控制混淆之外</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/08 第八章 工具变量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第八章: 工具变量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/09 第九章 非服从性与局部平均效应.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第九章: 非服从性与 LATE</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/10 第十章 匹配.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十章: 匹配</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/11 第十一章 倾向得分.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十一章: 倾向得分</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/12 第十二章 双重稳健估计.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十二章: 双重稳健估计</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/13 第十三章 面板数据与固定效应.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">第十三章: 面板数据与固定效应</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/14 第十四章 双重差分.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十四章: 双重差分</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/15 第十五章 合成控制.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十五章: 合成控制</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/16 第十六章 断点回归.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十六章: 断点回归</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/17 第十七章 预测模型 101.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十七章: 预测模型 101</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/18 第十八章 异质干预效应与个性化.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十八章: 异质干预效应</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/19 第十九章 评估因果模型.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十九章: 评估因果模型</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/20 第二十章 即插即用估计量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二十章: 即插即用估计量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/21 第二十一章 元学习器.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二十一章: 元学习器</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="2">
+    <h2 id="toc-title">本页目录</h2>
+   
+  <ul>
+  <li><a href="#控制你看不到的东西" id="toc-控制你看不到的东西" class="nav-link active" data-scroll-target="#控制你看不到的东西">控制你看不到的东西</a></li>
+  <li><a href="#固定效应" id="toc-固定效应" class="nav-link" data-scroll-target="#固定效应">固定效应</a></li>
+  <li><a href="#固定效应的可视化" id="toc-固定效应的可视化" class="nav-link" data-scroll-target="#固定效应的可视化">固定效应的可视化</a></li>
+  <li><a href="#时间效应" id="toc-时间效应" class="nav-link" data-scroll-target="#时间效应">时间效应</a></li>
+  <li><a href="#当面板数据对您没有帮助时" id="toc-当面板数据对您没有帮助时" class="nav-link" data-scroll-target="#当面板数据对您没有帮助时">当面板数据对您没有帮助时</a></li>
+  <li><a href="#关键思想" id="toc-关键思想" class="nav-link" data-scroll-target="#关键思想">关键思想</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/xieliaing/CausalInferenceIntro/blob/main/chapters/13 第十三章 面板数据与固定效应.ipynb" class="toc-action"><i class="bi bi-github"></i>查看代码</a></li><li><a href="https://github.com/xieliaing/CausalInferenceIntro/issues/new" class="toc-action"><i class="bi empty"></i>反馈问题</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/01 第一章-因果关系入门.html">章节</a></li><li class="breadcrumb-item"><a href="../chapters/13 第十三章 面板数据与固定效应.html">第十三章: 面板数据与固定效应</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">第十三章: 面板数据与固定效应</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">作者</div>
+    <div class="quarto-title-meta-contents">
+             <p>CausalInferenceIntro </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">发布于</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">2026年3月2日</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="控制你看不到的东西" class="level2">
+<h2 class="anchored" data-anchor-id="控制你看不到的东西">控制你看不到的东西</h2>
+<p>倾向得分、线性回归和匹配等方法非常擅长控制非随机数据中的混淆现象，但它们依赖于一个关键假设：控制后无混淆</p>
+<p><span class="math display">\[
+(Y_0, Y_1) \perp T | X
+\]</span></p>
+<p>简而言之，它们要求所有混淆因素都是已知的和可测量的，这样我们才能以它们为条件并使处理尽可能随机。一个主要问题是有时我们根本无法衡量混淆因素。例如，拿一个经典的劳动经济学问题来计算婚姻对男性收入的影响。经济学中众所周知的事实是，已婚男性的收入高于单身男性。但是，尚不清楚这种关系是否是因果关系。可能是受过更多教育的男性更有可能结婚，也更有可能从事高收入工作，这意味着教育是婚姻对收入影响的一个混淆因素。对于这个混淆因素，我们可以衡量研究中人员的教育程度，并对其进行回归控制。但另一个混淆因素可能是好看的外貌。可能是更英俊的男人更有可能结婚，也更有可能获得高薪工作。不幸的是，美丽和智力这类特征类似，这是我们无法很好衡量的东西。</p>
+<p>这使我们陷入困境，因为如果我们有无法衡量的混淆因素，我们就有偏差。正如我们之前所见，处理这个问题的一种方法是使用工具变量。但是想出好的工具变量并不是一件容易的事，需要很多的创造力。在这里，让我们看一下利用时间或数据的时间结构的替代方案。</p>
+<p>这个想法是使用<strong>面板数据</strong>。当我们<strong>在多个时间段内对同一个人进行观察</strong>，我们就得到了面板数据。面板数据格式在行业中非常常见，比如当对同一用户在多个时间段的行为记录进行记录和保存的时候。我们可以利用面板数据的原因是因为我们可以在干预前后比较同一个单位，看看他们在干预前后的表现如何。在我们深入研究数学之前，让我们看看如何进行直观地理解。</p>
+<div id="863afdfb" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>warnings.filterwarnings(<span class="st">'ignore'</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib <span class="im">import</span> style</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib <span class="im">import</span> pyplot <span class="im">as</span> plt</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> statsmodels.formula.api <span class="im">as</span> smf</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> graphviz <span class="im">as</span> gr</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> linearmodels.panel <span class="im">import</span> PanelOLS</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>matplotlib inline</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>pd.set_option(<span class="st">"display.max_columns"</span>, <span class="dv">6</span>)</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>style.use(<span class="st">"fivethirtyeight"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>首先，让我们看一下我们在跨时间包含同一单位的多个观察后得到的因果图。 假设我们有这样一种情况，第一次结婚同时导致收入和随后的婚姻状况。 对于第 2 次和第 3 次也是如此。此外，假设所有时间段的美貌程度都是相同的（这是一个大胆的说法，但如果时间只有几年，这是合理的），它会导致婚姻和收入。</p>
+<div id="e220106a" class="cell" data-execution_count="16">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>g <span class="op">=</span> gr.Digraph()</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"婚姻_1"</span>, <span class="st">"收入_1"</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"婚姻_1"</span>, <span class="st">"婚姻_2"</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"婚姻_2"</span>, <span class="st">"收入_2"</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"婚姻_2"</span>, <span class="st">"婚姻_3"</span>)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"婚姻_3"</span>, <span class="st">"收入_3"</span>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"美貌程度"</span>, <span class="st">"婚姻_1"</span>)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"美貌程度"</span>, <span class="st">"婚姻_2"</span>)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"美貌程度"</span>, <span class="st">"婚姻_3"</span>)</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"美貌程度"</span>, <span class="st">"收入_1"</span>)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"美貌程度"</span>, <span class="st">"收入_2"</span>)</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"美貌程度"</span>, <span class="st">"收入_3"</span>)</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>g</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="16">
+<div>
+<figure class="figure">
+<p><img src="13 第十三章 面板数据与固定效应_files/figure-html/cell-3-output-1.svg" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>请记住，我们无法控制外貌多美这个因素，因为我们无法衡量它。 但是我们仍然可以使用面板结构，所以它不再是问题了。 这个想法是，我们可以将美——以及任何其他随时间不变的属性——视为定义一个人的综合要素。 虽然我们不能直接控制它们，但我们可以控制个人本身。</p>
+<div id="a9e30326" class="cell" data-execution_count="17">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>g <span class="op">=</span> gr.Digraph()</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"婚姻_1"</span>, <span class="st">"收入_1"</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"婚姻_1"</span>, <span class="st">"婚姻_2"</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"婚姻_2"</span>, <span class="st">"收入_2"</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"婚姻_2"</span>, <span class="st">"婚姻_3"</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"婚姻_3"</span>, <span class="st">"收入_3"</span>)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"Person (美貌程度, 智力...)"</span>, <span class="st">"婚姻_1"</span>)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"Person (美貌程度, 智力...)"</span>, <span class="st">"婚姻_2"</span>)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"Person (美貌程度, 智力...)"</span>, <span class="st">"婚姻_3"</span>)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"Person (美貌程度, 智力...)"</span>, <span class="st">"收入_1"</span>)</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"Person (美貌程度, 智力...)"</span>, <span class="st">"收入_2"</span>)</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>g.edge(<span class="st">"Person (美貌程度, 智力...)"</span>, <span class="st">"收入_3"</span>)</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>g</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="17">
+<div>
+<figure class="figure">
+<p><img src="13 第十三章 面板数据与固定效应_files/figure-html/cell-4-output-1.svg" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>想想看。我们无法衡量美貌和智力等属性，但我们知道拥有这些属性的人是同一个人。因此，我们可以创建一个表示该人的虚拟变量并将其添加到线性模型中。当我们说我们可以控制人本身时，这就是我们的意思：我们正在添加一个表示该特定人的变量（在本例中为虚拟变量）。在我们的模型中使用这个人来估计婚姻对收入的影响时，回归发现婚姻的影响<strong>同时保持人这个变量固定</strong>。添加这个实体个人对应的虚拟变量就是我们所说的固定效应模型。</p>
+</section>
+<section id="固定效应" class="level2">
+<h2 class="anchored" data-anchor-id="固定效应">固定效应</h2>
+<p>为了方面后面更正式地讲述，让我们首先看一下我们拥有的数据。按照我们的例子，我们将尝试估计婚姻对收入的影响。我们的数据包含多年以来多个个体 (<code>nr</code>) 的这两个变量，<code>married</code> 和<code>lwage</code>。请注意，工资采用对数形式。除此之外，我们还有其他控制措施，例如当年的工作小时数、受教育年限等。</p>
+<div id="a58dc141" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> linearmodels.datasets <span class="im">import</span> wage_panel</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> wage_panel.load()</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>data.head()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="4">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">nr</th>
+<th data-quarto-table-cell-role="th">year</th>
+<th data-quarto-table-cell-role="th">black</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">lwage</th>
+<th data-quarto-table-cell-role="th">expersq</th>
+<th data-quarto-table-cell-role="th">occupation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>13</td>
+<td>1980</td>
+<td>0</td>
+<td>...</td>
+<td>1.197540</td>
+<td>1</td>
+<td>9</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>13</td>
+<td>1981</td>
+<td>0</td>
+<td>...</td>
+<td>1.853060</td>
+<td>4</td>
+<td>9</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>13</td>
+<td>1982</td>
+<td>0</td>
+<td>...</td>
+<td>1.344462</td>
+<td>9</td>
+<td>9</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>13</td>
+<td>1983</td>
+<td>0</td>
+<td>...</td>
+<td>1.433213</td>
+<td>16</td>
+<td>9</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>13</td>
+<td>1984</td>
+<td>0</td>
+<td>...</td>
+<td>1.568125</td>
+<td>25</td>
+<td>5</td>
+</tr>
+</tbody>
+</table>
+
+<p>5 rows × 12 columns</p>
+</div>
+</div>
+</div>
+<p>通常，固定效应模型定义为</p>
+<p><span class="math display">\[
+y_{it} = \beta X_{it} + \gamma U_i + e_{it}
+\]</span></p>
+<p>其中 <span class="math inline">\(y_{it}\)</span> 是个体 <span class="math inline">\(i\)</span> 在时间 <span class="math inline">\(t\)</span> 的结果，<span class="math inline">\(X_{it}\)</span> 是个体变量的向量<span class="math inline">\(i\)</span> 在时间 <span class="math inline">\(t\)</span>。 <span class="math inline">\(U_i\)</span> 是单个 <span class="math inline">\(i\)</span> 的一组不可观测值。请注意，这些不可观测值随着时间的推移是不变的，因此缺少时间下标。最后，<span class="math inline">\(e_{it}\)</span> 是错误项。对于教育示例，<span class="math inline">\(y_{it}\)</span> 是对数工资，<span class="math inline">\(X_{it}\)</span> 是随时间变化的可观察变量，例如婚姻和经验，<span class="math inline">\(U_i\)</span>是每个人没有观察到但不变的变量，例如美丽和智力。</p>
+<p>现在，请记住我说过使用具有固定效果模型的面板数据就像为实体添加虚拟对象一样简单。这是真的，但在实践中，我们实际上并没有这样做。想象一个我们有 100 万客户的数据集。如果我们为它们中的每一个添加一个 dummy，我们最终会得到 100 万列，这可能不是一个好主意。相反，我们使用将线性回归划分为 2 个独立模型的技巧。我们以前见过这个，但现在是回顾它的好时机。假设您有一个线性回归模型，其中包含一组特征 <span class="math inline">\(X_1\)</span> 和另一组特征 <span class="math inline">\(X_2\)</span>。</p>
+<p><span class="math display">\[
+\hat{Y} = \hat{\beta_1} X_1 + \hat{\beta_2} X_2
+\]</span></p>
+<p>其中 <span class="math inline">\(X_1\)</span> 和 <span class="math inline">\(X_1\)</span> 是特征矩阵（每个特征一行，每个观察一列）和 <span class="math inline">\(\hat{\beta_1}\)</span> 和 <span class="math inline">\(\hat{ \beta_2}\)</span> 是行向量。您可以通过执行获得完全相同的 <span class="math inline">\(\hat{\beta_1}\)</span> 参数</p>
+<ol type="1">
+<li>在第二组特征 <span class="math inline">\(\hat{y^*} = \hat{\gamma_1} X_2\)</span> 上回归结果 <span class="math inline">\(y\)</span></li>
+<li>在第二个 <span class="math inline">\(\hat{X_1} = \hat{\gamma_2} X_2\)</span> 上回归第一组特征</li>
+<li>得到残差 <span class="math inline">\(\tilde{X}_1 = X_1 - \hat{X_1}\)</span> 和 <span class="math inline">\(\tilde{y}_1 = y_1 - \hat{y^*}\)</span></li>
+<li>将结果的残差回归到特征残差 <span class="math inline">\(\hat{y} = \hat{\beta_1} \tilde{X}_1\)</span></li>
+</ol>
+<p>最后一次回归的参数将与使用所有特征运行回归完全相同。但这究竟对我们有什么帮助呢？好吧，我们可以将带有实体假人的模型的估计分解为 2。首先，我们使用假人来预测结果和特征。这些是上面的步骤 1 和 2。</p>
+<p>现在，还记得在虚拟变量上运行回归是如何像估计该虚拟变量的平均值一样简单吗？如果你不这样做，让我们用我们的数据来证明这是真的。让我们运行一个模型，我们将工资预测为虚拟年份的函数。</p>
+<div id="a092d1eb" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>mod <span class="op">=</span> smf.ols(<span class="st">"lwage ~ C(year)"</span>, data<span class="op">=</span>data).fit()</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>mod.summary().tables[<span class="dv">1</span>]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="5">
+<table class="simpletable caption-top table table-sm table-striped small">
+<tbody>
+<tr class="odd">
+<td></td>
+<th data-quarto-table-cell-role="th">coef</th>
+<th data-quarto-table-cell-role="th">std err</th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">P&gt;|t|</th>
+<th data-quarto-table-cell-role="th">[0.025</th>
+<th data-quarto-table-cell-role="th">0.975]</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Intercept</th>
+<td>1.3935</td>
+<td>0.022</td>
+<td>63.462</td>
+<td>0.000</td>
+<td>1.350</td>
+<td>1.437</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">C(year)[T.1981]</th>
+<td>0.1194</td>
+<td>0.031</td>
+<td>3.845</td>
+<td>0.000</td>
+<td>0.059</td>
+<td>0.180</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">C(year)[T.1982]</th>
+<td>0.1782</td>
+<td>0.031</td>
+<td>5.738</td>
+<td>0.000</td>
+<td>0.117</td>
+<td>0.239</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">C(year)[T.1983]</th>
+<td>0.2258</td>
+<td>0.031</td>
+<td>7.271</td>
+<td>0.000</td>
+<td>0.165</td>
+<td>0.287</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">C(year)[T.1984]</th>
+<td>0.2968</td>
+<td>0.031</td>
+<td>9.558</td>
+<td>0.000</td>
+<td>0.236</td>
+<td>0.358</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">C(year)[T.1985]</th>
+<td>0.3459</td>
+<td>0.031</td>
+<td>11.140</td>
+<td>0.000</td>
+<td>0.285</td>
+<td>0.407</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">C(year)[T.1986]</th>
+<td>0.4062</td>
+<td>0.031</td>
+<td>13.082</td>
+<td>0.000</td>
+<td>0.345</td>
+<td>0.467</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">C(year)[T.1987]</th>
+<td>0.4730</td>
+<td>0.031</td>
+<td>15.232</td>
+<td>0.000</td>
+<td>0.412</td>
+<td>0.534</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>请注意该模型如何预测 1980 年的平均收入为 1.3935，1981 年的平均收入为 1.5129 (1.3935+0.1194) 等等。 现在，如果我们按年份计算平均值，我们会得到完全相同的结果。 （请记住，基准年 1980 是截距。因此，您必须将截距添加到其他年份的参数中才能获得该年的平均<code>lwage</code>）。</p>
+<div id="fdde9c8f" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>data.groupby(<span class="st">"year"</span>)[<span class="st">"lwage"</span>].mean()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="6">
+<pre><code>year
+1980    1.393477
+1981    1.512867
+1982    1.571667
+1983    1.619263
+1984    1.690295
+1985    1.739410
+1986    1.799719
+1987    1.866479
+Name: lwage, dtype: float64</code></pre>
+</div>
+</div>
+<p>这意味着，如果我们得到面板中每个人的平均值，我们基本上是在对其他变量进行个体虚拟回归。这激发了以下估计过程：</p>
+<ol type="1">
+<li><p>通过减去个人的平均值来创建时间贬损变量： <span class="math inline">\(\ddot{Y}_{it} = Y_{it} - \bar{Y}_i\)</span> <span class="math inline">\(\ddot{X}_{it} = X_{it} - \bar{X}_i\)</span></p></li>
+<li><p>在 <span class="math inline">\(\ddot{X}_{it}\)</span> 上回归 <span class="math inline">\(\ddot{Y}_{it}\)</span></p></li>
+</ol>
+<p>请注意，当我们这样做时，未观察到的 <span class="math inline">\(U_i\)</span> 消失了。由于 <span class="math inline">\(U_i\)</span> 在时间上是恒定的，所以我们有 <span class="math inline">\(\bar{U_i}=U_i\)</span>。如果我们有以下两个方程组</p>
+<p><span class="math display">\[
+\开始{对齐}
+Y_{it} &amp; = \beta X_{it} + \gamma U_i + e_{it} \\
+\bar{Y}_{i} &amp; = \beta \bar{X}_{it} + \gamma \bar{U}_i + \bar{e}_{it} \\
+\结束{对齐}
+\]</span></p>
+<p>我们从另一个中减去一个，我们得到</p>
+<p><span class="math display">\[
+\开始{对齐}
+(Y_{it} - \bar{Y}_{i}) &amp; = (\beta X_{it} - \beta \bar{X}_{it}) + (\gamma U_i - \gamma U_i) + ( e_{it}-\bar{e}_{it}) \\
+(Y_{it} - \bar{Y}_{i}) &amp; = \beta(X_{it} - \bar{X}_{it}) + (e_{it}-\bar{e}_{它}） \\
+\ddot{Y}_{it} &amp; = \beta \ddot{X}_{it} + \ddot{e}_{it} \\
+\结束{对齐}
+\]</span></p>
+<p>它消除了所有未观察到的随时间不变的事物。老实说，不仅未观察到的变量消失了。这发生在所有时间不变的变量上。因此，您不能包含任何随时间保持不变的变量，因为它们将是虚拟变量的线性组合，并且模型不会运行。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/fixed-effects/demeaned.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>要检查哪些变量是这些变量，我们可以按个体对数据进行分组并获得标准差的总和。如果它为零，则意味着对于任何个人来说，变量都不会随时间变化。</p>
+<div id="c4ed43ab" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>data.groupby(<span class="st">"nr"</span>).std().<span class="bu">sum</span>()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="7">
+<pre><code>year            1334.971910
+black              0.000000
+exper           1334.971910
+hisp               0.000000
+hours         203098.215649
+married          140.372801
+educ               0.000000
+union            106.512445
+lwage            173.929670
+expersq        17608.242825
+occupation       739.222281
+dtype: float64</code></pre>
+</div>
+</div>
+<p>对于我们的数据，我们需要删除实体假人，<code>black</code>和<code>hisp</code>，因为它们对于个人来说是恒定的。 此外，我们需要取消教育。 我们也不会使用职业，因为这可能会调节婚姻对工资的影响（可能是单身男性能够承担更多时间要求更高的职位）。 选择了我们将使用的功能后，是时候估计这个模型了。</p>
+<p>要运行我们的固定效应模型，首先，让我们获取平均数据。 我们可以通过按个人对所有内容进行分组并取平均值来实现这一点。</p>
+<div id="3d577f59" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>Y <span class="op">=</span> <span class="st">"lwage"</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>T <span class="op">=</span> <span class="st">"married"</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> [T, <span class="st">"expersq"</span>, <span class="st">"union"</span>, <span class="st">"hours"</span>]</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>mean_data <span class="op">=</span> data.groupby(<span class="st">"nr"</span>)[X<span class="op">+</span>[Y]].mean()</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>mean_data.head()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="8">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">married</th>
+<th data-quarto-table-cell-role="th">expersq</th>
+<th data-quarto-table-cell-role="th">union</th>
+<th data-quarto-table-cell-role="th">hours</th>
+<th data-quarto-table-cell-role="th">lwage</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">nr</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">13</th>
+<td>0.000</td>
+<td>25.5</td>
+<td>0.125</td>
+<td>2807.625</td>
+<td>1.255652</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">17</th>
+<td>0.000</td>
+<td>61.5</td>
+<td>0.000</td>
+<td>2504.125</td>
+<td>1.637786</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">18</th>
+<td>1.000</td>
+<td>61.5</td>
+<td>0.000</td>
+<td>2350.500</td>
+<td>2.034387</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">45</th>
+<td>0.125</td>
+<td>35.5</td>
+<td>0.250</td>
+<td>2225.875</td>
+<td>1.773664</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">110</th>
+<td>0.500</td>
+<td>77.5</td>
+<td>0.125</td>
+<td>2108.000</td>
+<td>2.055129</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>为了将数据围绕均值标准化（demean），我们需要将原始数据的索引设置为个体标识符，<code>nr</code>。 然后，我们可以简单地从一个数据集中减去对应的数据均值的数据集。</p>
+<div id="43e871e0" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>demeaned_data <span class="op">=</span> (data</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>               .set_index(<span class="st">"nr"</span>) <span class="co"># set the index as the person indicator</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>               [X<span class="op">+</span>[Y]]</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>               <span class="op">-</span> mean_data) <span class="co"># subtract the mean data</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>demeaned_data.head()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="9">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">married</th>
+<th data-quarto-table-cell-role="th">expersq</th>
+<th data-quarto-table-cell-role="th">union</th>
+<th data-quarto-table-cell-role="th">hours</th>
+<th data-quarto-table-cell-role="th">lwage</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">nr</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">13</th>
+<td>0.0</td>
+<td>-24.5</td>
+<td>-0.125</td>
+<td>-135.625</td>
+<td>-0.058112</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">13</th>
+<td>0.0</td>
+<td>-21.5</td>
+<td>0.875</td>
+<td>-487.625</td>
+<td>0.597408</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">13</th>
+<td>0.0</td>
+<td>-16.5</td>
+<td>-0.125</td>
+<td>132.375</td>
+<td>0.088810</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">13</th>
+<td>0.0</td>
+<td>-9.5</td>
+<td>-0.125</td>
+<td>152.375</td>
+<td>0.177561</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">13</th>
+<td>0.0</td>
+<td>-0.5</td>
+<td>-0.125</td>
+<td>263.375</td>
+<td>0.312473</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div id="432d2b96" class="cell" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>mod <span class="op">=</span> smf.ols(<span class="ss">f"</span><span class="sc">{</span>Y<span class="sc">}</span><span class="ss"> ~ </span><span class="sc">{</span><span class="st">'+'</span><span class="sc">.</span>join(X)<span class="sc">}</span><span class="ss">"</span>, data<span class="op">=</span>demeaned_data).fit()</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>mod.summary().tables[<span class="dv">1</span>]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="10">
+<table class="simpletable caption-top table table-sm table-striped small">
+<tbody>
+<tr class="odd">
+<td></td>
+<th data-quarto-table-cell-role="th">coef</th>
+<th data-quarto-table-cell-role="th">std err</th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">P&gt;|t|</th>
+<th data-quarto-table-cell-role="th">[0.025</th>
+<th data-quarto-table-cell-role="th">0.975]</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Intercept</th>
+<td>-9.021e-17</td>
+<td>0.005</td>
+<td>-1.78e-14</td>
+<td>1.000</td>
+<td>-0.010</td>
+<td>0.010</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">married</th>
+<td>0.1147</td>
+<td>0.017</td>
+<td>6.756</td>
+<td>0.000</td>
+<td>0.081</td>
+<td>0.148</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">expersq</th>
+<td>0.0040</td>
+<td>0.000</td>
+<td>21.958</td>
+<td>0.000</td>
+<td>0.004</td>
+<td>0.004</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">union</th>
+<td>0.0784</td>
+<td>0.018</td>
+<td>4.261</td>
+<td>0.000</td>
+<td>0.042</td>
+<td>0.115</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">hours</th>
+<td>-8.46e-05</td>
+<td>1.25e-05</td>
+<td>-6.744</td>
+<td>0.000</td>
+<td>-0.000</td>
+<td>-6e-05</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>如果我们相信固定效应消除了所有遗漏的变量偏差，那么这个模型告诉我们婚姻使男人的工资增加了 11%。 这个结果非常显着。 这里的一个细节是，对于固定效应模型，需要对标准误差进行聚类。 因此，我们可以使用库 <code>linearmodels</code> 并将参数 <code>cluster_entity</code> 设置为 True，而不是手动进行所有估计（这只是出于教学原因）。</p>
+<div id="4cf76fde" class="cell" data-execution_count="11">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> linearmodels.panel <span class="im">import</span> PanelOLS</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>mod <span class="op">=</span> PanelOLS.from_formula(<span class="st">"lwage ~ expersq+union+married+hours+EntityEffects"</span>,</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>                            data<span class="op">=</span>data.set_index([<span class="st">"nr"</span>, <span class="st">"year"</span>]))</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>result <span class="op">=</span> mod.fit(cov_type<span class="op">=</span><span class="st">'clustered'</span>, cluster_entity<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>result.summary.tables[<span class="dv">1</span>]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="11">
+<table class="simpletable caption-top table table-sm table-striped small">
+<caption>Parameter Estimates</caption>
+<tbody>
+<tr class="odd">
+<td></td>
+<th data-quarto-table-cell-role="th">Parameter</th>
+<th data-quarto-table-cell-role="th">Std. Err.</th>
+<th data-quarto-table-cell-role="th">T-stat</th>
+<th data-quarto-table-cell-role="th">P-value</th>
+<th data-quarto-table-cell-role="th">Lower CI</th>
+<th data-quarto-table-cell-role="th">Upper CI</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">expersq</th>
+<td>0.0040</td>
+<td>0.0002</td>
+<td>16.552</td>
+<td>0.0000</td>
+<td>0.0035</td>
+<td>0.0044</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">hours</th>
+<td>-8.46e-05</td>
+<td>2.22e-05</td>
+<td>-3.8105</td>
+<td>0.0001</td>
+<td>-0.0001</td>
+<td>-4.107e-05</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">married</th>
+<td>0.1147</td>
+<td>0.0220</td>
+<td>5.2213</td>
+<td>0.0000</td>
+<td>0.0716</td>
+<td>0.1577</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">union</th>
+<td>0.0784</td>
+<td>0.0236</td>
+<td>3.3225</td>
+<td>0.0009</td>
+<td>0.0322</td>
+<td>0.1247</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>请注意参数估计值与我们使用时间贬值数据得到的参数估计值是如何相同的。 唯一的区别是标准误差有点大。 现在，将其与不考虑数据时间结构的简单 OLS 模型进行比较。 对于这个模型，我们添加了及时不变的变量。</p>
+<div id="a133ca1c" class="cell" data-execution_count="12">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>mod <span class="op">=</span> smf.ols(<span class="st">"lwage ~ expersq+union+married+hours+black+hisp+educ"</span>, data<span class="op">=</span>data).fit()</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>mod.summary().tables[<span class="dv">1</span>]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="12">
+<table class="simpletable caption-top table table-sm table-striped small">
+<tbody>
+<tr class="odd">
+<td></td>
+<th data-quarto-table-cell-role="th">coef</th>
+<th data-quarto-table-cell-role="th">std err</th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">P&gt;|t|</th>
+<th data-quarto-table-cell-role="th">[0.025</th>
+<th data-quarto-table-cell-role="th">0.975]</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Intercept</th>
+<td>0.2654</td>
+<td>0.065</td>
+<td>4.103</td>
+<td>0.000</td>
+<td>0.139</td>
+<td>0.392</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">expersq</th>
+<td>0.0032</td>
+<td>0.000</td>
+<td>15.750</td>
+<td>0.000</td>
+<td>0.003</td>
+<td>0.004</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">union</th>
+<td>0.1829</td>
+<td>0.017</td>
+<td>10.598</td>
+<td>0.000</td>
+<td>0.149</td>
+<td>0.217</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">married</th>
+<td>0.1410</td>
+<td>0.016</td>
+<td>8.931</td>
+<td>0.000</td>
+<td>0.110</td>
+<td>0.172</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">hours</th>
+<td>-5.32e-05</td>
+<td>1.34e-05</td>
+<td>-3.978</td>
+<td>0.000</td>
+<td>-7.94e-05</td>
+<td>-2.7e-05</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">black</th>
+<td>-0.1347</td>
+<td>0.024</td>
+<td>-5.679</td>
+<td>0.000</td>
+<td>-0.181</td>
+<td>-0.088</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">hisp</th>
+<td>0.0132</td>
+<td>0.021</td>
+<td>0.632</td>
+<td>0.528</td>
+<td>-0.028</td>
+<td>0.054</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">educ</th>
+<td>0.1057</td>
+<td>0.005</td>
+<td>22.550</td>
+<td>0.000</td>
+<td>0.097</td>
+<td>0.115</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>这个模型是说婚姻使男人的工资增加了 14%。 比我们在固定效应模型中发现的效应要大一些。 这表明由于固定的个体因素（如智力和美貌）没有被添加到模型中，结果存在一些省略变量偏差。</p>
+</section>
+<section id="固定效应的可视化" class="level2">
+<h2 class="anchored" data-anchor-id="固定效应的可视化">固定效应的可视化</h2>
+<p>为了扩展我们对固定效应模型如何工作的直觉，让我们稍微转向另一个例子。 假设您在一家大型科技公司工作，并且您想估计广告牌营销活动对应用内购买的影响。 当您查看过去的数据时，您会发现营销部门倾向于花费更多的钱在购买水平较低的城市放置广告牌。 这是有道理的吧？ 如果销售额猛增，他们就不需要做很多广告了。 如果您在此数据上运行回归模型，看起来营销成本较高会导致应用内购买减少，但这只是因为营销投资偏向于低支出地区。</p>
+<div id="2bc0d147" class="cell" data-execution_count="13">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>toy_panel <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"mkt_costs"</span>:[<span class="dv">5</span>,<span class="dv">4</span>,<span class="fl">3.5</span>,<span class="dv">3</span>, <span class="dv">10</span>,<span class="fl">9.5</span>,<span class="dv">9</span>,<span class="dv">8</span>, <span class="dv">4</span>,<span class="dv">3</span>,<span class="dv">2</span>,<span class="dv">1</span>, <span class="dv">8</span>,<span class="dv">7</span>,<span class="dv">6</span>,<span class="dv">4</span>],</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"purchase"</span>:[<span class="dv">12</span>,<span class="dv">9</span>,<span class="fl">7.5</span>,<span class="dv">7</span>, <span class="dv">9</span>,<span class="dv">7</span>,<span class="fl">6.5</span>,<span class="dv">5</span>, <span class="dv">15</span>,<span class="fl">14.5</span>,<span class="dv">14</span>,<span class="dv">13</span>, <span class="dv">11</span>,<span class="fl">9.5</span>,<span class="dv">8</span>,<span class="dv">5</span>],</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"city"</span>:[<span class="st">"C0"</span>,<span class="st">"C0"</span>,<span class="st">"C0"</span>,<span class="st">"C0"</span>, <span class="st">"C2"</span>,<span class="st">"C2"</span>,<span class="st">"C2"</span>,<span class="st">"C2"</span>, <span class="st">"C1"</span>,<span class="st">"C1"</span>,<span class="st">"C1"</span>,<span class="st">"C1"</span>, <span class="st">"C3"</span>,<span class="st">"C3"</span>,<span class="st">"C3"</span>,<span class="st">"C3"</span>]</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>m <span class="op">=</span> smf.ols(<span class="st">"purchase ~ mkt_costs"</span>, data<span class="op">=</span>toy_panel).fit()</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>plt.scatter(toy_panel.mkt_costs, toy_panel.purchase)</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>plt.plot(toy_panel.mkt_costs, m.fittedvalues, c<span class="op">=</span><span class="st">"C5"</span>, label<span class="op">=</span><span class="st">"Regression Line"</span>)</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Marketing Costs (in 1000)"</span>)</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"In-app Purchase (in 1000)"</span>)</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Simple OLS Model"</span>)</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>plt.legend()<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="13 第十三章 面板数据与固定效应_files/figure-html/cell-14-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>对因果推理了解很多后，您决定运行一个固定效应模型，将城市标识作为虚拟变量添加到您的模型中。 固定效应模型控制了在时间上保持不变的城市特定特征，因此如果一个城市对您的产品不太开放，它将捕捉到这一点。 当您运行该模型时，您最终可以看到更多的营销成本会导致更高的应用内购买。</p>
+<div id="b34af3b8" class="cell" data-execution_count="14">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>fe <span class="op">=</span> smf.ols(<span class="st">"purchase ~ mkt_costs + C(city)"</span>, data<span class="op">=</span>toy_panel).fit()</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>fe_toy <span class="op">=</span> toy_panel.assign(y_hat <span class="op">=</span> fe.fittedvalues)</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>plt.scatter(toy_panel.mkt_costs, toy_panel.purchase, c<span class="op">=</span>toy_panel.city)</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> city <span class="kw">in</span> fe_toy[<span class="st">"city"</span>].unique():</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    plot_df <span class="op">=</span> fe_toy.query(<span class="ss">f"city=='</span><span class="sc">{</span>city<span class="sc">}</span><span class="ss">'"</span>)</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    plt.plot(plot_df.mkt_costs, plot_df.y_hat, c<span class="op">=</span><span class="st">"C5"</span>)</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Fixed Effect Model"</span>)</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Marketing Costs (in 1000)"</span>)</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"In-app Purchase (in 1000)"</span>)<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="13 第十三章 面板数据与固定效应_files/figure-html/cell-15-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>花一点时间来理解上面的图片到底告诉你固定效果在做什么。请注意，固定效应模型<strong>对每个城市拟合一条回归线</strong>。还要注意拟合的回归线是平行的。线的斜率是营销成本对应用内购买的影响。所以<strong>固定效应是假设因果效应在所有实体中都是常数</strong>，在我们的例子中，实体是城市。这可能是一个弱点或一个优势，取决于你的目的。如果您的兴趣是对每个城市找到其包含的因果关系，那么这是一个弱点。由于 FE 模型假设这种效应在实体之间是一样的，因此您不会发现因果效应有任何差异。然而，如果你想找到营销对应用内购买的整体影响，面板结构的数据是一个非常有用的途径来使用固定效应模型进行探索。</p>
+</section>
+<section id="时间效应" class="level2">
+<h2 class="anchored" data-anchor-id="时间效应">时间效应</h2>
+<p>就像我们在个人颗粒度做固定效果一样，我们可以为时间颗粒度设计一个固定效果。如果为控制固定的个体特征而为每个个体添加一个虚拟变量，则添加一个时间颗粒度的虚拟变量将控制每个时间段内固定的变量，但不同时间之间是可以变化的。这种变量的一个例子是通货膨胀。价格和工资往往会随着时间的推移而上涨，但每个时间段的通货膨胀对于所有实体来说都是相同的。举一个更具体的例子，假设婚姻随着时间的推移而增加。如果工资和婚姻比例也随时间变化，我们就有时间作为一个混淆因素。由于通货膨胀也使工资随着时间的推移而增加，我们在婚姻和工资之间看到的一些正相关可能仅仅是因为两者都随着时间的推移而增加。为了纠正这一点，我们可以为每个时间段添加一个虚拟变量。在“线性模型”中，这就像在我们的公式中添加“TimeEffects”并将“cluster_time”设置为 true 一样简单。</p>
+<div id="5c000d3d" class="cell" data-execution_count="15">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>mod <span class="op">=</span> PanelOLS.from_formula(<span class="st">"lwage ~ expersq+union+married+hours+EntityEffects+TimeEffects"</span>,</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>                            data<span class="op">=</span>data.set_index([<span class="st">"nr"</span>, <span class="st">"year"</span>]))</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>result <span class="op">=</span> mod.fit(cov_type<span class="op">=</span><span class="st">'clustered'</span>, cluster_entity<span class="op">=</span><span class="va">True</span>, cluster_time<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>result.summary.tables[<span class="dv">1</span>]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="15">
+<table class="simpletable caption-top table table-sm table-striped small">
+<caption>Parameter Estimates</caption>
+<tbody>
+<tr class="odd">
+<td></td>
+<th data-quarto-table-cell-role="th">Parameter</th>
+<th data-quarto-table-cell-role="th">Std. Err.</th>
+<th data-quarto-table-cell-role="th">T-stat</th>
+<th data-quarto-table-cell-role="th">P-value</th>
+<th data-quarto-table-cell-role="th">Lower CI</th>
+<th data-quarto-table-cell-role="th">Upper CI</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">expersq</th>
+<td>-0.0062</td>
+<td>0.0008</td>
+<td>-8.1479</td>
+<td>0.0000</td>
+<td>-0.0077</td>
+<td>-0.0047</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">hours</th>
+<td>-0.0001</td>
+<td>3.546e-05</td>
+<td>-3.8258</td>
+<td>0.0001</td>
+<td>-0.0002</td>
+<td>-6.614e-05</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">married</th>
+<td>0.0476</td>
+<td>0.0177</td>
+<td>2.6906</td>
+<td>0.0072</td>
+<td>0.0129</td>
+<td>0.0823</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">union</th>
+<td>0.0727</td>
+<td>0.0228</td>
+<td>3.1858</td>
+<td>0.0015</td>
+<td>0.0279</td>
+<td>0.1174</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>在这个新模型中，婚姻对工资的影响从“0.1147”明显地下降到“0.0476”。尽管如此，这一结果在 99% 的水平上仍然是显著的，因此男人仍然可以预期婚姻会让收入增加。</p>
+</section>
+<section id="当面板数据对您没有帮助时" class="level2">
+<h2 class="anchored" data-anchor-id="当面板数据对您没有帮助时">当面板数据对您没有帮助时</h2>
+<p>使用面板数据和固定效应模型是一种非常强大的因果推理工具。当您没有随机数据也没有好的工具变量时，固定效应与非实验数据的因果推断一样令人信服。不过，值得一提的是，它并不是灵丹妙药。在某些情况下，即使面板数据也无济于事。</p>
+<p>最明显的一个情况是当您有随时间变化的混淆因素时。固定效应只能消除由于每个实体不变的属性带来的偏差。例如，假设您可以通过阅读书籍和食用大量优质脂肪来提高您的智力水平。同时这又会让你得到一份更高薪的工作和一个妻子。由于智力这个无法测量的混淆因素，固定效应将无法消除其带来的偏差，因为在这个例子中，智力是随时间变化的。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/fixed-effects/time-travel.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>固定效应失败的另一个不太明显的情况是当你有 <strong>逆向因果（reversed causality）</strong> 时。例如，假设不是婚姻让你赚得更多，而是当你收入越多，你结婚的机会就越多。在这种情况下，它们似乎具有正相关性，但是收入在线，是原因。二者都会随着时间在同一个方向发生变化，因此固定效应无法控制这一点。</p>
+</section>
+<section id="关键思想" class="level2">
+<h2 class="anchored" data-anchor-id="关键思想">关键思想</h2>
+<p>在这里，我们看到了如何使用面板数据，即我们在多个时间段内对同一个人进行多次测量的数据。在这种情况下，我们可以使用控制实体间差异的固定效应模型，保持所有个体不随时间变化的属性固定。这是一种强大且非常令人信服的控制混淆的方法，它可以得到与非随机数据一样好的结果。</p>
+<p>最后，我们看到 FE 并不是万能的。我们看到了两种不起作用的情况：当我们有反向因果关系时，以及当不可测量的混淆因素随时间变化时。</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "已复制");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "已复制");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../chapters/12 第十二章 双重稳健估计.html" class="pagination-link" aria-label="第十二章: 双重稳健估计">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">第十二章: 双重稳健估计</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../chapters/14 第十四章 双重差分.html" class="pagination-link" aria-label="第十四章: 双重差分">
+        <span class="nav-page-text">第十四章: 双重差分</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>内容基于《Causal Inference for the Brave and True》中文翻译整理。</p>
+</div>   
+    <div class="nav-footer-center">
+<p>用 Quarto 构建，面向在线阅读与本地复现。</p>
+<div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/xieliaing/CausalInferenceIntro/blob/main/chapters/13 第十三章 面板数据与固定效应.ipynb" class="toc-action"><i class="bi bi-github"></i>查看代码</a></li><li><a href="https://github.com/xieliaing/CausalInferenceIntro/issues/new" class="toc-action"><i class="bi empty"></i>反馈问题</a></li></ul></div></div>
+    <div class="nav-footer-right">
+<p><a href="https://github.com/xieliaing/CausalInferenceIntro">GitHub 仓库</a></p>
+</div>
+  </div>
+</footer>
+
+
+
+
+<script src="../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

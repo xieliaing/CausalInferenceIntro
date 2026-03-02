@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-CN" xml:lang="zh-CN"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="CausalInferenceIntro">
+
+<title>第三章: 统计学回顾：最危险的公式 – 因果推断：从概念到实践</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../chapters/04 第四章 图因果模型.html" rel="next">
+<link href="../chapters/02 第二章-随机试验.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-f1a637e51edb8e5d5a953483935b5072.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "没有结果",
+    "search-matching-documents-text": "匹配的文档",
+    "search-copy-link-title": "复制搜索链接",
+    "search-hide-matches-text": "隐藏其它匹配结果",
+    "search-more-match-text": "更多匹配结果",
+    "search-more-matches-text": "更多匹配结果",
+    "search-clear-button-title": "清除",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "取消",
+    "search-submit-button-title": "提交",
+    "search-label": "搜索"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-sidebar docked nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    </a>
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">因果推断：从概念到实践</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="搜索"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="展开或折叠导航栏" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="../index.html" aria-current="page"> 
+<span class="menu-text">首页</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/xieliaing/CausalInferenceIntro"> 
+<span class="menu-text">GitHub</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/matheusfacure/python-causality-handbook"> 
+<span class="menu-text">原书</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="展开或折叠侧边栏导航" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/01 第一章-因果关系入门.html">章节</a></li><li class="breadcrumb-item"><a href="../chapters/03 第三章 统计学回顾：最危险的公式.html">第三章: 统计学回顾</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="展开或折叠侧边栏导航" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="搜索" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+      <a href="../index.html" class="sidebar-logo-link">
+      </a>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="搜索"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">章节</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="展开或折叠此栏">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/01 第一章-因果关系入门.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第一章: 因果关系入门</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/02 第二章-随机试验.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二章: 随机试验</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/03 第三章 统计学回顾：最危险的公式.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">第三章: 统计学回顾</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/04 第四章 图因果模型.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第四章: 图因果模型</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/05 第五章 线性回归超乎寻常的有效性.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第五章: 线性回归的有效性</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/06 第六章 分组和虚拟变量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第六章: 分组和虚拟变量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/07 第七章 控制混淆因素之外的考虑.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第七章: 控制混淆之外</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/08 第八章 工具变量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第八章: 工具变量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/09 第九章 非服从性与局部平均效应.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第九章: 非服从性与 LATE</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/10 第十章 匹配.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十章: 匹配</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/11 第十一章 倾向得分.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十一章: 倾向得分</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/12 第十二章 双重稳健估计.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十二章: 双重稳健估计</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/13 第十三章 面板数据与固定效应.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十三章: 面板数据与固定效应</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/14 第十四章 双重差分.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十四章: 双重差分</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/15 第十五章 合成控制.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十五章: 合成控制</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/16 第十六章 断点回归.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十六章: 断点回归</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/17 第十七章 预测模型 101.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十七章: 预测模型 101</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/18 第十八章 异质干预效应与个性化.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十八章: 异质干预效应</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/19 第十九章 评估因果模型.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十九章: 评估因果模型</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/20 第二十章 即插即用估计量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二十章: 即插即用估计量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/21 第二十一章 元学习器.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二十一章: 元学习器</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="2">
+    <h2 id="toc-title">本页目录</h2>
+   
+  <ul>
+  <li><a href="#我们估计值的标准误差" id="toc-我们估计值的标准误差" class="nav-link active" data-scroll-target="#我们估计值的标准误差">我们估计值的标准误差</a></li>
+  <li><a href="#置信区间" id="toc-置信区间" class="nav-link" data-scroll-target="#置信区间">置信区间</a></li>
+  <li><a href="#p-值" id="toc-p-值" class="nav-link" data-scroll-target="#p-值">P 值</a></li>
+  <li><a href="#关键思想" id="toc-关键思想" class="nav-link" data-scroll-target="#关键思想">关键思想</a></li>
+  <li><a href="#参考资料" id="toc-参考资料" class="nav-link" data-scroll-target="#参考资料">参考资料</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/xieliaing/CausalInferenceIntro/blob/main/chapters/03 第三章 统计学回顾：最危险的公式.ipynb" class="toc-action"><i class="bi bi-github"></i>查看代码</a></li><li><a href="https://github.com/xieliaing/CausalInferenceIntro/issues/new" class="toc-action"><i class="bi empty"></i>反馈问题</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/01 第一章-因果关系入门.html">章节</a></li><li class="breadcrumb-item"><a href="../chapters/03 第三章 统计学回顾：最危险的公式.html">第三章: 统计学回顾</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">第三章: 统计学回顾：最危险的公式</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">作者</div>
+    <div class="quarto-title-meta-contents">
+             <p>CausalInferenceIntro </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">发布于</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">2026年3月2日</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>在 2007 年的著名文章中，霍华德·韦纳 (Howard Wainer) 针对非常危险的公式做了如下说明[1]：</p>
+<p>“有些公式如果你知道它们的话会很危险，而另一些公式如果你不知道它们则会很危险。第一类之所以可能会带来危险，是因为这些公式揭示了通往背后隐藏着的可怕危险。这其中最著名的是爱因斯坦相对论的经典公式：<span class="math inline">\(E = MC^2\)</span>，因为它揭开了隐藏在普通物质中的巨大能量。… 另一方面，我对那些当我们不知道的时候会带来危险，而当我们明白了道理后反而没有问题的公式更感兴趣。当我们熟悉这些公式的时候，它们能让我们能够清楚地理解事物，但一旦不了解就会让我们处在无知的危险中。”</p>
+<p>他所说的就是 Moivre 公式：</p>
+<p><span class="math display">\[
+SE = \dfrac{\sigma}{\sqrt{n}}
+\]</span></p>
+<p>其中 <span class="math inline">\(SE\)</span> 是平均值的标准误差，<span class="math inline">\(\sigma\)</span> 是标准偏差，<span class="math inline">\(n\)</span> 是样本大小。听起来像一个勇敢而真实的人应该掌握的数学，所以让我们开始认真学习它。</p>
+<p>要了解为什么不知道这个等式是非常危险的，让我们来看看一些教育数据。我已经收集了来自不同学校的 ENEM 分数（巴西标准化高中分数，类似于 SAT）的数据，为期 3 年。我还对数据进行了一些清理，只保留与我们相关的信息。原始数据可在<a href="http://portal.inep.gov.br/web/guest/microdados#">Inep网站</a>下载。</p>
+<p>如果我们看看表现最好的学校，就会注意到一些事情：这些学校的学生人数相当少。</p>
+<div id="cell-2" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>warnings.filterwarnings(<span class="st">'ignore'</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy <span class="im">import</span> stats</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib <span class="im">import</span> pyplot <span class="im">as</span> plt</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib <span class="im">import</span> style</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>style.use(<span class="st">"fivethirtyeight"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="cell-3" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.read_csv(<span class="st">"./data/enem_scores.csv"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>df.sort_values(by<span class="op">=</span><span class="st">"avg_score"</span>, ascending<span class="op">=</span><span class="va">False</span>).head(<span class="dv">10</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="3">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">year</th>
+<th data-quarto-table-cell-role="th">school_id</th>
+<th data-quarto-table-cell-role="th">number_of_students</th>
+<th data-quarto-table-cell-role="th">avg_score</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">16670</th>
+<td>2007</td>
+<td>33062633</td>
+<td>68</td>
+<td>82.97</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">16796</th>
+<td>2007</td>
+<td>33065403</td>
+<td>172</td>
+<td>82.04</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">16668</th>
+<td>2005</td>
+<td>33062633</td>
+<td>59</td>
+<td>81.89</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">16794</th>
+<td>2005</td>
+<td>33065403</td>
+<td>177</td>
+<td>81.66</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">10043</th>
+<td>2007</td>
+<td>29342880</td>
+<td>43</td>
+<td>80.32</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">18121</th>
+<td>2007</td>
+<td>33152314</td>
+<td>14</td>
+<td>79.82</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">16781</th>
+<td>2007</td>
+<td>33065250</td>
+<td>80</td>
+<td>79.67</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3026</th>
+<td>2007</td>
+<td>22025740</td>
+<td>144</td>
+<td>79.52</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">14636</th>
+<td>2007</td>
+<td>31311723</td>
+<td>222</td>
+<td>79.41</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">17318</th>
+<td>2007</td>
+<td>33087679</td>
+<td>210</td>
+<td>79.38</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>换个角度看，我们只能把1%的顶尖学校分开来研究。 他们像什么？ 也许我们可以从最好的那里学到一些东西并在其他地方复制它。 果然，如果我们看看排名前 1% 的学校，我们会发现他们的学生平均更少。</p>
+<div id="cell-5" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>plot_data <span class="op">=</span> (df</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>             .assign(top_school <span class="op">=</span> df[<span class="st">"avg_score"</span>] <span class="op">&gt;=</span> np.quantile(df[<span class="st">"avg_score"</span>], <span class="fl">.99</span>))</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>             [[<span class="st">"top_school"</span>, <span class="st">"number_of_students"</span>]]</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>             .query(<span class="ss">f"number_of_students&lt;</span><span class="sc">{</span>np<span class="sc">.</span>quantile(df[<span class="st">'number_of_students'</span>], <span class="fl">.98</span>)<span class="sc">}</span><span class="ss">"</span>)) <span class="co"># remove outliers</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">6</span>,<span class="dv">6</span>))</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>sns.boxplot(x<span class="op">=</span><span class="st">"top_school"</span>, y<span class="op">=</span><span class="st">"number_of_students"</span>, data<span class="op">=</span>plot_data)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Number of Students of 1% Top Schools (Right)"</span>)<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03 第三章 统计学回顾：最危险的公式_files/figure-html/cell-4-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>随之而来的一个自然结论是，小班教学会带来更高的学业成绩。 这具有直观的意义，因为我们相信每位教师的学生越少，教师就越可以专注于每个学生。 但这与 Moivre 方程有什么关系呢？ 为什么它是危险的？</p>
+<p>好吧，一旦人们开始根据这些信息做出重要且代价高昂的决定，就会变得危险。 在他的文章中，霍华德继续说道：</p>
+<p>“在 1990 年代，支持缩小学校规模变得流行起来。许多慈善组织和政府机构根据规模较小的学校的学生在考试成绩高的群体中人数过多的事实，资助了大学校的划分。”</p>
+<p>人们忘记做的是还要看看排名垫底的 1% 的学校。 如果我们这样做，瞧！ 他们的学生也很少！</p>
+<div id="cell-7" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>q_99 <span class="op">=</span> np.quantile(df[<span class="st">"avg_score"</span>], <span class="fl">.99</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>q_01 <span class="op">=</span> np.quantile(df[<span class="st">"avg_score"</span>], <span class="fl">.01</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>plot_data <span class="op">=</span> (df</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>             .sample(<span class="dv">10000</span>)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>             .assign(Group <span class="op">=</span> <span class="kw">lambda</span> d: np.select([d[<span class="st">"avg_score"</span>] <span class="op">&gt;</span> q_99, d[<span class="st">"avg_score"</span>] <span class="op">&lt;</span> q_01],</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>                                                 [<span class="st">"Top"</span>, <span class="st">"Bottom"</span>], <span class="st">"Middle"</span>)))</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">10</span>,<span class="dv">5</span>))</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>sns.scatterplot(y<span class="op">=</span><span class="st">"avg_score"</span>, x<span class="op">=</span><span class="st">"number_of_students"</span>, hue<span class="op">=</span><span class="st">"Group"</span>, data<span class="op">=</span>plot_data)</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"ENEM Score by Number of Students in the School"</span>)<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03 第三章 统计学回顾：最危险的公式_files/figure-html/cell-5-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>我们在上面看到的正是根据 Moivre 方程所预期的。随着学生人数的增加，平均分变得越来越精确。样本很少的学校可能会因为偶然而获得非常高和非常低的分数。大型学校不太可能发生这种情况。 Moivre 的方程谈到了一个现实中关于信息和数据形式记录的基本事实：它总是不精确的。那么问题就变为，到底有多么不精确。</p>
+<p>统计学是处理这些不精确性的科学，因此它们不会让我们措手不及。正如塔勒布在他的书《被随机性愚弄》中所说：</p>
+<blockquote class="blockquote">
+<p>概率不仅仅是计算骰子或更复杂的变体的几率；它是接受我们的知识缺乏确定性和发展处理我们的无知的方法。</p>
+</blockquote>
+<p>量化我们的不确定性的一种方法是<strong>我们的估计值的方差</strong>。方差告诉我们观察值偏离了它们的中心值和最可能值的程度。正如 Moivre 方程所示，这种不确定性随着我们观察到的数据量的增加而缩小。这是有道理的，对吧？如果我们看到很多学生在学校表现出色，我们就会更有信心这确实是一所好学校。但是，如果我们看到一个只有 10 名学生并且其中 8 名学生表现良好的学校，我们需要多加怀疑。可能是因为偶然，这所学校有一些高于平均水平的学生。</p>
+<p>我们上面看到的美丽的三角形图正是讲述了这个故事。它向我们展示了当样本量很小时，我们对学校表现的估计如何存在巨大差异。它还表明方差随着样本量的增加而缩小。这对于学校的平均分数是正确的，但对于我们拥有的任何汇总统计数据也是如此，包括我们经常想要估计的 ATE。</p>
+<section id="我们估计值的标准误差" class="level2">
+<h2 class="anchored" data-anchor-id="我们估计值的标准误差">我们估计值的标准误差</h2>
+<p>由于这只是对统计数据的回顾，我现在冒昧地讲得更快一些。如果您不熟悉分布、方差和标准误差，请继续阅读，但请记住，您可能需要一些额外的资源。我建议你用谷歌搜索任何麻省理工学院关于统计介绍的课程。他们通常都很好。</p>
+<p>在上一节中，我们将平均处理效果 <span class="math inline">\(E[Y_1-Y_0]\)</span> 估计为处理和未处理之间均值的差异 <span class="math inline">\(E[Y|T=1]-E[Y |T=0]\)</span>。作为我们的示例，我们为在线课程找到了 <span class="math inline">\(ATE\)</span>。我们还看到这是一个负面影响，即在线课程使学生的表现比面对面课程的学生差 5 分左右。现在，我们可以看看这种影响在统计上是否显着。</p>
+<p>为此，我们需要估计 <span class="math inline">\(SE\)</span>。我们已经有了 <span class="math inline">\(n\)</span>，我们的样本大小。要获得标准偏差的估计值，我们可以执行以下操作</p>
+<p><span class="math display">\[
+\hat{\sigma}^2=\frac{1}{N-1}\sum_{i=0}^N (x-\bar{x})^2
+\]</span></p>
+<p>其中 <span class="math inline">\(\bar{x}\)</span> 是 <span class="math inline">\(x\)</span> 的平均值。对我们来说幸运的是，大多数编程软件已经实现了这一点。在 Pandas 中，我们可以使用方法 <a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.std.html">std</a>。</p>
+<div id="cell-9" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> pd.read_csv(<span class="st">"./data/online_classroom.csv"</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>online <span class="op">=</span> data.query(<span class="st">"format_ol==1"</span>)[<span class="st">"falsexam"</span>]</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>face_to_face <span class="op">=</span> data.query(<span class="st">"format_ol==0 &amp; format_blended==0"</span>)[<span class="st">"falsexam"</span>]</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> se(y: pd.Series):</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> y.std() <span class="op">/</span> np.sqrt(<span class="bu">len</span>(y))</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"SE for Online:"</span>, se(online))</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"SE for Face to Face:"</span>, se(face_to_face))</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>SE for Online: 1.5371593973041635
+SE for Face to Face: 0.8723511456319106</code></pre>
+</div>
+</div>
+</section>
+<section id="置信区间" class="level2">
+<h2 class="anchored" data-anchor-id="置信区间">置信区间</h2>
+<p>我们估计的标准误差是置信度的衡量标准。为了准确理解它的含义，我们需要进入充满争论的统计领域。对于统计学的一种观点，即频率学派的观点，我们会说我们拥有的数据只不过是真实数据生成过程的一种表现。这个过程是抽象的和理想的。它由不变但我们不知道的真实参数控制。在学生测试的背景下，如果我们可以运行多个实验并收集多个数据集，所有这些都将类似于真正的底层数据生成过程，但不会完全如此。这很像柏拉图在形式上的写作：</p>
+<blockquote class="blockquote">
+<p>每一种<span class="math inline">\([\)</span>基本形式<span class="math inline">\(]\)</span>都表现在各种各样的组合中，有行为，有物质，还有彼此，每一种似乎都有很多</p>
+</blockquote>
+<p>为了更好地理解这一点，让我们假设我们有一个学生考试成绩的真实抽象分布。这是一个正态分布，真实平均值为 74，真实标准差为 2。从这个分布中，我们可以运行 10000 次实验。在每一个上，我们收集 500 个样本。有些实验数据的平均值会低于真实数据，有些会更高。如果我们将它们绘制在直方图中，我们可以看到实验的均值分布在真实均值附近。</p>
+<div id="cell-11" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>true_std <span class="op">=</span> <span class="dv">2</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>true_mean <span class="op">=</span> <span class="dv">74</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="dv">500</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> run_experiment(): </span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.random.normal(true_mean,true_std, <span class="dv">500</span>)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">42</span>)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">8</span>,<span class="dv">5</span>))</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>freq, bins, img <span class="op">=</span> plt.hist([run_experiment().mean() <span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">10000</span>)], bins<span class="op">=</span><span class="dv">40</span>, label<span class="op">=</span><span class="st">"Experiment Means"</span>)</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>plt.vlines(true_mean, ymin<span class="op">=</span><span class="dv">0</span>, ymax<span class="op">=</span>freq.<span class="bu">max</span>(), linestyles<span class="op">=</span><span class="st">"dashed"</span>, label<span class="op">=</span><span class="st">"True Mean"</span>, color<span class="op">=</span><span class="st">"orange"</span>)</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>plt.legend()<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03 第三章 统计学回顾：最危险的公式_files/figure-html/cell-7-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>请注意，我们在这里讨论的是均值的均值。因此，假如我们有机会进行一个实验，其中均值可能会略低于或高于真实均值。这就是说，我们永远无法确定实验的均值是否与真正的柏拉图式和理想均值相匹配。但是，<strong>使用标准误差，我们可以创建一个区间，该区间将包含 95% 的时间的真实平均值</strong>。</p>
+<p>在现实生活中，我们无法用多个数据集模拟同一个实验。我们经常只有一个。但是我们可以利用上面的直觉来构建我们所说的<strong>置信区间</strong>。置信区间附带一个概率。最常见的是95%。这个概率告诉我们从不同的研究中建立的假设置信区间有多少包含真实的平均值。例如，从许多类似研究计算的 95% 置信区间将包含 95% 的时间的真实平均值。</p>
+<p>为了计算置信区间，我们使用所谓的<strong>中心极限定理</strong>。该定理指出<strong>实验均值是正态分布的</strong>。从统计理论中，我们知道 95% 的正态分布的质量介于均值上下 2 个标准差之间。从技术上讲，1.96，但 2 已经足够接近了。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/stats-review/normal_dist.jpeg" class="img-fluid figure-img"></p>
+<figcaption>normal_density</figcaption>
+</figure>
+</div>
+<p>均值的标准误差用作我们对实验均值分布的估计。因此，如果我们将其乘以 2 并从我们的一个实验的平均值中加上和减去它，我们将为真实平均值构建一个 95% 的置信区间。</p>
+<div id="cell-13" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">321</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>exp_data <span class="op">=</span> run_experiment()</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>exp_se <span class="op">=</span> exp_data.std() <span class="op">/</span> np.sqrt(<span class="bu">len</span>(exp_data))</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>exp_mu <span class="op">=</span> exp_data.mean()</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>ci <span class="op">=</span> (exp_mu <span class="op">-</span> <span class="dv">2</span> <span class="op">*</span> exp_se, exp_mu <span class="op">+</span> <span class="dv">2</span> <span class="op">*</span> exp_se)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(ci)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(73.82718114045632, 74.17341543460314)</code></pre>
+</div>
+</div>
+<div id="cell-14" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> np.linspace(exp_mu <span class="op">-</span> <span class="dv">4</span><span class="op">*</span>exp_se, exp_mu <span class="op">+</span> <span class="dv">4</span><span class="op">*</span>exp_se, <span class="dv">100</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> stats.norm.pdf(x, exp_mu, exp_se)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>plt.plot(x, y)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>plt.vlines(ci[<span class="dv">1</span>], ymin<span class="op">=</span><span class="dv">0</span>, ymax<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>plt.vlines(ci[<span class="dv">0</span>], ymin<span class="op">=</span><span class="dv">0</span>, ymax<span class="op">=</span><span class="dv">1</span>, label<span class="op">=</span><span class="st">"95% CI"</span>)</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03 第三章 统计学回顾：最危险的公式_files/figure-html/cell-9-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>当然，我们不需要将自己限制在 95% 的置信区间内。 我们可以通过找到我们需要乘以标准差来生成 99% 的区间，因此该区间包含 99% 的正态分布质量。</p>
+<p>python 中的函数 ppf 为我们提供了 CDF 的倒数。 因此，ppf(0.5) 将返回 0.0，表示标准正态分布质量的 50% 低于 0.0。 同理，如果我们插入 99.5%，我们将得到 z 值，这样 99.5% 的分布质量会低于这个值。 换句话说，质量的 0.05% 落在此值以上。 我们不是像找到 95% CI 那样将标准误差乘以 2，而是将其乘以 z，这将得到 99% CI。</p>
+<div id="cell-16" class="cell" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy <span class="im">import</span> stats</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>z <span class="op">=</span> stats.norm.ppf(<span class="fl">.995</span>)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(z)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>ci <span class="op">=</span> (exp_mu <span class="op">-</span> z <span class="op">*</span> exp_se, exp_mu <span class="op">+</span> z <span class="op">*</span> exp_se)</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>ci</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>2.5758293035489004</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="10">
+<pre><code>(73.7773381773405, 74.22325839771896)</code></pre>
+</div>
+</div>
+<div id="cell-17" class="cell" data-execution_count="11">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> np.linspace(exp_mu <span class="op">-</span> <span class="dv">4</span><span class="op">*</span>exp_se, exp_mu <span class="op">+</span> <span class="dv">4</span><span class="op">*</span>exp_se, <span class="dv">100</span>)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> stats.norm.pdf(x, exp_mu, exp_se)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>plt.plot(x, y)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>plt.vlines(ci[<span class="dv">1</span>], ymin<span class="op">=</span><span class="dv">0</span>, ymax<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>plt.vlines(ci[<span class="dv">0</span>], ymin<span class="op">=</span><span class="dv">0</span>, ymax<span class="op">=</span><span class="dv">1</span>, label<span class="op">=</span><span class="st">"99% CI"</span>)</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03 第三章 统计学回顾：最危险的公式_files/figure-html/cell-11-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>回到我们的课堂实验，我们可以为在线和面对面学生组的平均考试分数构建置信区间</p>
+<div id="cell-19" class="cell" data-execution_count="12">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> ci(y: pd.Series):</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (y.mean() <span class="op">-</span> <span class="dv">2</span> <span class="op">*</span> se(y), y.mean() <span class="op">+</span> <span class="dv">2</span> <span class="op">*</span> se(y))</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"95% CI for Online:"</span>, ci(online))</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"95</span><span class="sc">% f</span><span class="st">or Face to Face:"</span>, ci(face_to_face))</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>95% CI for Online: (70.56094429049804, 76.7095818797147)
+95% for Face to Face: (76.80278229206948, 80.29218687459712)</code></pre>
+</div>
+</div>
+<p>我们可以看到的是，组的 95% CI 不重叠。面对面课程的 CI 的下端高于在线课程的 CI 的上端。这证明我们的结果并非偶然，面对面课堂学生的真实平均值高于在线课程学生的真实平均值。换句话说，从面对面切换到在线课程时，学习成绩会显着下降。</p>
+<p>回顾一下，置信区间是一种为我们的估计设置不确定性的方法。样本量越小，标准误越大，置信区间越宽。最后，您应该始终对没有附加任何不确定性指标的测量保持怀疑。由于它们非常容易计算，因此缺乏置信区间表示一些不良意图或只是缺乏知识，这同样令人担忧。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="data/img/stats-review/ci_xkcd.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>在此最后提醒一句。置信区间比乍一看更难解释。例如，我<strong>不应该</strong>说这个特定的 95% 置信区间包含 95% 机会的真实总体均值。这是因为在频率统计（使用置信区间的统计）中，总体均值被视为真正的总体常数。所以它要么在我们特定的置信区间内，要么不在。换句话说，我们的特定置信区间包含或不包含真实均值。如果是这样，包含它的机会将是 100%，而不是 95%。如果不是，则可能性为 0%。相反，在置信区间中，95% 是指在许多研究中计算出的此类置信区间包含真实平均值的频率。 95% 是我们对用于计算 95% CI 的算法的置信度，而不是特定区间本身。</p>
+<p>现在，话虽如此，作为一名经济学家（统计学家，现在请移开视线），我认为这种纯粹主义不是很有用。在实践中，您会看到人们说特定的置信区间在 95% 的情况下都包含真实均值。尽管这是错误的，但这并不是很有害，因为它仍然在我们的估计中存在一定程度的不确定性。此外，如果我们切换到贝叶斯统计并使用概率区间而不是置信区间，我们可以说该区间在 95% 的时间内包含分布均值。此外，从我在实践中看到的情况来看，在样本量不错的情况下，贝叶斯概率区间与置信区间比贝叶斯和频率论者都愿意承认的更相似。所以，如果我的话对任何事情都很重要，请随意说出你想要的关于你的置信区间的任何内容。我不在乎您是否说它们在 95% 的情况下都包含真实平均值。只是，请永远不要忘记将它们放在您的估计周围，否则您会看起来很傻。</p>
+<p>＃＃ 假设检验</p>
+<p>包含不确定性的另一种方法是陈述假设检验：均值差异在统计上与零（或任何其他值）不同吗？为此，我们将回忆起 2 个独立正态分布的和或差也是正态分布。结果均值将是两个分布之间的总和或差，而方差始终是方差之和：</p>
+<p><span class="math display">\[
+N(\mu_1, \sigma_1^2) - N(\mu_2, \sigma_2^2) = N(\mu_1 - \mu_2, \sigma_1^2 + \sigma_2^2)
+\]</span></p>
+<p><span class="math display">\[
+N(\mu_1, \sigma_1^2) + N(\mu_2, \sigma_2^2) = N(\mu_1 + \mu_2, \sigma_1^2 + \sigma_2^2)
+\]</span></p>
+<p>如果你不记得，没关系。我们可以随时使用代码和模拟数据来检查：</p>
+<div id="cell-21" class="cell" data-execution_count="13">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">123</span>)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>n1 <span class="op">=</span> np.random.normal(<span class="dv">4</span>, <span class="dv">3</span>, <span class="dv">30000</span>)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>n2 <span class="op">=</span> np.random.normal(<span class="dv">1</span>, <span class="dv">4</span>, <span class="dv">30000</span>)</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>n_diff <span class="op">=</span> n2 <span class="op">-</span> n1</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>sns.distplot(n1, hist<span class="op">=</span><span class="va">False</span>, label<span class="op">=</span><span class="st">"N(4,3)"</span>)</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>sns.distplot(n2, hist<span class="op">=</span><span class="va">False</span>, label<span class="op">=</span><span class="st">"N(1,4)"</span>)</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>sns.distplot(n_diff, hist<span class="op">=</span><span class="va">False</span>, label<span class="op">=</span><span class="ss">f"NN(1,4) - (4,3) = N(-1, 5)"</span>)</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03 第三章 统计学回顾：最危险的公式_files/figure-html/cell-13-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>如果我们取两组均值的分布并从另一个中减去一个，我们将得到第三个分布。 该最终分布的均值将是均值的差值，该分布的标准差将是标准差总和的平方根。</p>
+<p><span class="math display">\[
+\mu_{diff} = \mu_1 - \mu_2
+\]</span></p>
+<p><span class="math display">\[
+SE_{diff} = \sqrt{SE_1 + SE_2} = \sqrt{\sigma_1^2/n_1 + \sigma_2^2/n_2}
+\]</span></p>
+<p>让我们回到我们的课堂例子。 我们将构建这种差异分布。 当然，一旦我们有了它，构建 95% CI 就非常容易了。</p>
+<div id="cell-23" class="cell" data-execution_count="14">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>diff_mu <span class="op">=</span> online.mean() <span class="op">-</span> face_to_face.mean()</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>diff_se <span class="op">=</span> np.sqrt(face_to_face.var()<span class="op">/</span><span class="bu">len</span>(face_to_face) <span class="op">+</span> online.var()<span class="op">/</span><span class="bu">len</span>(online))</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>ci <span class="op">=</span> (diff_mu <span class="op">-</span> <span class="fl">1.96</span><span class="op">*</span>diff_se, diff_mu <span class="op">+</span> <span class="fl">1.96</span><span class="op">*</span>diff_se)</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(ci)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(-8.376410208363357, -1.4480327880904964)</code></pre>
+</div>
+</div>
+<div id="cell-24" class="cell" data-execution_count="15">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> np.linspace(diff_mu <span class="op">-</span> <span class="dv">4</span><span class="op">*</span>diff_se, diff_mu <span class="op">+</span> <span class="dv">4</span><span class="op">*</span>diff_se, <span class="dv">100</span>)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> stats.norm.pdf(x, diff_mu, diff_se)</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>plt.plot(x, y)</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>plt.vlines(ci[<span class="dv">1</span>], ymin<span class="op">=</span><span class="dv">0</span>, ymax<span class="op">=</span><span class="fl">.05</span>)</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>plt.vlines(ci[<span class="dv">0</span>], ymin<span class="op">=</span><span class="dv">0</span>, ymax<span class="op">=</span><span class="fl">.05</span>, label<span class="op">=</span><span class="st">"95% CI"</span>)</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03 第三章 统计学回顾：最危险的公式_files/figure-html/cell-15-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>有了这个，我们可以说我们有 95% 的信心在线和面对面组之间的真正差异介于 -8.37 和 -1.44 之间。我们还可以通过将均值差异除以差异的 <span class="math inline">\(SE\\\)</span> 来构建 <strong>z 统计量</strong>。</p>
+<p><span class="math display">\[
+z = \dfrac{\mu_{diff} - H_{0}}{SE_{diff}} = \dfrac{(\mu_1 - \mu_2) - H_{0}}{\sqrt{\sigma_1^2/n_1 + \sigma_2^2/n_2}}
+\]</span></p>
+<p>其中 <span class="math inline">\(H_0\)</span> 是我们要测试差异的值。</p>
+<p>z 统计量衡量观察到的差异的极端程度。为了检验均值差异在统计上不同于零的假设，我们将使用矛盾。我们将假设相反的情况是正确的，即我们将假设差异为零。这称为零假设，或 <span class="math inline">\(H_0\)</span>。然后，我们会问自己“如果真正的差异确实为零，我们是否可能会观察到这种差异？”在统计数学术语中，我们可以将这个问题转化为检查 z 统计量离零有多远。</p>
+<p>在 <span class="math inline">\(H_0\)</span> 下，z 统计量遵循标准正态分布。因此，如果差异确实为零，我们将在 95% 的时间内看到 z 统计量在平均值的 2 个标准差内。这样做的直接后果是，如果 z 高于或低于 2 个标准差，我们可以以 95% 的置信度拒绝原假设。</p>
+<p>让我们看看这在我们的课堂示例中是什么样子的。</p>
+<div id="cell-26" class="cell" data-execution_count="16">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>z <span class="op">=</span> diff_mu <span class="op">/</span> diff_se</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(z)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>-2.7792810791031064</code></pre>
+</div>
+</div>
+<div id="cell-27" class="cell" data-execution_count="17">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> np.linspace(<span class="op">-</span><span class="dv">4</span>,<span class="dv">4</span>,<span class="dv">100</span>)</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> stats.norm.pdf(x, <span class="dv">0</span>, <span class="dv">1</span>)</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>plt.plot(x, y, label<span class="op">=</span><span class="st">"Standard Normal"</span>)</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>plt.vlines(z, ymin<span class="op">=</span><span class="dv">0</span>, ymax<span class="op">=</span><span class="fl">.05</span>, label<span class="op">=</span><span class="st">"Z statistic"</span>, color<span class="op">=</span><span class="st">"C1"</span>)</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03 第三章 统计学回顾：最危险的公式_files/figure-html/cell-17-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>这看起来是一个非常极端的值。 事实上，它高于 2，这意味着如果组中没有差异，我们看到这样一个极值的可能性不到 5%。 这再次使我们得出结论，从面对面转向在线课程会导致学业成绩在统计上显着下降。</p>
+<p>关于假设检验的最后一件有趣的事情是，它不如检查治疗组和未治疗组的 95% CI 是否重叠那么保守。 换句话说，如果两组中的置信区间重叠，仍然可能出现结果具有统计显着性的情况。 例如，假设面对面组的平均分数为 80，标准误差为 4，在线组的平均分数为 71，标准误差为 2。</p>
+<div id="cell-29" class="cell" data-execution_count="18">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>cont_mu, cont_se <span class="op">=</span>  (<span class="dv">71</span>, <span class="dv">2</span>)</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>test_mu, test_se <span class="op">=</span> (<span class="dv">80</span>, <span class="dv">4</span>)</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>diff_mu <span class="op">=</span> test_mu <span class="op">-</span> cont_mu</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>diff_se <span class="op">=</span> np.sqrt(cont_se<span class="op">**</span><span class="dv">2</span> <span class="op">+</span> test_se<span class="op">**</span><span class="dv">2</span>)</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Control 95% CI:"</span>, (cont_mu<span class="op">-</span><span class="fl">1.96</span><span class="op">*</span>cont_se, cont_mu<span class="op">+</span><span class="fl">1.96</span><span class="op">*</span>cont_se))</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Test 95% CI:"</span>, (test_mu<span class="op">-</span><span class="fl">1.96</span><span class="op">*</span>test_se, test_mu<span class="op">+</span><span class="fl">1.96</span><span class="op">*</span>test_se))</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Diff 95% CI:"</span>, (diff_mu<span class="op">-</span><span class="fl">1.96</span><span class="op">*</span>diff_se, diff_mu<span class="op">+</span><span class="fl">1.96</span><span class="op">*</span>diff_se))</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Control 95% CI: (67.08, 74.92)
+Test 95% CI: (72.16, 87.84)
+Diff 95% CI: (0.23461352820082482, 17.765386471799175)</code></pre>
+</div>
+</div>
+<p>如果我们为这些组构建置信区间，它们就会重叠。在线组 95% CI 的上限为 74.92，面对面组的下限为 72.16。然而，一旦我们计算了组间差异的 95% 置信区间，我们可以看到它不包含零。总之，即使各个置信区间重叠，差异仍然可以在统计上不同于零。</p>
+</section>
+<section id="p-值" class="level2">
+<h2 class="anchored" data-anchor-id="p-值">P 值</h2>
+<p>我之前说过，如果在线组和面对面组之间的差异实际上为零，我们观察到这种极端值的可能性不到 5%。但是我们能准确估计这个机会是多少吗？我们观察到这样一个极值的可能性有多大？输入 p 值！</p>
+<p>就像置信区间（以及大多数频率统计，事实上）一样，p 值的真正定义可能非常令人困惑。因此，为了不冒任何风险，我将复制维基百科的定义：“p 值是获得测试结果的概率至少与测试期间实际观察到的结果一样极端，假设原假设是正确的” .</p>
+<p>更简洁地说，p 值是看到此类数据的概率，前提是原假设为真。如果原假设为真，它衡量您看到测量结果的可能性有多大。自然地，这常常与原假设为真的概率混淆。注意这里的区别。 p 值不是 <span class="math inline">\(P(H_0|data)\)</span>，而是 <span class="math inline">\(P(data|H_0)\)</span>。</p>
+<p>但是不要让这种复杂性欺骗了您。实际上，它们使用起来非常简单。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/stats-review/p_value.png" class="img-fluid figure-img"></p>
+<figcaption>p_value</figcaption>
+</figure>
+</div>
+<p>要获得 p 值，我们需要计算 z 统计量之前或之后的标准正态分布下的面积。幸运的是，我们有一台计算机可以帮我们做这个计算。我们可以简单地将 z 统计量插入标准正态分布的 CDF 中。</p>
+<div id="cell-31" class="cell" data-execution_count="19">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"P-value:"</span>, stats.norm.cdf(z))</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>P-value: 0.0027239680835564706</code></pre>
+</div>
+</div>
+<p>这意味着如果差异为零，则只有 0.2% 的机会观察到这个极端的 z 统计量。 请注意 p 值的有趣之处，因为它避免了我们必须指定置信水平，例如 95% 或 99%。 但是，如果我们希望报告一个，根据 p 值，我们确切地知道我们的测试将通过或失败的置信度。 例如，p 值为 0.0027，我们知道我们在 0.2% 的水平上具有显着性。 因此，虽然差异的 95% CI 和 99% CI 都不包含零，但 99.9% CI 会。</p>
+<div id="cell-33" class="cell" data-execution_count="20">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>diff_mu <span class="op">=</span> online.mean() <span class="op">-</span> face_to_face.mean()</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>diff_se <span class="op">=</span> np.sqrt(face_to_face.var()<span class="op">/</span><span class="bu">len</span>(face_to_face) <span class="op">+</span> online.var()<span class="op">/</span><span class="bu">len</span>(online))</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"95% CI:"</span>, (diff_mu <span class="op">-</span> stats.norm.ppf(<span class="fl">.975</span>)<span class="op">*</span>diff_se, diff_mu <span class="op">+</span> stats.norm.ppf(<span class="fl">.975</span>)<span class="op">*</span>diff_se))</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"99% CI:"</span>, (diff_mu <span class="op">-</span> stats.norm.ppf(<span class="fl">.995</span>)<span class="op">*</span>diff_se, diff_mu <span class="op">+</span> stats.norm.ppf(<span class="fl">.995</span>)<span class="op">*</span>diff_se))</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"99.9% CI:"</span>, (diff_mu <span class="op">-</span> stats.norm.ppf(<span class="fl">.9995</span>)<span class="op">*</span>diff_se, diff_mu <span class="op">+</span> stats.norm.ppf(<span class="fl">.9995</span>)<span class="op">*</span>diff_se))</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>95% CI: (-8.37634655308288, -1.4480964433709733)
+99% CI: (-9.464853535264012, -0.3595894611898425)
+99.9% CI: (-10.72804065824553, 0.9035976617916743)</code></pre>
+</div>
+</div>
+</section>
+<section id="关键思想" class="level2">
+<h2 class="anchored" data-anchor-id="关键思想">关键思想</h2>
+<p>我们已经看到了解 Moivre 方程的重要性，我们用它来确定我们的估计值。 也就是说，我们发现与面对面课程相比，在线课程会导致学习成绩下降。 我们还看到这是一个具有统计意义的结果。 我们通过比较两组均值的置信区间、查看差异的置信区间、进行假设检验和查看 p 值来做到这一点。 下面，让我们将所有内容都包含在一个函数中，该函数通过A/B实验进行比较，就像我们上面所做的那样。</p>
+<div id="cell-35" class="cell" data-execution_count="21">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> AB_test(test: pd.Series, control: pd.Series, confidence<span class="op">=</span><span class="fl">0.95</span>, h0<span class="op">=</span><span class="dv">0</span>):</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>    mu1, mu2 <span class="op">=</span> test.mean(), control.mean()</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>    se1, se2 <span class="op">=</span> test.std() <span class="op">/</span> np.sqrt(<span class="bu">len</span>(test)), control.std() <span class="op">/</span> np.sqrt(<span class="bu">len</span>(control))</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>    diff <span class="op">=</span> mu1 <span class="op">-</span> mu2</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>    se_diff <span class="op">=</span> np.sqrt(test.var()<span class="op">/</span><span class="bu">len</span>(test) <span class="op">+</span> control.var()<span class="op">/</span><span class="bu">len</span>(control))</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>    z_stats <span class="op">=</span> (diff<span class="op">-</span>h0)<span class="op">/</span>se_diff</span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>    p_value <span class="op">=</span> stats.norm.cdf(z_stats)</span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> critial(se): <span class="cf">return</span> <span class="op">-</span>se<span class="op">*</span>stats.norm.ppf((<span class="dv">1</span> <span class="op">-</span> confidence)<span class="op">/</span><span class="dv">2</span>)</span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Test </span><span class="sc">{</span>confidence<span class="op">*</span><span class="dv">100</span><span class="sc">}</span><span class="ss">% CI: </span><span class="sc">{</span>mu1<span class="sc">}</span><span class="ss"> +- </span><span class="sc">{</span>critial(se1)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Control </span><span class="sc">{</span>confidence<span class="op">*</span><span class="dv">100</span><span class="sc">}</span><span class="ss">% CI: </span><span class="sc">{</span>mu2<span class="sc">}</span><span class="ss"> +- </span><span class="sc">{</span>critial(se2)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Test-Control </span><span class="sc">{</span>confidence<span class="op">*</span><span class="dv">100</span><span class="sc">}</span><span class="ss">% CI: </span><span class="sc">{</span>diff<span class="sc">}</span><span class="ss"> +- </span><span class="sc">{</span>critial(se_diff)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Z Statistic </span><span class="sc">{</span>z_stats<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"P-Value </span><span class="sc">{</span>p_value<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb30-18"><a href="#cb30-18" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb30-19"><a href="#cb30-19" aria-hidden="true" tabindex="-1"></a>AB_test(online, face_to_face)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Test 95.0% CI: 73.63526308510637 +- 3.0127770572134565
+Control 95.0% CI: 78.5474845833333 +- 1.7097768273108005
+Test-Control 95.0% CI: -4.912221498226927 +- 3.4641250548559537
+Z Statistic -2.7792810791031064
+P-Value 0.0027239680835564706</code></pre>
+</div>
+</div>
+<p>由于我们的函数足够通用，我们可以测试其他零假设。 例如，我们是否可以尝试拒绝在线课堂和面对面课堂表现之间的差异为 -1。 根据我们得到的结果，我们可以 95% 的置信度说差异大于 -1。 但我们在99% 的置信度上却没法这么肯定：</p>
+<div id="cell-37" class="cell" data-execution_count="22">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>AB_test(online, face_to_face, h0<span class="op">=-</span><span class="dv">1</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Test 95.0% CI: 73.63526308510637 +- 3.0127770572134565
+Control 95.0% CI: 78.5474845833333 +- 1.7097768273108005
+Test-Control 95.0% CI: -4.912221498226927 +- 3.4641250548559537
+Z Statistic -2.2134920404560723
+P-Value 0.013431870694630667</code></pre>
+</div>
+</div>
+</section>
+<section id="参考资料" class="level2">
+<h2 class="anchored" data-anchor-id="参考资料">参考资料</h2>
+<ol type="1">
+<li>https://www.americanscientist.org/article/the-most-dangerous-equation</li>
+</ol>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "已复制");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "已复制");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../chapters/02 第二章-随机试验.html" class="pagination-link" aria-label="第二章: 随机试验">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">第二章: 随机试验</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../chapters/04 第四章 图因果模型.html" class="pagination-link" aria-label="第四章: 图因果模型">
+        <span class="nav-page-text">第四章: 图因果模型</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>内容基于《Causal Inference for the Brave and True》中文翻译整理。</p>
+</div>   
+    <div class="nav-footer-center">
+<p>用 Quarto 构建，面向在线阅读与本地复现。</p>
+<div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/xieliaing/CausalInferenceIntro/blob/main/chapters/03 第三章 统计学回顾：最危险的公式.ipynb" class="toc-action"><i class="bi bi-github"></i>查看代码</a></li><li><a href="https://github.com/xieliaing/CausalInferenceIntro/issues/new" class="toc-action"><i class="bi empty"></i>反馈问题</a></li></ul></div></div>
+    <div class="nav-footer-right">
+<p><a href="https://github.com/xieliaing/CausalInferenceIntro">GitHub 仓库</a></p>
+</div>
+  </div>
+</footer>
+
+
+
+
+<script src="../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

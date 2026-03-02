@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-CN" xml:lang="zh-CN"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="CausalInferenceIntro">
+
+<title>第二十一章: 元学习器 – 因果推断：从概念到实践</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../chapters/20 第二十章 即插即用估计量.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-f1a637e51edb8e5d5a953483935b5072.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "没有结果",
+    "search-matching-documents-text": "匹配的文档",
+    "search-copy-link-title": "复制搜索链接",
+    "search-hide-matches-text": "隐藏其它匹配结果",
+    "search-more-match-text": "更多匹配结果",
+    "search-more-matches-text": "更多匹配结果",
+    "search-clear-button-title": "清除",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "取消",
+    "search-submit-button-title": "提交",
+    "search-label": "搜索"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-sidebar docked nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    </a>
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">因果推断：从概念到实践</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="搜索"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="展开或折叠导航栏" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="../index.html" aria-current="page"> 
+<span class="menu-text">首页</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/xieliaing/CausalInferenceIntro"> 
+<span class="menu-text">GitHub</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/matheusfacure/python-causality-handbook"> 
+<span class="menu-text">原书</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="展开或折叠侧边栏导航" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/01 第一章-因果关系入门.html">章节</a></li><li class="breadcrumb-item"><a href="../chapters/21 第二十一章 元学习器.html">第二十一章: 元学习器</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="展开或折叠侧边栏导航" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="搜索" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+      <a href="../index.html" class="sidebar-logo-link">
+      </a>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="搜索"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">章节</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="展开或折叠此栏">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/01 第一章-因果关系入门.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第一章: 因果关系入门</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/02 第二章-随机试验.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二章: 随机试验</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/03 第三章 统计学回顾：最危险的公式.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第三章: 统计学回顾</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/04 第四章 图因果模型.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第四章: 图因果模型</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/05 第五章 线性回归超乎寻常的有效性.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第五章: 线性回归的有效性</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/06 第六章 分组和虚拟变量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第六章: 分组和虚拟变量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/07 第七章 控制混淆因素之外的考虑.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第七章: 控制混淆之外</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/08 第八章 工具变量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第八章: 工具变量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/09 第九章 非服从性与局部平均效应.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第九章: 非服从性与 LATE</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/10 第十章 匹配.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十章: 匹配</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/11 第十一章 倾向得分.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十一章: 倾向得分</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/12 第十二章 双重稳健估计.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十二章: 双重稳健估计</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/13 第十三章 面板数据与固定效应.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十三章: 面板数据与固定效应</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/14 第十四章 双重差分.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十四章: 双重差分</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/15 第十五章 合成控制.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十五章: 合成控制</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/16 第十六章 断点回归.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十六章: 断点回归</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/17 第十七章 预测模型 101.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十七章: 预测模型 101</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/18 第十八章 异质干预效应与个性化.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十八章: 异质干预效应</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/19 第十九章 评估因果模型.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十九章: 评估因果模型</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/20 第二十章 即插即用估计量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二十章: 即插即用估计量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/21 第二十一章 元学习器.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">第二十一章: 元学习器</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="2">
+    <h2 id="toc-title">本页目录</h2>
+   
+  <ul>
+  <li><a href="#s-learner又名-go-horse-learner" id="toc-s-learner又名-go-horse-learner" class="nav-link active" data-scroll-target="#s-learner又名-go-horse-learner">S-Learner（又名 Go-Horse Learner）</a></li>
+  <li><a href="#t-学习器" id="toc-t-学习器" class="nav-link" data-scroll-target="#t-学习器">T-学习器</a></li>
+  <li><a href="#x-学习器" id="toc-x-学习器" class="nav-link" data-scroll-target="#x-学习器">X-学习器</a></li>
+  <li><a href="#关键思想" id="toc-关键思想" class="nav-link" data-scroll-target="#关键思想">关键思想</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/xieliaing/CausalInferenceIntro/blob/main/chapters/21 第二十一章 元学习器.ipynb" class="toc-action"><i class="bi bi-github"></i>查看代码</a></li><li><a href="https://github.com/xieliaing/CausalInferenceIntro/issues/new" class="toc-action"><i class="bi empty"></i>反馈问题</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/01 第一章-因果关系入门.html">章节</a></li><li class="breadcrumb-item"><a href="../chapters/21 第二十一章 元学习器.html">第二十一章: 元学习器</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">第二十一章: 元学习器</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">作者</div>
+    <div class="quarto-title-meta-contents">
+             <p>CausalInferenceIntro </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">发布于</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">2026年3月2日</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>回顾一下，我们现在有兴趣寻找干预效果的异质性，即确定个体对干预的不同反应。在这个框架中，我们要估计</p>
+<p><span class="math display">\[
+\tau(x) = E[Y_i(1) − Y_i(0)|X] = E[\tau_i|X]
+\]</span></p>
+<p>或者，连续的情况下的<span class="math inline">\(E[\delta Y_i(t)|X]\)</span>。换句话说，我们想知道个体对干预的敏感程度。这在我们无法对所有人进行干预并需要对干预进行优先排序的情况下非常有用，例如，当您想提供折扣但预算有限时。</p>
+<p>之前，我们看到了如何转换结果变量 <span class="math inline">\(Y\)</span>，以便我们可以将其插入预测模型并获得条件平均干预效果 (CATE) 估计。在那里，我们不得不付出方差增加的代价。这是我们在数据科学中经常看到的情况。没有一种最好的方法，因为每种方法都有其缺点和优点。出于这个原因，值得学习许多技术，这样您就可以根据情况权衡取舍。本着这种精神，本章将着重于提供更多工具供您使用。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="data/img/meta-learners/learned-new-move.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>元学习器是一种利用现成的预测机器学习方法来解决我们迄今为止一直在研究的相同问题的简单方法：估计 CATE。同样，它们都不是最好的，每个都有其弱点。我将尝试复习它们，但请记住，这些内容高度依赖于上下文。不仅如此，元学习器还部署了预测性 ML 模型，这些模型可以从线性回归和提升决策树到神经网络和高斯过程。元学习器的成功也将在很大程度上取决于它使用哪种机器学习方法作为其组件。很多时候你只需要尝试很多不同的东西，看看什么最有效。 ..</p>
+<div id="cell-2" class="cell" data-tags="[&quot;hide-input&quot;]" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib <span class="im">import</span> pyplot <span class="im">as</span> plt</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> nb21 <span class="im">import</span> cumulative_gain, elast</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>在这里，我们将使用与之前相同的数据，重新收集投资广告电子邮件。同样，这里的目标是找出谁会更好地回复电子邮件。不过，这里有点曲折。这一次，我们将使用非随机数据来训练模型和随机数据来验证它们。处理非随机数据是一项更艰巨的任务，因为元学习器需要对数据进行去偏 <strong>和</strong> 估计 CATE …</p>
+<div id="cell-4" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>test <span class="op">=</span> pd.read_csv(<span class="st">"./data/invest_email_rnd.csv"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>train <span class="op">=</span> pd.read_csv(<span class="st">"./data/invest_email_biased.csv"</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>train.head()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="2">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">age</th>
+<th data-quarto-table-cell-role="th">income</th>
+<th data-quarto-table-cell-role="th">insurance</th>
+<th data-quarto-table-cell-role="th">invested</th>
+<th data-quarto-table-cell-role="th">em1</th>
+<th data-quarto-table-cell-role="th">em2</th>
+<th data-quarto-table-cell-role="th">em3</th>
+<th data-quarto-table-cell-role="th">converted</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>44.1</td>
+<td>5483.80</td>
+<td>6155.29</td>
+<td>14294.81</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>39.8</td>
+<td>2737.92</td>
+<td>50069.40</td>
+<td>7468.15</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>49.0</td>
+<td>2712.51</td>
+<td>5707.08</td>
+<td>5095.65</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>39.7</td>
+<td>2326.37</td>
+<td>15657.97</td>
+<td>6345.20</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>35.3</td>
+<td>2787.26</td>
+<td>27074.44</td>
+<td>14114.86</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>我们的结果变量是转换，我们的处理是 email-1。让我们创建变量来存储这些变量以及我们将用于搜索干预效果异质性的特征 <span class="math inline">\(X\)</span>。.</p>
+<div id="cell-6" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> <span class="st">"converted"</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>T <span class="op">=</span> <span class="st">"em1"</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> [<span class="st">"age"</span>, <span class="st">"income"</span>, <span class="st">"insurance"</span>, <span class="st">"invested"</span>]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="s-learner又名-go-horse-learner" class="level2">
+<h2 class="anchored" data-anchor-id="s-learner又名-go-horse-learner">S-Learner（又名 Go-Horse Learner）</h2>
+<p>我们将使用的第一个学习器是 S-Learner。这是我们能想到的最简单的学习器。我们将使用单个（因此是 S）机器学习模型 <span class="math inline">\(M_s\)</span> 来估计</p>
+<p><span class="math display">\[
+\mu(x) = E[Y| T, X]
+\]</span></p>
+<p>为此，我们将简单地将干预作为一个特征包含在模型中，该模型试图预测结果 Y…</p>
+<div id="cell-8" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> lightgbm <span class="im">import</span> LGBMRegressor</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">123</span>)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>s_learner <span class="op">=</span> LGBMRegressor(max_depth<span class="op">=</span><span class="dv">3</span>, min_child_samples<span class="op">=</span><span class="dv">30</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>s_learner.fit(train[X<span class="op">+</span>[T]], train[y])<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>然后，我们可以在不同的干预方案下做出预测。测试和控制之间的预测差异将是我们的 CATE 估计</p>
+<p><span class="math display">\[
+\hat{\tau}(x)_i = M_s(X_i, T=1) - M_s(X_i, T=0)
+\]</span></p>
+<p>如果我们把它放在图表中，这就是它的样子</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="data/img/meta-learners/s-learner.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>现在，让我们看看如何在代码中实现这个学习器。.</p>
+<div id="cell-10" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>s_learner_cate_train <span class="op">=</span> (s_learner.predict(train[X].assign(<span class="op">**</span>{T: <span class="dv">1</span>})) <span class="op">-</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>                        s_learner.predict(train[X].assign(<span class="op">**</span>{T: <span class="dv">0</span>})))</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>s_learner_cate_test <span class="op">=</span> test.assign(</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    cate<span class="op">=</span>(s_learner.predict(test[X].assign(<span class="op">**</span>{T: <span class="dv">1</span>})) <span class="op">-</span> <span class="co"># predict under treatment</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>          s_learner.predict(test[X].assign(<span class="op">**</span>{T: <span class="dv">0</span>}))) <span class="co"># predict under control</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>为了评估这个模型，我们将查看测试集中的累积增益曲线。我也在绘制火车的增益曲线。由于训练是有偏差的，这条曲线不能给出模型是否良好的任何指示，但它可以指出我们是否过度拟合训练集。发生这种情况时，火车集中的曲线将非常高。如果您想看看它是什么样子，请尝试将 <code>max_depth</code> 参数从 3 替换为 20…</p>
+<div id="cell-12" class="cell" data-tags="[&quot;hide-input&quot;]" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>gain_curve_test <span class="op">=</span> cumulative_gain(s_learner_cate_test, <span class="st">"cate"</span>, y<span class="op">=</span><span class="st">"converted"</span>, t<span class="op">=</span><span class="st">"em1"</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>gain_curve_train <span class="op">=</span> cumulative_gain(train.assign(cate<span class="op">=</span>s_learner_cate_train), <span class="st">"cate"</span>, y<span class="op">=</span><span class="st">"converted"</span>, t<span class="op">=</span><span class="st">"em1"</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>plt.plot(gain_curve_test, color<span class="op">=</span><span class="st">"C0"</span>, label<span class="op">=</span><span class="st">"Test"</span>)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>plt.plot(gain_curve_train, color<span class="op">=</span><span class="st">"C1"</span>, label<span class="op">=</span><span class="st">"Train"</span>)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>plt.plot([<span class="dv">0</span>, <span class="dv">100</span>], [<span class="dv">0</span>, elast(test, <span class="st">"converted"</span>, <span class="st">"em1"</span>)], linestyle<span class="op">=</span><span class="st">"--"</span>, color<span class="op">=</span><span class="st">"black"</span>, label<span class="op">=</span><span class="st">"Baseline"</span>)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"S-Learner"</span>)<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="21 第二十一章 元学习器_files/figure-html/cell-7-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="data/img/meta-learners/not-great-not-terrible.jpeg" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>正如我们从累积增益中看到的那样，S-learner 虽然简单，但可以在此数据集上执行良好。要记住的一件事是，这种性能对于这个数据集来说是非常特殊的。根据您拥有的数据类型，S-learner 可能做得更好或更差。在实践中，我发现 S-learner 是解决任何因果关系问题的首选，主要是因为它的简单性。不仅如此，S-learner 可以处理连续处理和离散处理，而本章中的其他学习器只能处理离散处理。</p>
+<p>S-learner 的主要缺点是它倾向于使干预效果偏向于零。由于 S-learner 使用的通常是正则化机器学习模型，因此正则化会限制估计的干预效果。 Chernozhukov 等人 (2016) 使用模拟数据概述了这个问题：</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="data/img/meta-learners/zero-bias-s-learner.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>在这里，他们使用 S-learner 绘制了真实因果效应（红色轮廓）与估计因果效应 <span class="math inline">\(\tau - \hat{\tau}\)</span> 之间的差异。估计的因果效应严重向下偏倚（<span class="math inline">\(\tau - \hat{\tau} &gt; 0\)</span> 大多数时候）。换句话说，真实的因果效应往往大于估计的因果效应。</p>
+<p>更糟糕的是，如果相对于其他协变量在解释结果时所起的影响而言，干预的效果非常弱，则 S-learner 可以完全丢弃干预变量。请注意，这与您选择的 ML 模型高度相关。正则化越大，问题就越大。解决这个问题的尝试是我们将看到的下一个学习器…</p>
+</section>
+<section id="t-学习器" class="level2">
+<h2 class="anchored" data-anchor-id="t-学习器">T-学习器</h2>
+<p>T-learner 试图通过强制学习器首先对其进行拆分来解决完全丢弃处理的问题。我们将为每个干预变量使用一个模型，而不是使用单个模型。在二元情况下，我们只需要估计两个模型（因此得名 T）：</p>
+<p><span class="math display">\[
+\mu_0(x) = E[Y| T=0, X]
+\]</span></p>
+<p><span class="math display">\[
+\mu_1(x) = E[Y| T=1, X]
+\]</span></p>
+<p>然后，在预测时，我们可以对每个处理进行反事实预测，并得到 CATE，如下所示。</p>
+<p><span class="math display">\[
+\hat{\tau}(x)_i = M_1(X_i) - M_0(X_i)
+\]</span></p>
+<p>这是这个学习器的图表</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="数据/img/元学习器/t-learner.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>现在，关于理论已经足够了。让我们编写代码…</p>
+<div id="cell-15" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">123</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>m0 <span class="op">=</span> LGBMRegressor(max_depth<span class="op">=</span><span class="dv">2</span>, min_child_samples<span class="op">=</span><span class="dv">60</span>)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>m1 <span class="op">=</span> LGBMRegressor(max_depth<span class="op">=</span><span class="dv">2</span>, min_child_samples<span class="op">=</span><span class="dv">60</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>m0.fit(train.query(<span class="ss">f"</span><span class="sc">{</span>T<span class="sc">}</span><span class="ss">==0"</span>)[X], train.query(<span class="ss">f"</span><span class="sc">{</span>T<span class="sc">}</span><span class="ss">==0"</span>)[y])</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>m1.fit(train.query(<span class="ss">f"</span><span class="sc">{</span>T<span class="sc">}</span><span class="ss">==1"</span>)[X], train.query(<span class="ss">f"</span><span class="sc">{</span>T<span class="sc">}</span><span class="ss">==1"</span>)[y])</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="co"># estimate the CATE</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>t_learner_cate_train <span class="op">=</span> m1.predict(train[X]) <span class="op">-</span> m0.predict(train[X])</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>t_learner_cate_test <span class="op">=</span> test.assign(cate<span class="op">=</span>m1.predict(test[X]) <span class="op">-</span> m0.predict(test[X]))</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="cell-16" class="cell" data-tags="[&quot;hide-input&quot;]" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>gain_curve_test <span class="op">=</span> cumulative_gain(t_learner_cate_test, <span class="st">"cate"</span>, y<span class="op">=</span><span class="st">"converted"</span>, t<span class="op">=</span><span class="st">"em1"</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>gain_curve_train <span class="op">=</span> cumulative_gain(train.assign(cate<span class="op">=</span>t_learner_cate_train), <span class="st">"cate"</span>, y<span class="op">=</span><span class="st">"converted"</span>, t<span class="op">=</span><span class="st">"em1"</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>plt.plot(gain_curve_test, color<span class="op">=</span><span class="st">"C0"</span>, label<span class="op">=</span><span class="st">"Test"</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>plt.plot(gain_curve_train, color<span class="op">=</span><span class="st">"C1"</span>, label<span class="op">=</span><span class="st">"Train"</span>)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>plt.plot([<span class="dv">0</span>, <span class="dv">100</span>], [<span class="dv">0</span>, elast(test, <span class="st">"converted"</span>, <span class="st">"em1"</span>)], linestyle<span class="op">=</span><span class="st">"--"</span>, color<span class="op">=</span><span class="st">"black"</span>, label<span class="op">=</span><span class="st">"Baseline"</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>plt.legend()<span class="op">;</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"T-Learner"</span>)<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="21 第二十一章 元学习器_files/figure-html/cell-9-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>T-learner 在此数据集上也表现良好。测试性能看起来与我们使用 S-learner 获得的结果没有太大区别。或许是因为干预没有那么弱吧。此外，我们可以看到训练性能远高于测试性能。这表明模型过度拟合。之所以会发生这种情况，是因为我们只在数据的一个子集上拟合每个模型。使用较少的数据点，模型可能会学习一些噪音。</p>
+<p>T-Learner 避免了不接受弱干预变量的问题，但它仍然会受到正则化偏差的影响。考虑以下情况，取自 Kunzela 等人，2019 年。您有大量未经干预的数据，而干预过的数据很少，这在许多应用程序中都是很常见的情况，因为干预通常很昂贵。现在假设你在结果 Y 中有一些非线性，但<strong>干预效果是恒定的</strong>。我们可以在下图中看到发生了什么</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="data/img/meta-learners/t-learner-problem.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>在这里，由于我们干预过的观测值很少，<span class="math inline">\(M_1\)</span> 将是一个非常简单的模型（在本例中为线性模型）以避免过度拟合。 <span class="math inline">\(M_0\)</span> 会更复杂，但没关系，因为丰富的数据可以防止过度拟合。从机器学习的角度来看，这都是合理的。但是，如果我们使用这些模型来计算类别 <span class="math inline">\(\hat{\tau}=M_1(X) - M_0(X)\)</span>，<span class="math inline">\(M_1(X)\)</span> 的线性减去 <span class="math inline">\(M_0(X)\)</span> 的非线性将导致非线性 CATE（蓝线减去红线），这是错误的，因为在这种情况下 CATE 是常数且等于 1。</p>
+<p>这里发生的是未干预数据对应的模型可以拾取非线性，但干预数据对应的模型不能，因为我们使用正则化来处理小样本。当然，您可以在该模型上使用较少的正则化，但样本量太小会导致过度拟合。似乎我们进退两难。为了解决这个问题，我们可以使用 Kunzela 等人在同一篇论文中提出的 X-learner。.</p>
+</section>
+<section id="x-学习器" class="level2">
+<h2 class="anchored" data-anchor-id="x-学习器">X-学习器</h2>
+<p>X-learner 比之前的 le​​arner 解释起来要复杂得多，但它的实现非常简单，所以不用担心。 X-Learner 有两个阶段和一个倾向评分模型。第一个与 T-learner 相同。首先，我们将样本分成处理过的和未处理过的，并为处理过的和对照拟合一个 ML 模型。</p>
+<p><span class="math display">\[
+\hat{M}_0(X) \approx E[Y| T=0, X]
+\]</span></p>
+<p><span class="math display">\[
+\hat{M}_1(X) \approx E[Y| T=1, X]
+\]</span></p>
+<p>现在，事情开始有了转机。对于第二阶段，我们使用上述模型输入控制和干预的效果</p>
+<p><span class="math display">\[
+\hat{\tau}(X, T=0) = \hat{M}_1(X, T=0) - Y_{T=0}
+\]</span></p>
+<p><span class="math display">\[
+\hat{\tau}(X, T=1) = Y_{T=1} - \hat{M}_0(X, T=1)
+\]</span></p>
+<p>然后，我们再拟合两个模型来预测这些影响</p>
+<p><span class="math display">\[
+\hat{M}_{\tau 0}(X) \approx E[\hat{\tau}(X)|T=0]
+\]</span></p>
+<p><span class="math display">\[
+\hat{M}_{\tau 1}(X) \approx E[\hat{\tau}(X)|T=1]
+\]</span></p>
+<p>如果我们将它应用到我们之前展示的图像上，<span class="math inline">\(\hat{\tau}(X, T=0)\)</span>，即对未处理的估算处理效果，将是红色十字，红色虚线将是 $ _{}(X)$。注意这个模型是错误的。因为 <span class="math inline">\(\hat{\tau}(X, T=0)\)</span> 是使用正则化的简单模型制作的，在经过处理的 <span class="math inline">\(\hat{M}_1\)</span> 上进行估计。它输入的处理效果是非线性的，因为它<strong>没有</strong>捕获 Y 变量中的非线性。</p>
+<p>相比之下，蓝点是被干预对象的估计干预结果，<span class="math inline">\(\hat{\tau}(X, T=1)\)</span>。这些影响是使用正确的模型 <span class="math inline">\(M_0\)</span> 估计的，该模型在未经处理的大样本中训练。因此，由于其估计的干预效果是正确的，我们能够训练出正确的第二阶段模型 <span class="math inline">\(\hat{M}_{\tau 1}(X)\)</span>，如蓝线所示。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="data/img/meta-learners/second-stage-x.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>所以我们有一个错误的模型，因为我们错误地输入了干预效果，而另一个模型是正确的，因为我们正确地估算了这些值。现在，我们需要一种方法将两者结合起来，从而为正确的模型赋予更多权重。.这就是倾向得分模型发挥作用的地方让 <span class="math inline">\(\hat{e}(x)\)</span> 成为倾向得分模型，我们可以将两个第二阶段模型组合如下：</p>
+<p><span class="math display">\[
+\hat{\tau(x)} = \hat{M}_{\tau 0}(X)(\hat{e}(x)) + \hat{M}_{\tau 1}(X)( 1-\hat{e}(x))
+\]</span></p>
+<p>由于处理单元很少，<span class="math inline">\(\hat{e}(x)\)</span> 非常小。这会给错误的模型 <span class="math inline">\(\hat{M}_{\tau 0}(X)\)</span> 一个非常小的权重。</p>
+<p>相比之下，<span class="math inline">\(1-\hat{e}(x)\)</span> 接近于 1，因此我们会给正确的模型 <span class="math inline">\(\hat{M}_{\tau 1}(X)\)</span> 赋予较高的权重。更广义的情况下，使用倾向得分的加权平均数将确保我们为估计更有可能得到进行干预的 CATE 模型赋予更多权重。换句话说，我们会偏爱使用更多数据训练的模型。下图显示了 X-learner 和 T-learner 给出的估计 CATE。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="data/img/meta-learners/t-vs-x-learner.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>正如我们所看到的，与 T-learner 相比，X-learner 在纠正非线性估计的错误 CATE 方面做得更好。一般来说，当一个干预组比另一个大得多时，X-learner 表现更好。</p>
+<p>我知道这可能有点啰嗦，但希望一旦我们开始实施，它就会变得清晰。为了总结一切，这里是这个学习器的图表。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="data/img/meta-learners/x-learner.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>最后到代码！首先，我们有第一阶段，它与 T-Learner 完全相同。 ..</p>
+<div id="cell-19" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LogisticRegression</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">123</span>)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="co"># first stage models</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>m0 <span class="op">=</span> LGBMRegressor(max_depth<span class="op">=</span><span class="dv">2</span>, min_child_samples<span class="op">=</span><span class="dv">30</span>)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>m1 <span class="op">=</span> LGBMRegressor(max_depth<span class="op">=</span><span class="dv">2</span>, min_child_samples<span class="op">=</span><span class="dv">30</span>)</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="co"># propensity score model</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>g <span class="op">=</span> LogisticRegression(solver<span class="op">=</span><span class="st">"lbfgs"</span>, penalty<span class="op">=</span><span class="st">'none'</span>) </span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>m0.fit(train.query(<span class="ss">f"</span><span class="sc">{</span>T<span class="sc">}</span><span class="ss">==0"</span>)[X], train.query(<span class="ss">f"</span><span class="sc">{</span>T<span class="sc">}</span><span class="ss">==0"</span>)[y])</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>m1.fit(train.query(<span class="ss">f"</span><span class="sc">{</span>T<span class="sc">}</span><span class="ss">==1"</span>)[X], train.query(<span class="ss">f"</span><span class="sc">{</span>T<span class="sc">}</span><span class="ss">==1"</span>)[y])</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>                       </span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>g.fit(train[X], train[T])<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>现在，我们估算干预效果并在其上拟合第二阶段模型。 ..</p>
+<div id="cell-21" class="cell" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>d_train <span class="op">=</span> np.where(train[T]<span class="op">==</span><span class="dv">0</span>,</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>                   m1.predict(train[X]) <span class="op">-</span> train[y],</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>                   train[y] <span class="op">-</span> m0.predict(train[X]))</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="co"># second stage</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>mx0 <span class="op">=</span> LGBMRegressor(max_depth<span class="op">=</span><span class="dv">2</span>, min_child_samples<span class="op">=</span><span class="dv">30</span>)</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>mx1 <span class="op">=</span> LGBMRegressor(max_depth<span class="op">=</span><span class="dv">2</span>, min_child_samples<span class="op">=</span><span class="dv">30</span>)</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>mx0.fit(train.query(<span class="ss">f"</span><span class="sc">{</span>T<span class="sc">}</span><span class="ss">==0"</span>)[X], d_train[train[T]<span class="op">==</span><span class="dv">0</span>])</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>mx1.fit(train.query(<span class="ss">f"</span><span class="sc">{</span>T<span class="sc">}</span><span class="ss">==1"</span>)[X], d_train[train[T]<span class="op">==</span><span class="dv">1</span>])<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>最后，我们使用倾向评分模型进行修正预测。 ..</p>
+<div id="cell-23" class="cell" data-execution_count="11">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> ps_predict(df, t): </span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> g.predict_proba(df[X])[:, t]</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>x_cate_train <span class="op">=</span> (ps_predict(train,<span class="dv">0</span>)<span class="op">*</span>mx0.predict(train[X]) <span class="op">+</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>                ps_predict(train,<span class="dv">1</span>)<span class="op">*</span>mx1.predict(train[X]))</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>x_cate_test <span class="op">=</span> test.assign(cate<span class="op">=</span>(ps_predict(test,<span class="dv">0</span>)<span class="op">*</span>mx0.predict(test[X]) <span class="op">+</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>                                ps_predict(test,<span class="dv">1</span>)<span class="op">*</span>mx1.predict(test[X])))</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>让我们看看我们的 X-Learner 在测试中的表现如何。我们再次绘制累积增益曲线。 ..</p>
+<div id="cell-25" class="cell" data-tags="[&quot;hide-input&quot;]" data-execution_count="12">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>gain_curve_test <span class="op">=</span> cumulative_gain(x_cate_test, <span class="st">"cate"</span>, y<span class="op">=</span><span class="st">"converted"</span>, t<span class="op">=</span><span class="st">"em1"</span>)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>gain_curve_train <span class="op">=</span> cumulative_gain(train.assign(cate<span class="op">=</span>x_cate_train), <span class="st">"cate"</span>, y<span class="op">=</span><span class="st">"converted"</span>, t<span class="op">=</span><span class="st">"em1"</span>)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>plt.plot(gain_curve_test, color<span class="op">=</span><span class="st">"C0"</span>, label<span class="op">=</span><span class="st">"Test"</span>)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>plt.plot(gain_curve_train, color<span class="op">=</span><span class="st">"C1"</span>, label<span class="op">=</span><span class="st">"Train"</span>)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>plt.plot([<span class="dv">0</span>, <span class="dv">100</span>], [<span class="dv">0</span>, elast(test, <span class="st">"converted"</span>, <span class="st">"em1"</span>)], linestyle<span class="op">=</span><span class="st">"--"</span>, color<span class="op">=</span><span class="st">"black"</span>, label<span class="op">=</span><span class="st">"Baseline"</span>)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>plt.legend()<span class="op">;</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"X-Learner"</span>)<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="21 第二十一章 元学习器_files/figure-html/cell-13-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>我们在这个数据集上的表现仍然是还不错的。S、T 和 X 学习器在这里的表现似乎非常相似。不过，我认为了解所有这些元学习器还是值得的，这样你就可以使用最适合你的东西。请记住，性能也高度依赖于我们选择的基础机器学习模型。在这里，我们使用 Gradient Boosted Trees 完成了所有工作，但也许其他方法甚至具有不同超参数的相同方法可能效果更好。</p>
+</section>
+<section id="关键思想" class="level2">
+<h2 class="anchored" data-anchor-id="关键思想">关键思想</h2>
+<p>同样，我们能做的最简单的事情就是使用单个或 S-learner，并将处理作为一个特征。当干预不是结果的弱预测指标时，这往往很有效。但如果情况并非如此，S-learner 往往会偏向于零，甚至完全放弃干预。增加一点复杂性，我们可以使用 T-learner 强制学习器接受干预。在这里，我们为每个干预的水平设置一个机器学习模型。当所有干预水平都有足够的样本时，此方法工作正常，但当一个干预水平的样本量较小时，它可能会失败，从而迫使模型被高度正则化。为了解决这个问题，我们可以使用 X-learner 增加另一层复杂性，其中我们有两个拟合阶段，我们使用倾向得分模型来纠正用很少的数据点估计的模型的潜在错误。</p>
+<p>这些学习器（S-学习器除外）的一个大问题是他们假设二元或分类处理。还有一种我们还没有见过的更通用的学习器：R 学习器。但别担心，我们将有一整章专门介绍它。</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "已复制");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "已复制");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../chapters/20 第二十章 即插即用估计量.html" class="pagination-link" aria-label="第二十章: 即插即用估计量">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">第二十章: 即插即用估计量</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>内容基于《Causal Inference for the Brave and True》中文翻译整理。</p>
+</div>   
+    <div class="nav-footer-center">
+<p>用 Quarto 构建，面向在线阅读与本地复现。</p>
+<div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/xieliaing/CausalInferenceIntro/blob/main/chapters/21 第二十一章 元学习器.ipynb" class="toc-action"><i class="bi bi-github"></i>查看代码</a></li><li><a href="https://github.com/xieliaing/CausalInferenceIntro/issues/new" class="toc-action"><i class="bi empty"></i>反馈问题</a></li></ul></div></div>
+    <div class="nav-footer-right">
+<p><a href="https://github.com/xieliaing/CausalInferenceIntro">GitHub 仓库</a></p>
+</div>
+  </div>
+</footer>
+
+
+
+
+<script src="../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

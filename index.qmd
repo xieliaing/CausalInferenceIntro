@@ -1,0 +1,133 @@
+---
+title: "因果推断：从概念到实践"
+toc: false
+page-layout: full
+---
+
+<style>
+.quarto-title-block {
+  display: none;
+}
+</style>
+
+::: {.hero-panel}
+<div class="hero-eyebrow">Chinese Translation Project</div>
+<h1 class="hero-title">因果推断：从概念到实践</h1>
+<p class="hero-lead">围绕 <em>Causal Inference for the Brave and True</em> 的中文翻译整理站点。这里保留原书“用代码解释方法”的写作方式，把因果推断的核心概念、图模型与实证工具放进可直接运行的 Notebook 中。</p>
+<div class="hero-actions">
+  <a class="btn btn-primary btn-lg" href="#开始阅读">查看阅读路径</a>
+  <a class="btn btn-outline-dark btn-lg" href="https://github.com/xieliaing/CausalInferenceIntro">访问 GitHub</a>
+</div>
+:::
+
+## 为什么这个站点值得保留
+
+::: {.grid}
+::: {.g-col-12 .g-col-md-4}
+::: {.feature-card}
+### 以实战为主线
+
+不是只讲定义，而是用连续的 Notebook 例子解释识别假设、估计逻辑和代码实现。
+:::
+:::
+::: {.g-col-12 .g-col-md-4}
+::: {.feature-card}
+### 覆盖主流方法
+
+从随机试验到工具变量、双重差分、断点回归，再到元学习器，路径完整且层层推进。
+:::
+:::
+::: {.g-col-12 .g-col-md-4}
+::: {.feature-card}
+### 适合中文读者复现
+
+站点支持直接在线阅读，本地则可继续运行原始 `.ipynb` 文件，兼顾学习与实验。
+:::
+:::
+:::
+
+## 开始阅读
+
+::: {.grid}
+::: {.g-col-12 .g-col-md-7}
+::: {.content-card}
+### 推荐路径
+
+如果你是第一次系统读因果推断，建议按章节顺序推进。左侧边栏会自动列出 `chapters/` 目录中的全部 Notebook 页面。
+
+建议从 [第一章：因果关系入门](chapters/01%20第一章-因果关系入门.ipynb) 开始，再依次进入随机试验、图因果模型、工具变量与双重差分等章节。
+:::
+:::
+::: {.g-col-12 .g-col-md-5}
+::: {.content-card .soft-accent}
+### 你会看到什么
+
+每章都以可运行的 Python 代码为主，配合图示、数据和建模过程，更适合边读边验证。
+:::
+:::
+:::
+
+::: {.callout-tip appearance="simple"}
+在线阅读适合快速查阅；如果你想完整复现结果，直接在本地打开 `chapters/` 下的 Notebook 会更高效。
+:::
+
+## 本地运行
+
+::: {.grid}
+::: {.g-col-12 .g-col-md-6}
+::: {.content-card}
+### 安装依赖
+
+```bash
+pip install -r requirements.txt
+```
+
+如果你只想阅读网站内容，安装 Quarto 即可；如果你要运行章节代码，再安装 Python 依赖。
+:::
+:::
+::: {.g-col-12 .g-col-md-6}
+::: {.content-card}
+### 常用命令
+
+```bash
+quarto preview
+quarto render
+jupyter lab
+```
+
+`quarto preview` 用于本地预览站点，`jupyter lab` 则更适合逐章执行 Notebook。
+:::
+:::
+:::
+
+## 项目结构
+
+::: {.grid}
+::: {.g-col-12 .g-col-md-4}
+::: {.feature-card .compact}
+### `index.qmd`
+
+网站首页，负责提供阅读入口与项目说明。
+:::
+:::
+::: {.g-col-12 .g-col-md-4}
+::: {.feature-card .compact}
+### `_quarto.yml`
+
+站点配置中心，定义导航、侧边栏、主题和输出目录。
+:::
+:::
+::: {.g-col-12 .g-col-md-4}
+::: {.feature-card .compact}
+### `chapters/`
+
+中文章节 Notebook，Quarto 会自动将其渲染为网页内容。
+:::
+:::
+:::
+
+## 相关链接
+
+- 项目仓库：<https://github.com/xieliaing/CausalInferenceIntro>
+- 原书仓库：<https://github.com/matheusfacure/python-causality-handbook>
+- 原书在线版：<https://matheusfacure.github.io/python-causality-handbook/landing-page.html>

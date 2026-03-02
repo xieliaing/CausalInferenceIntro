@@ -1,0 +1,1657 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-CN" xml:lang="zh-CN"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="CausalInferenceIntro">
+
+<title>第十五章: 合成控制 – 因果推断：从概念到实践</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../chapters/16 第十六章 断点回归.html" rel="next">
+<link href="../chapters/14 第十四章 双重差分.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-f1a637e51edb8e5d5a953483935b5072.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "没有结果",
+    "search-matching-documents-text": "匹配的文档",
+    "search-copy-link-title": "复制搜索链接",
+    "search-hide-matches-text": "隐藏其它匹配结果",
+    "search-more-match-text": "更多匹配结果",
+    "search-more-matches-text": "更多匹配结果",
+    "search-clear-button-title": "清除",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "取消",
+    "search-submit-button-title": "提交",
+    "search-label": "搜索"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-sidebar docked nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    </a>
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">因果推断：从概念到实践</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="搜索"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="展开或折叠导航栏" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="../index.html" aria-current="page"> 
+<span class="menu-text">首页</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/xieliaing/CausalInferenceIntro"> 
+<span class="menu-text">GitHub</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/matheusfacure/python-causality-handbook"> 
+<span class="menu-text">原书</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="展开或折叠侧边栏导航" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/01 第一章-因果关系入门.html">章节</a></li><li class="breadcrumb-item"><a href="../chapters/15 第十五章 合成控制.html">第十五章: 合成控制</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="展开或折叠侧边栏导航" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="搜索" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+      <a href="../index.html" class="sidebar-logo-link">
+      </a>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="搜索"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">章节</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="展开或折叠此栏">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/01 第一章-因果关系入门.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第一章: 因果关系入门</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/02 第二章-随机试验.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二章: 随机试验</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/03 第三章 统计学回顾：最危险的公式.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第三章: 统计学回顾</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/04 第四章 图因果模型.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第四章: 图因果模型</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/05 第五章 线性回归超乎寻常的有效性.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第五章: 线性回归的有效性</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/06 第六章 分组和虚拟变量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第六章: 分组和虚拟变量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/07 第七章 控制混淆因素之外的考虑.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第七章: 控制混淆之外</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/08 第八章 工具变量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第八章: 工具变量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/09 第九章 非服从性与局部平均效应.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第九章: 非服从性与 LATE</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/10 第十章 匹配.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十章: 匹配</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/11 第十一章 倾向得分.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十一章: 倾向得分</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/12 第十二章 双重稳健估计.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十二章: 双重稳健估计</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/13 第十三章 面板数据与固定效应.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十三章: 面板数据与固定效应</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/14 第十四章 双重差分.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十四章: 双重差分</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/15 第十五章 合成控制.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">第十五章: 合成控制</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/16 第十六章 断点回归.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十六章: 断点回归</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/17 第十七章 预测模型 101.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十七章: 预测模型 101</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/18 第十八章 异质干预效应与个性化.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十八章: 异质干预效应</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/19 第十九章 评估因果模型.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十九章: 评估因果模型</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/20 第二十章 即插即用估计量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二十章: 即插即用估计量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/21 第二十一章 元学习器.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二十一章: 元学习器</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="2">
+    <h2 id="toc-title">本页目录</h2>
+   
+  <ul>
+  <li><a href="#一个了解无从知晓事情的超酷数学技巧" id="toc-一个了解无从知晓事情的超酷数学技巧" class="nav-link active" data-scroll-target="#一个了解无从知晓事情的超酷数学技巧">一个了解无从知晓事情的超酷数学技巧</a></li>
+  <li><a href="#我们有时间" id="toc-我们有时间" class="nav-link" data-scroll-target="#我们有时间">我们有时间</a></li>
+  <li><a href="#合成控制作为线性回归的一种实现" id="toc-合成控制作为线性回归的一种实现" class="nav-link" data-scroll-target="#合成控制作为线性回归的一种实现">合成控制作为线性回归的一种实现</a></li>
+  <li><a href="#不要外推" id="toc-不要外推" class="nav-link" data-scroll-target="#不要外推">不要外推</a></li>
+  <li><a href="#进行推理" id="toc-进行推理" class="nav-link" data-scroll-target="#进行推理">进行推理</a></li>
+  <li><a href="#关键思想" id="toc-关键思想" class="nav-link" data-scroll-target="#关键思想">关键思想</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/xieliaing/CausalInferenceIntro/blob/main/chapters/15 第十五章 合成控制.ipynb" class="toc-action"><i class="bi bi-github"></i>查看代码</a></li><li><a href="https://github.com/xieliaing/CausalInferenceIntro/issues/new" class="toc-action"><i class="bi empty"></i>反馈问题</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/01 第一章-因果关系入门.html">章节</a></li><li class="breadcrumb-item"><a href="../chapters/15 第十五章 合成控制.html">第十五章: 合成控制</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">第十五章: 合成控制</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">作者</div>
+    <div class="quarto-title-meta-contents">
+             <p>CausalInferenceIntro </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">发布于</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">2026年3月2日</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="一个了解无从知晓事情的超酷数学技巧" class="level2">
+<h2 class="anchored" data-anchor-id="一个了解无从知晓事情的超酷数学技巧">一个了解无从知晓事情的超酷数学技巧</h2>
+<p>当我们审视双重差分法时，我们有来自 2 个不同城市的多个客户的数据：阿雷格里港和弗洛里亚诺波利斯。数据跨越 2 个不同的时间段：在阿雷格里港进行营销干预以增加客户存款之前和之后。为了估计干预效果，我们进行了回归，得到了差异估计量及其标准误差。</p>
+<p>对于那种情况，我们有很多样本，因为数据是细颗粒度的。但是，如果我们所拥有的只是城市层面的汇总数据呢？例如，假设我们所拥有的只是干预前后两个城市的平均存款水平。</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>城市</th>
+<th>之前</th>
+<th>之后</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>佛罗里达</td>
+<td>171.64</td>
+<td>206.16</td>
+</tr>
+<tr class="even">
+<td>POA</td>
+<td>46.01</td>
+<td>87.06</td>
+</tr>
+</tbody>
+</table>
+<p>我们仍然可以计算 Diff-in-Diff 估计量</p>
+<p><span class="math display">\[
+(E[Y(1)|D=1] - E[Y(1)|D=0]) - (E[Y(0)|D=1] - E[Y(0)|D=0] ) = (87.06 - 206.16) - (46.01 - 171.64) = 6.53
+\]</span></p>
+<p>但是请注意，这里的样本量是 4，这也是我们 Diff-in-Diff 模型中的参数数量。在这种情况下，标准误差没有有效地定义，那么我们应该怎么做呢？另一个问题是弗洛里亚诺波利斯可能不像我们希望的那样与阿雷格里港相似。例如，弗洛里亚诺波利斯以其美丽的海滩和随和的人而闻名，而阿雷格里港则以其烧烤和草原而闻名。这里的问题是您永远无法确定您是否使用了适当的对照组。</p>
+<p>为了解决这个问题，我们将使用合成控制法，该方法被称为[<strong>“过去几年政策评估文献中最重要的创新”</strong>]（https://www.aeaweb.org/articles?id=10.1257 /jep.31.2.3)。它基于一个简单但强大的想法。我们不需要在未处理中样本找到任何与处理非常相似的单个单元。相反，我们可以将自己的组合打造为多个未经处理的单元的组合，从而创建有效的合成控制。合成控制是极其有效和直观的方法，甚至有一篇文章发表在 [华盛顿邮报](https://www.washingtonpost.com/news/wonk/wp/2015/10/ 30/如何在竞争性声明的世界中衡量事物/），而不是科学期刊上。</p>
+<div id="ca4013e0" class="cell" data-execution_count="17">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>warnings.filterwarnings(<span class="st">'ignore'</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib <span class="im">import</span> style</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib <span class="im">import</span> pyplot <span class="im">as</span> plt</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> statsmodels.formula.api <span class="im">as</span> smf</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>matplotlib inline</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>pd.set_option(<span class="st">"display.max_columns"</span>, <span class="dv">6</span>)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>style.use(<span class="st">"fivethirtyeight"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>要查看它的实际应用，可以考虑估计卷烟税对其消费的影响的问题。为了提供一些背景信息，这是一个在经济学中已经争论了很长时间的问题。论点的一方面说税收将增加雪茄的成本，从而降低其需求。另一方认为，由于香烟会导致成瘾，因此价格的变化不会对他们的需求产生太大影响。在经济方面，我们会说卷烟的需求对价格没有弹性，增加税收只是以吸烟者为代价增加政府收入的一种方式。为了解决问题，我们将查看有关此事的一些美国数据。</p>
+<p>1988 年，加利福尼亚州通过了著名的烟草税和健康保护法案，该法案被称为 <a href="https://en.wikipedia.org/wiki/1988_California_Proposition_99">Proposition 99</a>。 “它的主要作用是对加利福尼亚州内销售的烟草卷烟征收每包 25 美分的州消费税，对雪茄和嚼烟等其他商业烟草产品的零售征收大致相当的消费税。对烟草销售的限制包括禁止在青少年可以进入的公共场所使用香烟自动售货机，以及禁止个人销售单支香烟。该法案产生的收入被指定用于各种环境和保健计划，以及反烟草烟草广告。”</p>
+<p>为了评估其效果，我们可以收集来自多个州和多年的卷烟销售数据。在我们的例子中，我们从 39 个州获得了 1970 年到 2000 年的数据。其他州也有类似的烟草控制计划，因此被排除在分析之外。这是我们的数据的样子。</p>
+<div id="69419131" class="cell" data-execution_count="18">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>cigar <span class="op">=</span> (pd.read_csv(<span class="st">"data/smoking.csv"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>         .drop(columns<span class="op">=</span>[<span class="st">"lnincome"</span>,<span class="st">"beer"</span>, <span class="st">"age15to24"</span>]))</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>cigar.query(<span class="st">"california"</span>).head()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="18">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">state</th>
+<th data-quarto-table-cell-role="th">year</th>
+<th data-quarto-table-cell-role="th">cigsale</th>
+<th data-quarto-table-cell-role="th">retprice</th>
+<th data-quarto-table-cell-role="th">california</th>
+<th data-quarto-table-cell-role="th">after_treatment</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">62</th>
+<td>3</td>
+<td>1970</td>
+<td>123.000000</td>
+<td>38.799999</td>
+<td>True</td>
+<td>False</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">63</th>
+<td>3</td>
+<td>1971</td>
+<td>121.000000</td>
+<td>39.700001</td>
+<td>True</td>
+<td>False</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">64</th>
+<td>3</td>
+<td>1972</td>
+<td>123.500000</td>
+<td>39.900002</td>
+<td>True</td>
+<td>False</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">65</th>
+<td>3</td>
+<td>1973</td>
+<td>124.400002</td>
+<td>39.900002</td>
+<td>True</td>
+<td>False</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">66</th>
+<td>3</td>
+<td>1974</td>
+<td>126.699997</td>
+<td>41.900002</td>
+<td>True</td>
+<td>False</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>我们将<code>state</code>作为州指数，其中加利福尼亚是第 3 位。我们的协变量是<code>retprice</code>（卷烟零售价）和<code>cigsale</code>（每包卷烟的人均销售额）。 我们感兴趣的结果变量是<code>cigsale</code>。 最后，我们有布尔辅助变量来表示加利福尼亚州和干预后时期。 如果我们绘制加州和其他州的卷烟销售量，这就是我们会得到的。</p>
+<div id="9572d3a0" class="cell" data-execution_count="19">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> plt.subplot(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>(cigar</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a> .assign(california <span class="op">=</span> np.where(cigar[<span class="st">"california"</span>], <span class="st">"California"</span>, <span class="st">"Other States"</span>))</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a> .groupby([<span class="st">"year"</span>, <span class="st">"california"</span>])</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a> [<span class="st">"cigsale"</span>]</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a> .mean()</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a> .reset_index()</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a> .pivot(<span class="st">"year"</span>, <span class="st">"california"</span>, <span class="st">"cigsale"</span>)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a> .plot(ax<span class="op">=</span>ax, figsize<span class="op">=</span>(<span class="dv">10</span>,<span class="dv">5</span>)))</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>plt.vlines(x<span class="op">=</span><span class="dv">1988</span>, ymin<span class="op">=</span><span class="dv">40</span>, ymax<span class="op">=</span><span class="dv">140</span>, linestyle<span class="op">=</span><span class="st">":"</span>, lw<span class="op">=</span><span class="dv">2</span>, label<span class="op">=</span><span class="st">"Proposition 99"</span>)</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Cigarette Sales Trend"</span>)</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Gap in per-capita cigarette sales (in packs)"</span>)</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>plt.legend()<span class="op">;</span>  </span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="15 第十五章 合成控制_files/figure-html/cell-4-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>在我们有对应数据的这段时间里，加利福尼亚人的香烟购买量显然低于全国平均水平。此外，80 年代后卷烟消费似乎呈下降趋势。与其他州相比，在 99 号提案之后，加利福尼亚州的下降趋势似乎加速了，但我们不能肯定地说。这只是我们通过审阅绘出的图形得出的猜测。</p>
+<p>为了回答 99 号提案是否对卷烟消费产生影响的问题，我们将使用干预前的时期来建立一个综合控制。我们将结合其他州来<strong>建立一个与加州趋势非常相似的假州</strong>。然后，我们将看到这种合成控制在干预后的表现。</p>
+</section>
+<section id="我们有时间" class="level2">
+<h2 class="anchored" data-anchor-id="我们有时间">我们有时间</h2>
+<p>为了使过程更正式一点，假设我们有 <span class="math inline">\(J+1\)</span> 单位。不失一般性，假设单元 1 是受干预影响的单元。单位 <span class="math inline">\(j=2,...,J+1\)</span> 是未经处理的单位的集合，我们将其称为“供体池”。还假设我们拥有的数据跨越 T 个时间段，在干预之前有 <span class="math inline">\(T_0\)</span> 个时间段。对于每个单元 j 和每个时间 t，我们观察结果 <span class="math inline">\(Y_{jt}\)</span>。对于每个单元 j 和周期 t，将 <span class="math inline">\(Y^N_{jt}\)</span> 定义为没有干预的潜在结果，将 <span class="math inline">\(Y^I_{jt}\)</span> 定义为有干预的潜在结果。然后，对于处理单元 <span class="math inline">\(j=1\)</span> 在时间 t 的影响，对于 <span class="math inline">\(t&gt;T_0\)</span> 定义为</p>
+<p><span class="math display">\[
+\tau_{1t} = Y^I_{jt} - Y^N_{jt}
+\]</span></p>
+<p>由于单位 <span class="math inline">\(j=1\)</span> 是经过处理的单位，因此 <span class="math inline">\(Y^I_{jt}\)</span> 是事实，但 <span class="math inline">\(Y^N_{jt}\)</span> 不是。那么挑战就变成了我们如何估计 <span class="math inline">\(Y^N_{jt}\)</span>。请注意如何为每个时期定义治疗效果，这意味着它可以随时间变化。它不需要是瞬时的。它可以累积或消散。概括地说，估计处理效果的问题归结为<strong>估计如果不进行处理，单元 <span class="math inline">\(j=1\)</span> 的结果会发生什么的问题</strong>。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="data/img/synth-control/synth_img.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>为了估计 <span class="math inline">\(Y^N_{jt}\)</span>，我们记住，供体池中的单位组合可能比单独的任何未处理单位更好地近似处理单位的特征。因此，综合控制被定义为控制池中单元的加权平均值。给定权重 <span class="math inline">\(\pmb{W}=(w_2, ..., w_{J+1})\)</span>，<span class="math inline">\(Y^N_{jt}\)</span> 的综合控制估计为</p>
+<p><span class="math display">\[
+\hat{Y}^N_{jt} = \sum^{J+1}_{j=2} w_j Y_{jt}
+\]</span></p>
+<p>如果所有这些数学运算让您头疼，那么您并不孤单。但别担心，我们有很多例子可以让它更直观。这一次，我喜欢将综合控制视为一种颠倒的回归方式。众所周知，线性回归也是一种将预测作为变量加权平均值的方法。现在，考虑一下那些回归，例如 diff-in-diff 示例中的回归，其中每个变量在一段时间内都是虚拟变量。在这种情况下，回归可以表示为以下矩阵乘法</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="data/img/synth-control/regr_time.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>在综合控制案例中，我们没有很多样本，但我们确实有很多时间段。所以我们要做的是翻转输入矩阵。然后，样本成为“变量”，我们将结果表示为样本的加权平均值，就像下面的矩阵乘法一样。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="data/img/synth-control/regr_space.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>如果我们每个时间段有多个特征，我们可以像这样堆积特征。重要的是要做到这一点，以便回归试图通过使用其他单元来“预测”处理过的单元 1。这样，我们可以以某种最佳方式选择权重来实现我们想要的这种接近度。我们甚至可以对特征进行不同的缩放，以赋予它们不同的重要性。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/synth-control/regr_space_x.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>那么，如果综合控制可以看作是一个线性回归，那也意味着我们可以用 OLS 来估计它的权重，对吧？对！事实上，让我们现在就这样做。</p>
+</section>
+<section id="合成控制作为线性回归的一种实现" class="level2">
+<h2 class="anchored" data-anchor-id="合成控制作为线性回归的一种实现">合成控制作为线性回归的一种实现</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/synth-control/allways.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>为了估计综合控制的治疗效果，我们将尝试构建一个类似于干预期之前的治疗单元的“假单元”。然后，我们将看到这个“假单位”在干预后的表现。合成控制和它所模仿的单位之间的区别在于治疗效果。</p>
+<p>要使用线性回归做到这一点，我们将使用 OLS 找到权重。我们将最小化干预前期间供体池中单位的加权平均值与治疗单位之间的平方距离。</p>
+<p>为此，我们需要的第一件事是将单位（在我们的例子中为状态）转换为列，将时间转换为行。由于我们有 2 个功能，<code>cigsale</code> 和 <code>retprice</code>，我们将它们堆叠在一起，就像我们在上图中所做的那样。我们将建立一个在干预前看起来很像加利福尼亚的合成控制，并看看它在干预后的表现如何。出于这个原因，重要的是我们只选择干预前的时期。在这里，这些功能似乎具有相似的规模，因此我们不会对它们做任何事情。如果特征的比例不同，一个是千位，另一个是小数，在最小化差异时，较大的特征将是最重要的。为避免这种情况，首先对它们进行扩展很重要。</p>
+<div id="2cc3e09d" class="cell" data-execution_count="20">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>features <span class="op">=</span> [<span class="st">"cigsale"</span>, <span class="st">"retprice"</span>]</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>inverted <span class="op">=</span> (cigar.query(<span class="st">"~after_treatment"</span>) <span class="co"># filter pre-intervention period</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>            .pivot(index<span class="op">=</span><span class="st">'state'</span>, columns<span class="op">=</span><span class="st">"year"</span>)[features] <span class="co"># make one column per year and one row per state</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>            .T) <span class="co"># flip the table to have one column per state</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>inverted.head()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="20">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">state</th>
+<th data-quarto-table-cell-role="th">1</th>
+<th data-quarto-table-cell-role="th">2</th>
+<th data-quarto-table-cell-role="th">3</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">37</th>
+<th data-quarto-table-cell-role="th">38</th>
+<th data-quarto-table-cell-role="th">39</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">year</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th rowspan="5" data-quarto-table-cell-role="th" data-valign="top">cigsale</th>
+<th data-quarto-table-cell-role="th">1970</th>
+<td>89.800003</td>
+<td>100.300003</td>
+<td>123.000000</td>
+<td>...</td>
+<td>114.500000</td>
+<td>106.400002</td>
+<td>132.199997</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1971</th>
+<td>95.400002</td>
+<td>104.099998</td>
+<td>121.000000</td>
+<td>...</td>
+<td>111.500000</td>
+<td>105.400002</td>
+<td>131.699997</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">1972</th>
+<td>101.099998</td>
+<td>103.900002</td>
+<td>123.500000</td>
+<td>...</td>
+<td>117.500000</td>
+<td>108.800003</td>
+<td>140.000000</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1973</th>
+<td>102.900002</td>
+<td>108.000000</td>
+<td>124.400002</td>
+<td>...</td>
+<td>116.599998</td>
+<td>109.500000</td>
+<td>141.199997</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">1974</th>
+<td>108.199997</td>
+<td>109.699997</td>
+<td>126.699997</td>
+<td>...</td>
+<td>119.900002</td>
+<td>111.800003</td>
+<td>145.800003</td>
+</tr>
+</tbody>
+</table>
+
+<p>5 rows × 39 columns</p>
+</div>
+</div>
+</div>
+<p>现在，我们可以将 Y 变量定义为加利福尼亚州，将 X 定义为其他州。</p>
+<div id="4b6a2a49" class="cell" data-execution_count="21">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> inverted[<span class="dv">3</span>].values <span class="co"># state of california</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> inverted.drop(columns<span class="op">=</span><span class="dv">3</span>).values  <span class="co"># other states</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>然后，我们运行回归。 有一个截距相当于添加另一个状态，其中每一行都是 1。你可以这样做，但我认为它更复杂，我就省略了。 回归将返回一组权重，以最小化治疗单位与供体池中单位之间的平方差。</p>
+<div id="7cb53e67" class="cell" data-execution_count="22">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LinearRegression</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>weights_lr <span class="op">=</span> LinearRegression(fit_intercept<span class="op">=</span><span class="va">False</span>).fit(X, y).coef_</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>weights_lr.<span class="bu">round</span>(<span class="dv">3</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="22">
+<pre><code>array([-0.436, -1.038,  0.679,  0.078,  0.339,  1.213,  0.143,  0.555,
+       -0.295,  0.052, -0.529,  1.235, -0.549,  0.437, -0.023, -0.266,
+       -0.25 , -0.667, -0.106, -0.145,  0.109,  0.242, -0.328,  0.594,
+        0.243, -0.171, -0.02 ,  0.14 , -0.811,  0.362,  0.519, -0.304,
+        0.805, -0.318, -1.246,  0.773, -0.055, -0.032])</code></pre>
+</div>
+</div>
+<p>这些权重向我们展示了如何构建合成控制。 我们将状态 1 的结果乘以 -0.436，状态 2 的结果乘以 -1.038，状态 4 的结果乘以 0.679，依此类推。 我们可以通过池中状态的矩阵和权重之间的点积来实现这一点。</p>
+<div id="a3afe321" class="cell" data-execution_count="23">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>calif_synth_lr <span class="op">=</span> (cigar.query(<span class="st">"~california"</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>                  .pivot(index<span class="op">=</span><span class="st">'year'</span>, columns<span class="op">=</span><span class="st">"state"</span>)[<span class="st">"cigsale"</span>]</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>                  .values.dot(weights_lr))</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>现在我们有了合成控制，我们可以用加利福尼亚州的结果变量来绘制它。</p>
+<div id="6f9998d1" class="cell" data-execution_count="24">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">10</span>,<span class="dv">6</span>))</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>plt.plot(cigar.query(<span class="st">"california"</span>)[<span class="st">"year"</span>], cigar.query(<span class="st">"california"</span>)[<span class="st">"cigsale"</span>], label<span class="op">=</span><span class="st">"California"</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>plt.plot(cigar.query(<span class="st">"california"</span>)[<span class="st">"year"</span>], calif_synth_lr, label<span class="op">=</span><span class="st">"Synthetic Control"</span>)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>plt.vlines(x<span class="op">=</span><span class="dv">1988</span>, ymin<span class="op">=</span><span class="dv">40</span>, ymax<span class="op">=</span><span class="dv">140</span>, linestyle<span class="op">=</span><span class="st">":"</span>, lw<span class="op">=</span><span class="dv">2</span>, label<span class="op">=</span><span class="st">"Proposition 99"</span>)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Gap in per-capita cigarette sales (in packs)"</span>)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>plt.legend()<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="15 第十五章 合成控制_files/figure-html/cell-9-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>好吧……似乎有些不对劲。这张照片中什么吸引了你的注意力？首先，干预后，合成控制的卷烟销量超过了加州。这表明干预措施成功地降低了卷烟需求。其次，注意干预前的时期是如何完美拟合的。合成控制能够与加利福尼亚州完全匹配。这表明我们的综合控制模型可能过度拟合数据。另一个迹象是干预后综合控制结果变量的巨大差异。注意它是如何不遵循平滑模式的。相反，它会上下波动。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/synth-control/out-of-sample.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>如果我们思考为什么会发生这种情况，请记住我们的供体池中有 38 个州。因此，我们的线性回归有 38 个参数可供使用，以使预处理池与处理尽可能接近。在这种情况下，即使 T 很大，N 也很大，这给我们的线性回归模型提供了太多的灵活性。如果您熟悉正则化模型，可以使用 Ridge 或 Lasso 回归来解决此问题。在这里，我们将研究另一种更传统的避免过拟合的方法。</p>
+</section>
+<section id="不要外推" class="level2">
+<h2 class="anchored" data-anchor-id="不要外推">不要外推</h2>
+<p>假设您有下表中的数据，并被要求构建一个合成控制，以使用控制单元的任何线性组合来重现处理过的单元。</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>单位</th>
+<th>销售额</th>
+<th>价格</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>控制 1</td>
+<td>8</td>
+<td>8</td>
+</tr>
+<tr class="even">
+<td>控制 2</td>
+<td>8</td>
+<td>4</td>
+</tr>
+<tr class="odd">
+<td>控制 3</td>
+<td>4</td>
+<td>5</td>
+</tr>
+<tr class="even">
+<td>处理</td>
+<td>2</td>
+<td>10</td>
+</tr>
+</tbody>
+</table>
+<p>由于有 3 个单位和只有 2 个属性要匹配，因此有多个确定性的解决方案可以解决这个问题，但一个不错的解决方案是将第一个控件乘以 2.25，将第二个控件乘以 -2，然后将两者相加。请注意第二次乘法如何创建一个销售量为 -16 且价格为 -8 的假单位。这种乘法将控制 2 单元外推到没有多大意义的数据区域，因为负价格和销售几乎是不可能的。第一个乘法也是外推，因为它将第一个单位带到销售和价格为 18 的地区。这些数字远高于我们数据中的任何数字，因此是外推。</p>
+<p>当我们要求它创建合成控制时，这就是回归正在做的事情。外推在技术上并没有错，但在实践中却很危险。我们假设我们从未见过的数据表现得像我们拥有的数据。</p>
+<p>一种更安全的方法是将我们的合成控制限制为仅进行插值。为此，我们将权重限制为正且总和为 1。现在，合成控制将是供体池中单元的凸组合。在进行插值时，我们会将处理后的单元投影到由未处理单元定义的凸包中，就像下图一样。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="数据/img/synth-control/extrapolation.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>这里注意两点。首先，在这种情况下，插值将无法创建处理单元的完美匹配。这是因为被处理的是销量最少、价格最高的单位。凸组合只能精确复制控制单元之间的特征。另一件需要注意的是插值是稀疏的。我们将处理过的单元投影到凸包的墙上，而这面墙仅由几个单元定义。出于这个原因，插值将为许多单元分配零权重。</p>
+<p>这是一般的想法，现在让我们将其形式化一点。合成控制仍定义为</p>
+<p><span class="math display">\[
+\hat{Y}^N_{jt} = \sum^{J+1}_{j=2} w_j Y_{jt}
+\]</span></p>
+<p>但是现在，我们将使用最小化的权重 <span class="math inline">\(\pmb{W}=(w_2, ..., w_{J+1})\)</span></p>
+<p><span class="math display">\[
+||\pmb{X}_1 - \pmb{X}_0 \pmb{W}|| = \bigg(\sum^k_{h=1}v_h \bigg(X_{h1} - \sum^{J+1}_{j=2} w_j X_{hj} \bigg)^2 \bigg)^ {\frac{1}{2}}
+\]</span></p>
+<p>受限于 <span class="math inline">\(w_2, ..., w_{J+1}\)</span> 为正且总和为 1。请注意，<span class="math inline">\(v_h\)</span> 在最小化处理和合成控制之间的差异时反映了每个变量的重要性。不同的 <span class="math inline">\(v\)</span>s 会给出不同的最佳权重。选择 <span class="math inline">\(V\)</span> 的一种方法是使每个变量都具有均值零和单位方差。一种更复杂的方法是选择 <span class="math inline">\(V\)</span> 以使有助于更好地预测 <span class="math inline">\(Y\)</span> 的变量获得更高的重要性。由于我们希望保持代码简单，我们将简单地为每个变量赋予相同的重要性。</p>
+<p>为了实现这一点，首先，定义上述损失函数。</p>
+<div id="c9ed766d" class="cell" data-execution_count="25">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> typing <span class="im">import</span> List</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> operator <span class="im">import</span> add</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> toolz <span class="im">import</span> <span class="bu">reduce</span>, partial</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> loss_w(W, X, y) <span class="op">-&gt;</span> <span class="bu">float</span>:</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.sqrt(np.mean((y <span class="op">-</span> X.dot(W))<span class="op">**</span><span class="dv">2</span>))</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>由于我们对每个特征都使用相同的重要性，所以我们不需要担心 <span class="math inline">\(v\)</span>。</p>
+<p>现在，为了获得最佳权重，我们将使用 scipy 的二次规划优化。 我们将限制权重总和为 1</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">lambda</span> x: np.<span class="bu">sum</span>(x) <span class="op">-</span> <span class="dv">1</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<p>此外，我们将优化界限设置在 0 和 1 之间。</p>
+<div id="e8ad12e6" class="cell" data-execution_count="26">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.optimize <span class="im">import</span> fmin_slsqp</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> get_w(X, y):</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    w_start <span class="op">=</span> [<span class="dv">1</span><span class="op">/</span>X.shape[<span class="dv">1</span>]]<span class="op">*</span>X.shape[<span class="dv">1</span>]</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    weights <span class="op">=</span> fmin_slsqp(partial(loss_w, X<span class="op">=</span>X, y<span class="op">=</span>y),</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>                         np.array(w_start),</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>                         f_eqcons<span class="op">=</span><span class="kw">lambda</span> x: np.<span class="bu">sum</span>(x) <span class="op">-</span> <span class="dv">1</span>,</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>                         bounds<span class="op">=</span>[(<span class="fl">0.0</span>, <span class="fl">1.0</span>)]<span class="op">*</span><span class="bu">len</span>(w_start),</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>                         disp<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> weights</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>有了这个实现，让我们得到定义合成控制的权重</p>
+<div id="845242c3" class="cell" data-execution_count="27">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>calif_weights <span class="op">=</span> get_w(X, y)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Sum:"</span>, calif_weights.<span class="bu">sum</span>())</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>np.<span class="bu">round</span>(calif_weights, <span class="dv">4</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Sum: 1.0000000000007458</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="27">
+<pre><code>array([0.    , 0.    , 0.    , 0.0852, 0.    , 0.    , 0.    , 0.    ,
+       0.    , 0.    , 0.    , 0.    , 0.    , 0.    , 0.    , 0.    ,
+       0.    , 0.    , 0.    , 0.113 , 0.1051, 0.4566, 0.    , 0.    ,
+       0.    , 0.    , 0.    , 0.    , 0.    , 0.    , 0.    , 0.    ,
+       0.2401, 0.    , 0.    , 0.    , 0.    , 0.    ])</code></pre>
+</div>
+</div>
+<p>有了这个权重，我们将状态 1,2 和 3 乘以零，状态 4 乘以 0.0852 和 很快。 请注意权重是如何稀疏的，正如我们所预测的那样。 此外，所有权重总和为 1，并且介于 0 和 1 之间，满足我们的凸组合约束。</p>
+<p>现在，为了获得合成控制，我们可以将这些权重乘以状态，就像我们之前使用回归权重所做的那样。</p>
+<div id="a6f8e45d" class="cell" data-execution_count="28">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>calif_synth <span class="op">=</span> cigar.query(<span class="st">"~california"</span>).pivot(index<span class="op">=</span><span class="st">'year'</span>, columns<span class="op">=</span><span class="st">"state"</span>)[<span class="st">"cigsale"</span>].values.dot(calif_weights)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>如果我们现在绘制合成控制的结果，我们会得到一个更平滑的趋势。 另请注意，在干预前期间，合成对照不再精确复制处理过的对象。 这是一个好兆头，因为它表明我们没有过度拟合。</p>
+<div id="74ea7a3c" class="cell" data-execution_count="29">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">10</span>,<span class="dv">6</span>))</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>plt.plot(cigar.query(<span class="st">"california"</span>)[<span class="st">"year"</span>], cigar.query(<span class="st">"california"</span>)[<span class="st">"cigsale"</span>], label<span class="op">=</span><span class="st">"California"</span>)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>plt.plot(cigar.query(<span class="st">"california"</span>)[<span class="st">"year"</span>], calif_synth, label<span class="op">=</span><span class="st">"Synthetic Control"</span>)</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>plt.vlines(x<span class="op">=</span><span class="dv">1988</span>, ymin<span class="op">=</span><span class="dv">40</span>, ymax<span class="op">=</span><span class="dv">140</span>, linestyle<span class="op">=</span><span class="st">":"</span>, lw<span class="op">=</span><span class="dv">2</span>, label<span class="op">=</span><span class="st">"Proposition 99"</span>)</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Per-capita cigarette sales (in packs)"</span>)</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>plt.legend()<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="15 第十五章 合成控制_files/figure-html/cell-14-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>有了手头的合成控制，我们可以将干预效果估计为干预结果与合成控制结果之间的差距。</p>
+<p><span class="math display">\[
+\tau_{1t} = Y^I_{jt} - Y^N_{jt}
+\]</span></p>
+<p>在我们的具体案例中，随着时间的推移，效果会越来越大。</p>
+<div id="355fd975" class="cell" data-execution_count="30">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">10</span>,<span class="dv">6</span>))</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>plt.plot(cigar.query(<span class="st">"california"</span>)[<span class="st">"year"</span>], cigar.query(<span class="st">"california"</span>)[<span class="st">"cigsale"</span>] <span class="op">-</span> calif_synth,</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>         label<span class="op">=</span><span class="st">"California Effect"</span>)</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>plt.vlines(x<span class="op">=</span><span class="dv">1988</span>, ymin<span class="op">=-</span><span class="dv">30</span>, ymax<span class="op">=</span><span class="dv">7</span>, linestyle<span class="op">=</span><span class="st">":"</span>, lw<span class="op">=</span><span class="dv">2</span>, label<span class="op">=</span><span class="st">"Proposition 99"</span>)</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>plt.hlines(y<span class="op">=</span><span class="dv">0</span>, xmin<span class="op">=</span><span class="dv">1970</span>, xmax<span class="op">=</span><span class="dv">2000</span>, lw<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"State - Synthetic Across Time"</span>)</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Gap in per-capita cigarette sales (in packs)"</span>)</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>plt.legend()<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="15 第十五章 合成控制_files/figure-html/cell-15-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>到 2000 年，99 号提案似乎将卷烟销量减少了 25 包。这很酷，但你可能会问自己：我怎么知道这在统计上是否显着？</p>
+</section>
+<section id="进行推理" class="level2">
+<h2 class="anchored" data-anchor-id="进行推理">进行推理</h2>
+<p>由于我们的样本量非常小（39），因此在确定我们的结果是否具有统计学意义时，我们必须更加聪明，而不仅仅是由于随机运气。在这里，我们将使用 Fisher 精确检验的思想。它的直觉非常简单。我们彻底置换处理和控制。由于我们只有一个处理过的单元，这意味着对于每个单元，我们假装它是处理过的，而其他的是对照。</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>迭代</th>
+<th>1</th>
+<th>2</th>
+<th>…</th>
+<th>39</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>处理</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>0</td>
+<td>处理</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td>…</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td>39</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>处理</td>
+</tr>
+</tbody>
+</table>
+<p>最后，我们将为每个状态提供一个合成控制和效果估计。所以它的作用是假装干预实际上发生在另一个州，而不是加利福尼亚，看看这种干预没有发生的估计效果是什么。然后，我们看看加州的干预与其他虚拟干预相比是否足够大。这个想法是，对于实际上没有得到干预的州，一旦我们假装它们是，我们将无法找到任何显著的干预效果。</p>
+<p>为了实现这一点，我构建了这个函数，该函数将州作为输入并估计该州的合成控制。此函数返回一个数据框，其中一列用于状态，一列用于年份，一列用于结果“cigsale”和该州的合成结果。</p>
+<div id="224c5ea6" class="cell" data-execution_count="31">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> synthetic_control(state: <span class="bu">int</span>, pool: List[<span class="bu">int</span>], data: pd.DataFrame) <span class="op">-&gt;</span> np.array:</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    features <span class="op">=</span> [<span class="st">"cigsale"</span>, <span class="st">"retprice"</span>]</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    inverted <span class="op">=</span> (data.query(<span class="st">"~after_treatment"</span>)</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>                .pivot(index<span class="op">=</span><span class="st">'state'</span>, columns<span class="op">=</span><span class="st">"year"</span>)[features]</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>                .T)</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> inverted[state].values <span class="co"># treated</span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>    X <span class="op">=</span> inverted.drop(columns<span class="op">=</span>state).values <span class="co"># donor pool</span></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>    weights <span class="op">=</span> get_w(X, y)</span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>    synthetic <span class="op">=</span> (data.query(<span class="ss">f"~(state==</span><span class="sc">{</span>state<span class="sc">}</span><span class="ss">)"</span>)</span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>                 .pivot(index<span class="op">=</span><span class="st">'year'</span>, columns<span class="op">=</span><span class="st">"state"</span>)[<span class="st">"cigsale"</span>]</span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>                 .values.dot(weights))</span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (data</span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a>            .query(<span class="ss">f"state==</span><span class="sc">{</span>state<span class="sc">}</span><span class="ss">"</span>)[[<span class="st">"state"</span>, <span class="st">"year"</span>, <span class="st">"cigsale"</span>, <span class="st">"after_treatment"</span>]]</span>
+<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a>            .assign(synthetic<span class="op">=</span>synthetic))</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>下面是我们应用该函数到第一个州的结果。</p>
+<div id="d57fef94" class="cell" data-execution_count="32">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>control_pool <span class="op">=</span> cigar[<span class="st">"state"</span>].unique()</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>synthetic_control(<span class="dv">1</span>, control_pool, cigar).head()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="32">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">state</th>
+<th data-quarto-table-cell-role="th">year</th>
+<th data-quarto-table-cell-role="th">cigsale</th>
+<th data-quarto-table-cell-role="th">after_treatment</th>
+<th data-quarto-table-cell-role="th">synthetic</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>1</td>
+<td>1970</td>
+<td>89.800003</td>
+<td>False</td>
+<td>95.029419</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>1</td>
+<td>1971</td>
+<td>95.400002</td>
+<td>False</td>
+<td>99.118199</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>1</td>
+<td>1972</td>
+<td>101.099998</td>
+<td>False</td>
+<td>101.881329</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>1</td>
+<td>1973</td>
+<td>102.900002</td>
+<td>False</td>
+<td>103.938655</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>1</td>
+<td>1974</td>
+<td>108.199997</td>
+<td>False</td>
+<td>107.038473</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>为了获得所有州对应的结果，我们在 8 个进程中并行计算。 如果您的计算机有更多或更少的内核，您可以使用不同的数量。 此代码将返回与上面类似的数据帧列表。</p>
+<div id="8e97dbb3" class="cell" data-execution_count="33">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> joblib <span class="im">import</span> Parallel, delayed</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>parallel_fn <span class="op">=</span> delayed(partial(synthetic_control, pool<span class="op">=</span>control_pool, data<span class="op">=</span>cigar))</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>sinthetic_states <span class="op">=</span> Parallel(n_jobs<span class="op">=</span><span class="dv">8</span>)(parallel_fn(state) <span class="cf">for</span> state <span class="kw">in</span> control_pool)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="1c82734c" class="cell" data-execution_count="34">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>sinthetic_states[<span class="dv">0</span>].head()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="34">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">state</th>
+<th data-quarto-table-cell-role="th">year</th>
+<th data-quarto-table-cell-role="th">cigsale</th>
+<th data-quarto-table-cell-role="th">after_treatment</th>
+<th data-quarto-table-cell-role="th">synthetic</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>1</td>
+<td>1970</td>
+<td>89.800003</td>
+<td>False</td>
+<td>95.029419</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>1</td>
+<td>1971</td>
+<td>95.400002</td>
+<td>False</td>
+<td>99.118199</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>1</td>
+<td>1972</td>
+<td>101.099998</td>
+<td>False</td>
+<td>101.881329</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>1</td>
+<td>1973</td>
+<td>102.900002</td>
+<td>False</td>
+<td>103.938655</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>1</td>
+<td>1974</td>
+<td>108.199997</td>
+<td>False</td>
+<td>107.038473</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>通过对所有州应用合成控制，我们可以估计所有州的合成状态与真实状态之间的差距。 对于加州来说，这就是干预效果。 对于其他州，这就像安慰剂效应，我们在其中估计了干预实际上没有发生的合成对照干预效果。 如果我们将所有安慰剂效应与加利福尼亚治疗效应一起绘制，我们会得到下图。</p>
+<div id="16bb0cc6" class="cell" data-execution_count="35">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">12</span>,<span class="dv">7</span>))</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> state <span class="kw">in</span> sinthetic_states:</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>    plt.plot(state[<span class="st">"year"</span>], state[<span class="st">"cigsale"</span>] <span class="op">-</span> state[<span class="st">"synthetic"</span>], color<span class="op">=</span><span class="st">"C5"</span>,alpha<span class="op">=</span><span class="fl">0.4</span>)</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>plt.plot(cigar.query(<span class="st">"california"</span>)[<span class="st">"year"</span>], cigar.query(<span class="st">"california"</span>)[<span class="st">"cigsale"</span>] <span class="op">-</span> calif_synth,</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>        label<span class="op">=</span><span class="st">"California"</span>)<span class="op">;</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>plt.vlines(x<span class="op">=</span><span class="dv">1988</span>, ymin<span class="op">=-</span><span class="dv">50</span>, ymax<span class="op">=</span><span class="dv">120</span>, linestyle<span class="op">=</span><span class="st">":"</span>, lw<span class="op">=</span><span class="dv">2</span>, label<span class="op">=</span><span class="st">"Proposition 99"</span>)</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>plt.hlines(y<span class="op">=</span><span class="dv">0</span>, xmin<span class="op">=</span><span class="dv">1970</span>, xmax<span class="op">=</span><span class="dv">2000</span>, lw<span class="op">=</span><span class="dv">3</span>)</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Gap in per-capita cigarette sales (in packs)"</span>)</span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"State - Synthetic Across Time"</span>)</span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>plt.legend()<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="15 第十五章 合成控制_files/figure-html/cell-20-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>这个数字的两个方面让人眼前一亮。 首先，我们可以看到干预后的方差高于干预前的方差。 这是意料之中的，因为合成控制旨在最大限度地减少干预前期间的差异。 另一个有趣的方面是，即使在干预前的时期，我们也不能很好地拟合一些单位。 这也是意料之中的。 例如，如果某些州的卷烟消费量非常高，那么其他州的凸组合将永远无法匹配它们。</p>
+<p>由于这些单位的拟合度很差，因此最好将它们从分析中删除。 客观地做到这一点的一种方法是设置干预前错误的阈值</p>
+<p><span class="math display">\[
+MSE = \frac{1}{N}\sum\bigg(Y_t - \hat{Y}^{Synth}_t\bigg)^2
+\]</span></p>
+<p>并删除那些具有高错误的单元。 如果我们像这样继续并绘制相同的图形，这就是我们得到的。</p>
+<div id="fbea1901" class="cell" data-execution_count="36">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> pre_treatment_error(state):</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>    pre_treat_error <span class="op">=</span> (state.query(<span class="st">"~after_treatment"</span>)[<span class="st">"cigsale"</span>] </span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>                       <span class="op">-</span> state.query(<span class="st">"~after_treatment"</span>)[<span class="st">"synthetic"</span>]) <span class="op">**</span> <span class="dv">2</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> pre_treat_error.mean()</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">12</span>,<span class="dv">7</span>))</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> state <span class="kw">in</span> sinthetic_states:</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># remove units with mean error above 80.</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> pre_treatment_error(state) <span class="op">&lt;</span> <span class="dv">80</span>:</span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>        plt.plot(state[<span class="st">"year"</span>], state[<span class="st">"cigsale"</span>] <span class="op">-</span> state[<span class="st">"synthetic"</span>], color<span class="op">=</span><span class="st">"C5"</span>,alpha<span class="op">=</span><span class="fl">0.4</span>)</span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>plt.plot(cigar.query(<span class="st">"california"</span>)[<span class="st">"year"</span>], cigar.query(<span class="st">"california"</span>)[<span class="st">"cigsale"</span>] <span class="op">-</span> calif_synth,</span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>        label<span class="op">=</span><span class="st">"California"</span>)<span class="op">;</span></span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a>plt.vlines(x<span class="op">=</span><span class="dv">1988</span>, ymin<span class="op">=-</span><span class="dv">50</span>, ymax<span class="op">=</span><span class="dv">120</span>, linestyle<span class="op">=</span><span class="st">":"</span>, lw<span class="op">=</span><span class="dv">2</span>, label<span class="op">=</span><span class="st">"Proposition 99"</span>)</span>
+<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>plt.hlines(y<span class="op">=</span><span class="dv">0</span>, xmin<span class="op">=</span><span class="dv">1970</span>, xmax<span class="op">=</span><span class="dv">2000</span>, lw<span class="op">=</span><span class="dv">3</span>)</span>
+<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Gap in per-capita cigarette sales (in packs)"</span>)</span>
+<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Distribution of Effects"</span>)</span>
+<span id="cb24-20"><a href="#cb24-20" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"State - Synthetic Across Time (Large Pre-Treatment Errors Removed)"</span>)</span>
+<span id="cb24-21"><a href="#cb24-21" aria-hidden="true" tabindex="-1"></a>plt.legend()<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="15 第十五章 合成控制_files/figure-html/cell-21-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>去除噪音，我们可以看到加利福尼亚州的值是多么极端。 这张图片告诉我们，如果我们假装这种干预发生在任何其他州，我们几乎永远不会得到像加利福尼亚那样极端的效果。</p>
+<p>这张图片本身就是一种推理形式，但我们也可以从这些结果中得出 P 值。 我们所要做的就是看看我们所获得的效果比加利福尼亚的效果低多少倍。</p>
+<div id="a3b34912" class="cell" data-execution_count="37">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>calif_number <span class="op">=</span> <span class="dv">3</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>effects <span class="op">=</span> [state.query(<span class="st">"year==2000"</span>).iloc[<span class="dv">0</span>][<span class="st">"cigsale"</span>] <span class="op">-</span> state.query(<span class="st">"year==2000"</span>).iloc[<span class="dv">0</span>][<span class="st">"synthetic"</span>]</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>           <span class="cf">for</span> state <span class="kw">in</span> sinthetic_states</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>           <span class="cf">if</span> pre_treatment_error(state) <span class="op">&lt;</span> <span class="dv">80</span>] <span class="co"># filter out noise</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>calif_effect <span class="op">=</span> cigar.query(<span class="st">"california &amp; year==2000"</span>).iloc[<span class="dv">0</span>][<span class="st">"cigsale"</span>] <span class="op">-</span> calif_synth[<span class="op">-</span><span class="dv">1</span>] </span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"California Treatment Effect for the Year 2000:"</span>, calif_effect)</span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>np.array(effects)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>California Treatment Effect for the Year 2000: -24.83015975492409</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="37">
+<pre><code>array([  5.79715885,   0.89458997, -24.83015975,  -7.16628121,
+       -10.92204857,  37.11640557, -15.06971695,  -0.49805108,
+       -18.45795062,  21.13366444,  12.57782771,  -1.47547827,
+        10.49627353, -11.6701235 ,   4.29850824,   8.04811405,
+        14.02322417,   8.25002748,   0.32576356,  -8.40826855,
+        -2.12402704,  -7.42865016,   2.9615753 ,  24.10478116,
+         4.25211769, -17.75844573,   7.93334016,   2.81640126,
+        12.6495596 , -17.47677512, -25.16040937, -12.26469121,
+        24.69067369,  10.36299581,  -8.59880336])</code></pre>
+</div>
+</div>
+<p>如果我们想检验加利福尼亚的效应低于零的单方面假设，我们可以将 P 值估计为加利福尼亚的效应大于所有估计效应的倍数。</p>
+<p><span class="math display">\[
+PV=\frac{1}{N}\sum \mathcal{1}\{\hat{\tau}_{Calif} &gt; \hat{\tau}_j\}
+\]</span></p>
+<p>事实证明，2000 年加州的干预效果是 -24.8，这意味着干预措施减少了近 25 包香烟的消费量。 在我们估计的所有其他 34 种安慰剂效应中，只有一种高于我们在加利福尼亚发现的效应。 所以 p 值为 1/35。</p>
+<div id="bdd2e3c5" class="cell" data-execution_count="38">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>np.mean(np.array(effects) <span class="op">&lt;</span> calif_effect)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="38">
+<pre><code>0.02857142857142857</code></pre>
+</div>
+</div>
+<p>最后，我们可以展示效果的分布，从而让大家感受一下加州的干预效果估计值是多么的极端。</p>
+<div id="7b46d025" class="cell" data-execution_count="39">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>_, bins, _ <span class="op">=</span> plt.hist(effects, bins<span class="op">=</span><span class="dv">20</span>, color<span class="op">=</span><span class="st">"C5"</span>, alpha<span class="op">=</span><span class="fl">0.5</span>)<span class="op">;</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>plt.hist([calif_effect], bins<span class="op">=</span>bins, color<span class="op">=</span><span class="st">"C0"</span>, label<span class="op">=</span><span class="st">"California"</span>)</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Frquency"</span>)</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Distribution of Effects"</span>)</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>plt.legend()<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="15 第十五章 合成控制_files/figure-html/cell-24-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="关键思想" class="level2">
+<h2 class="anchored" data-anchor-id="关键思想">关键思想</h2>
+<p>我们了解到，如果我们只有城市或州等实体的聚合级别数据，diff-in-diff 将不允许我们进行推理。 此外，它还有一些其他限制，因为它必须定义一个控制单元，而一个单独的控制单元可能不能很好地表示处理单元的反事实。</p>
+<p>为了纠正这一点，我们了解到我们可以构建一个合成控件，将多个控制单元组合在一起，使它们与处理过的单元相似。 通过这种综合控制，我们能够看到在没有治疗的情况下我们的治疗单元会发生什么。</p>
+<p>最后，我们看到了如何使用 Fisher 精确检验通过合成控制进行推理。 也就是说，我们假设未处理的单位实际上是处理过的并计算了它们的效果。 这些是安慰剂效应：即使没有治疗我们也会观察到的效应。 我们使用这些来查看我们估计的治疗效果是否具有统计学意义。</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "已复制");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "已复制");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../chapters/14 第十四章 双重差分.html" class="pagination-link" aria-label="第十四章: 双重差分">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">第十四章: 双重差分</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../chapters/16 第十六章 断点回归.html" class="pagination-link" aria-label="第十六章: 断点回归">
+        <span class="nav-page-text">第十六章: 断点回归</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>内容基于《Causal Inference for the Brave and True》中文翻译整理。</p>
+</div>   
+    <div class="nav-footer-center">
+<p>用 Quarto 构建，面向在线阅读与本地复现。</p>
+<div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/xieliaing/CausalInferenceIntro/blob/main/chapters/15 第十五章 合成控制.ipynb" class="toc-action"><i class="bi bi-github"></i>查看代码</a></li><li><a href="https://github.com/xieliaing/CausalInferenceIntro/issues/new" class="toc-action"><i class="bi empty"></i>反馈问题</a></li></ul></div></div>
+    <div class="nav-footer-right">
+<p><a href="https://github.com/xieliaing/CausalInferenceIntro">GitHub 仓库</a></p>
+</div>
+  </div>
+</footer>
+
+
+
+
+<script src="../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>
