@@ -16,7 +16,7 @@ page-layout: full
 <p class="hero-lead">围绕 <em>Causal Inference for the Brave and True</em> 的中文翻译整理站点。这里保留原书“用代码解释方法”的写作方式，把因果推断的核心概念、图模型与实证工具放进可直接运行的 Notebook 中。</p>
 <div class="hero-actions">
   <a class="btn btn-primary btn-lg" href="#开始阅读">查看阅读路径</a>
-  <a class="btn btn-outline-dark btn-lg" href="https://github.com/xieliaing/CausalInferenceIntro">访问 GitHub</a>
+  <a class="btn btn-outline-dark btn-lg" href="https://github.com/pumc-zhou/CausalInferenceIntro">访问 GitHub</a>
 </div>
 :::
 
@@ -128,6 +128,6 @@ jupyter lab
 
 ## 相关链接
 
-- 项目仓库：<https://github.com/xieliaing/CausalInferenceIntro>
+- 项目仓库：<https://github.com/pumc-zhou/CausalInferenceIntro>
 - 原书仓库：<https://github.com/matheusfacure/python-causality-handbook>
 - 原书在线版：<https://matheusfacure.github.io/python-causality-handbook/landing-page.html>
