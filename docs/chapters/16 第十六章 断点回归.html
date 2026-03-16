@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-CN" xml:lang="zh-CN"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="CausalInferenceIntro">
+
+<title>第十六章: 断点回归 – 因果推断：从概念到实践</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../chapters/17 第十七章 预测模型 101.html" rel="next">
+<link href="../chapters/15 第十五章 合成控制.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-f1a637e51edb8e5d5a953483935b5072.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "没有结果",
+    "search-matching-documents-text": "匹配的文档",
+    "search-copy-link-title": "复制搜索链接",
+    "search-hide-matches-text": "隐藏其它匹配结果",
+    "search-more-match-text": "更多匹配结果",
+    "search-more-matches-text": "更多匹配结果",
+    "search-clear-button-title": "清除",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "取消",
+    "search-submit-button-title": "提交",
+    "search-label": "搜索"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-sidebar docked nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    </a>
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">因果推断：从概念到实践</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="搜索"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="展开或折叠导航栏" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="../index.html" aria-current="page"> 
+<span class="menu-text">首页</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/xieliaing/CausalInferenceIntro"> 
+<span class="menu-text">GitHub</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/matheusfacure/python-causality-handbook"> 
+<span class="menu-text">原书</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="展开或折叠侧边栏导航" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/01 第一章-因果关系入门.html">章节</a></li><li class="breadcrumb-item"><a href="../chapters/16 第十六章 断点回归.html">第十六章: 断点回归</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="展开或折叠侧边栏导航" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="搜索" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+      <a href="../index.html" class="sidebar-logo-link">
+      </a>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="搜索"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">章节</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="展开或折叠此栏">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/01 第一章-因果关系入门.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第一章: 因果关系入门</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/02 第二章-随机试验.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二章: 随机试验</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/03 第三章 统计学回顾：最危险的公式.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第三章: 统计学回顾</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/04 第四章 图因果模型.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第四章: 图因果模型</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/05 第五章 线性回归超乎寻常的有效性.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第五章: 线性回归的有效性</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/06 第六章 分组和虚拟变量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第六章: 分组和虚拟变量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/07 第七章 控制混淆因素之外的考虑.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第七章: 控制混淆之外</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/08 第八章 工具变量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第八章: 工具变量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/09 第九章 非服从性与局部平均效应.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第九章: 非服从性与 LATE</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/10 第十章 匹配.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十章: 匹配</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/11 第十一章 倾向得分.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十一章: 倾向得分</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/12 第十二章 双重稳健估计.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十二章: 双重稳健估计</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/13 第十三章 面板数据与固定效应.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十三章: 面板数据与固定效应</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/14 第十四章 双重差分.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十四章: 双重差分</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/15 第十五章 合成控制.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十五章: 合成控制</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/16 第十六章 断点回归.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">第十六章: 断点回归</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/17 第十七章 预测模型 101.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十七章: 预测模型 101</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/18 第十八章 异质干预效应与个性化.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十八章: 异质干预效应</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/19 第十九章 评估因果模型.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十九章: 评估因果模型</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/20 第二十章 即插即用估计量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二十章: 即插即用估计量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/21 第二十一章 元学习器.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二十一章: 元学习器</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="2">
+    <h2 id="toc-title">本页目录</h2>
+   
+  <ul>
+  <li><a href="#酒精会杀死你吗" id="toc-酒精会杀死你吗" class="nav-link active" data-scroll-target="#酒精会杀死你吗">酒精会杀死你吗？</a></li>
+  <li><a href="#rdd-估计" id="toc-rdd-估计" class="nav-link" data-scroll-target="#rdd-估计">RDD 估计</a>
+  <ul class="collapse">
+  <li><a href="#内核加权" id="toc-内核加权" class="nav-link" data-scroll-target="#内核加权">内核加权</a></li>
+  </ul></li>
+  <li><a href="#羊皮效应和模糊-rddfuzzy-rdd" id="toc-羊皮效应和模糊-rddfuzzy-rdd" class="nav-link" data-scroll-target="#羊皮效应和模糊-rddfuzzy-rdd">羊皮效应和模糊 RDD（Fuzzy RDD）</a>
+  <ul class="collapse">
+  <li><a href="#麦克雷测试mccrary-test" id="toc-麦克雷测试mccrary-test" class="nav-link" data-scroll-target="#麦克雷测试mccrary-test">麦克雷测试（McCrary Test）</a></li>
+  </ul></li>
+  <li><a href="#关键思想" id="toc-关键思想" class="nav-link" data-scroll-target="#关键思想">关键思想</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/xieliaing/CausalInferenceIntro/blob/main/chapters/16 第十六章 断点回归.ipynb" class="toc-action"><i class="bi bi-github"></i>查看代码</a></li><li><a href="https://github.com/xieliaing/CausalInferenceIntro/issues/new" class="toc-action"><i class="bi empty"></i>反馈问题</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/01 第一章-因果关系入门.html">章节</a></li><li class="breadcrumb-item"><a href="../chapters/16 第十六章 断点回归.html">第十六章: 断点回归</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">第十六章: 断点回归</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">作者</div>
+    <div class="quarto-title-meta-contents">
+             <p>CausalInferenceIntro </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">发布于</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">2026年3月2日</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>我们不会停下来想太多，但大自然的平滑程度令人印象深刻。没有先发芽就不能种树，不能从一个地方传送到另一个地方，伤口需要时间来愈合。即使在社交领域，顺畅似乎也是常态。您无法在一天内发展业务，建立财富需要一致性和辛勤工作，并且需要数年才能了解线性回归的工作原理。在正常情况下，大自然非常有凝聚力，不会跳来跳去。</p>
+<blockquote class="blockquote">
+<p>当智慧和动物的灵魂被抱在一起时，它们就不会分离。</p>
+</blockquote>
+<p>-道德经，老子。</p>
+<p>这意味着<strong>当我们确实看到跳跃和尖峰时，它们可能是人为的</strong>并且通常是人为的情况。这些事件通常伴随着对正常事物方式的反事实：如果发生了一件奇怪的事情，这让我们对如果大自然以不同的方式工作会发生什么有了一些了解。探索这些人工跳跃是回归不连续设计的核心。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/rdd/smooth.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>基本设置是这样的。假设您有一个干预变量 <span class="math inline">\(T\)</span> 和潜在结果 <span class="math inline">\(Y_0\)</span> 和 <span class="math inline">\(Y_1\)</span>。处理 T 是观察到的运行变量 <span class="math inline">\(R\)</span> 的不连续函数，使得</p>
+<p><span class="math display">\[
+D_i = \mathcal{1}\{R_i&gt;c\}
+\]</span></p>
+<p>换句话说，这就是说当 <span class="math inline">\(R\)</span> 低于阈值 <span class="math inline">\(c\)</span> 时处理为零，否则为 1。这意味着我们可以在 <span class="math inline">\(R&gt;c\)</span> 时观察 <span class="math inline">\(Y_1\)</span> 和在 <span class="math inline">\(R&lt;c\)</span> 时观察 <span class="math inline">\(Y_0\)</span>。为了解决这个问题，请将潜在结果视为我们无法完全观察到的 2 个函数。 <span class="math inline">\(Y_0(R)\)</span> 和 <span class="math inline">\(Y_1(R)\)</span> 都在那里，我们只是看不到。阈值充当一个开关，让我们可以看到其中一个或另一个功能，但不能同时看到两者，就像下图一样：</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/rdd/rdd.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>断点回归的想法是比较刚好高于和低于阈值的结果，以确定阈值处的干预效果。这被称为 <strong>sharp RD</strong> 设计，因为在阈值处获得干预的概率从 0 跳到 1，但我们也可以考虑 <strong>fuzzy RD</strong> 设计，其中概率也会跳跃，但是是一种不那么剧烈的方式。</p>
+<section id="酒精会杀死你吗" class="level2">
+<h2 class="anchored" data-anchor-id="酒精会杀死你吗">酒精会杀死你吗？</h2>
+<p>一个非常相关的公共政策问题是最低饮酒年龄应该是多少。大多数国家，包括巴西，将其设定为 18 岁，但在美国（大多数州），目前是 21 岁。那么，美国是否过于谨慎，应该降低最低饮酒年龄？还是其他国家应该提高法定饮酒年龄？</p>
+<p>看待这个问题的一种方法是从 <a href="https://www.aeaweb.org/articles?id=10.1257/app.1.1.164">死亡率的角度 (Carpenter and Dobkin, 2009)</a>。从公共政策的角度来看，人们可以争辩说我们应该尽可能地降低死亡率。如果饮酒会大幅增加死亡率，我们应该避免降低最低饮酒年龄。这与降低因饮酒导致的死亡人数的目标是一致的。</p>
+<p>为了估计酒精对死亡的影响，我们可以利用法定饮酒年龄本质上是施加了不连续性这一事实。在美国，21 岁以下的人不喝酒（或少喝酒），而 21 岁以上的人则喝酒。这意味着饮酒的概率在 21 岁时会增加，这是我们可以用 RDD 来探索的。</p>
+<div id="cell-2" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>warnings.filterwarnings(<span class="st">'ignore'</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib <span class="im">import</span> style</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib <span class="im">import</span> pyplot <span class="im">as</span> plt</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> statsmodels.formula.api <span class="im">as</span> smf</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>matplotlib inline</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>style.use(<span class="st">"fivethirtyeight"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>为此，我们可以获取一些按年龄汇总的死亡率数据。 每行是一组人的平均年龄和按照所有原因（<code>all</code>）、移动车辆事故（<code>mva</code>）和自杀（<code>suicide</code>）分别统计的平均死亡率。</p>
+<div id="cell-4" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>drinking <span class="op">=</span> pd.read_csv(<span class="st">"./data/drinking.csv"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>drinking.head()[[<span class="st">"agecell"</span>, <span class="st">"all"</span>, <span class="st">"mva"</span>, <span class="st">"suicide"</span>]]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="2">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">agecell</th>
+<th data-quarto-table-cell-role="th">all</th>
+<th data-quarto-table-cell-role="th">mva</th>
+<th data-quarto-table-cell-role="th">suicide</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>19.068493</td>
+<td>92.825400</td>
+<td>35.829327</td>
+<td>11.203714</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>19.150684</td>
+<td>95.100740</td>
+<td>35.639256</td>
+<td>12.193368</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>19.232876</td>
+<td>92.144295</td>
+<td>34.205650</td>
+<td>11.715812</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>19.315070</td>
+<td>88.427760</td>
+<td>32.278957</td>
+<td>11.275010</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>19.397260</td>
+<td>88.704940</td>
+<td>32.650967</td>
+<td>10.984314</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>为了提升视觉效果（以及我们将在后面看到的另一个重要原因）我们将以阈值 21为中点将 <code>agecell</code>这个变量去中心化。</p>
+<div id="cell-6" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>drinking[<span class="st">"agecell"</span>] <span class="op">-=</span> <span class="dv">21</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>如果我们将多个结果变量（<code>all</code>、<code>mva</code>、<code>suicide</code>）与 x 轴上的对应变量一起绘制，图形会提示我们，当我们越过法定饮酒年龄时，死亡率会出现一定跳跃。</p>
+<div id="cell-8" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">8</span>,<span class="dv">8</span>))</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> plt.subplot(<span class="dv">3</span>,<span class="dv">1</span>,<span class="dv">1</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>drinking.plot.scatter(x<span class="op">=</span><span class="st">"agecell"</span>, y<span class="op">=</span><span class="st">"all"</span>, ax<span class="op">=</span>ax)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Death Cause by Age (Centered at 0)"</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> plt.subplot(<span class="dv">3</span>,<span class="dv">1</span>,<span class="dv">2</span>, sharex<span class="op">=</span>ax)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>drinking.plot.scatter(x<span class="op">=</span><span class="st">"agecell"</span>, y<span class="op">=</span><span class="st">"mva"</span>, ax<span class="op">=</span>ax)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> plt.subplot(<span class="dv">3</span>,<span class="dv">1</span>,<span class="dv">3</span>, sharex<span class="op">=</span>ax)</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>drinking.plot.scatter(x<span class="op">=</span><span class="st">"agecell"</span>, y<span class="op">=</span><span class="st">"suicide"</span>, ax<span class="op">=</span>ax)<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="16 第十六章 断点回归_files/figure-html/cell-5-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>有一些线索，但我们需要的不止这些。在阈值周围，饮酒对死亡率的影响究竟是什么？该估计的标准误差是多少？</p>
+</section>
+<section id="rdd-估计" class="level2">
+<h2 class="anchored" data-anchor-id="rdd-估计">RDD 估计</h2>
+<p>RDD 依赖的关键假设是阈值处潜在结果的平滑性。用比较正式地表述来说，当运行变量从右侧和左侧接近阈值时，潜在结果的极限应该是相同的。</p>
+<p><span class="math display">\[
+\lim_{r \to c^-} E[Y_{ti}|R_i=r] = \lim_{r \to c^+} E[Y_{ti}|R_i=r]
+\]</span></p>
+<p>如果这是真的，我们可以在阈值处找到因果关系</p>
+<p><span class="math display">\[
+\begin{align}
+\lim_{r \to c^+} E[Y_{ti}|R_i=r] - \lim_{r \to c^-} E[Y_{ti}|R_i=r]=&amp;\lim_{r \to c^+} E[Y_{1i}|R_i=r] - \lim_{r \to c^-} E[Y_{0i}|R_i=r] \\
+=&amp; E[Y_{1i}|R_i=r] - E[Y_{0i}|R_i=r] \\
+=&amp; E[Y_{1i} - Y_{0i}|R_i=r]
+\end{align}
+\]</span></p>
+<p>从其本身意义来说，这是一种局部平均干预效果（LATE），因为我们只能在阈值处知道它。在这种情况下，我们可以将 RDD 视为局部随机试验。对于那些处于阈值附近的人来说，干预可能会采取任何一种方式，有些人可能低于门槛，有些人则可能超过了门槛。在我们的示例中，在同一时间点，有些人刚刚超过 21 岁，有些人刚刚低于 21 岁。决定这一点的是某人是否在几天后出生，这是非常随机的。基于这个原因，RDD 提供了一个非常引人注目的因果故事。它不是 RCT 的黄金标准，但很接近。</p>
+<p>现在，要估计阈值处的干预效果，我们需要做的就是估计上面公式中的两个极限值并进行比较。最简单的方法是运行线性回归</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/rdd/ols.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>为了使其工作，我们将一个高于阈值的虚拟变量与运行变量进行交叉</p>
+<p><span class="math display">\[
+y_i = \beta_0 + \beta_1 r_i + \beta_2 \mathcal{1}\{r_i&gt;c\} + \beta_3 \mathcal{1}\{r_i&gt;c\} r_i
+\]</span></p>
+<p>本质上，这与在阈值之上拟合线性回归并在阈值之下拟合另一个线性回归相同。参数 <span class="math inline">\(\beta_0\)</span> 是低于阈值的回归的截距，而 <span class="math inline">\(\beta_0+\beta_2\)</span> 是高于阈值的回归的截距。</p>
+<p>这就是将运行变量在阈值处取零的技巧发挥作用的地方。在这个预处理步骤之后，阈值变为零。这导致截距 <span class="math inline">\(\beta_0\)</span> 成为阈值处的预测值，用于低于它的回归。换句话说，<span class="math inline">\(\beta_0=\lim_{r \to c^-} E[Y_{ti}|R_i=r]\)</span>。同理，<span class="math inline">\(\beta_0+\beta_2\)</span> 是上述结果的极限。威奇的意思是</p>
+<p><span class="math display">\[
+\lim_{r \to c^+} E[Y_{ti}|R_i=r] - \lim_{r \to c^-} E[Y_{ti}|R_i=r]=\beta_2=E[ATE |R=c]
+\]</span></p>
+<p>下面的代码展示了当我们想估计在21 岁时饮酒对死亡造成的影响。</p>
+<div id="cell-10" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>rdd_df <span class="op">=</span> drinking.assign(threshold<span class="op">=</span>(drinking[<span class="st">"agecell"</span>] <span class="op">&gt;</span> <span class="dv">0</span>).astype(<span class="bu">int</span>))</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> smf.wls(<span class="st">"all~agecell*threshold"</span>, rdd_df).fit()</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>model.summary().tables[<span class="dv">1</span>]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="5">
+<table class="simpletable caption-top table table-sm table-striped small">
+<tbody>
+<tr class="odd">
+<td></td>
+<th data-quarto-table-cell-role="th">coef</th>
+<th data-quarto-table-cell-role="th">std err</th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">P&gt;|t|</th>
+<th data-quarto-table-cell-role="th">[0.025</th>
+<th data-quarto-table-cell-role="th">0.975]</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Intercept</th>
+<td>93.6184</td>
+<td>0.932</td>
+<td>100.399</td>
+<td>0.000</td>
+<td>91.739</td>
+<td>95.498</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">agecell</th>
+<td>0.8270</td>
+<td>0.819</td>
+<td>1.010</td>
+<td>0.318</td>
+<td>-0.823</td>
+<td>2.477</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">threshold</th>
+<td>7.6627</td>
+<td>1.319</td>
+<td>5.811</td>
+<td>0.000</td>
+<td>5.005</td>
+<td>10.320</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">agecell:threshold</th>
+<td>-3.6034</td>
+<td>1.158</td>
+<td>-3.111</td>
+<td>0.003</td>
+<td>-5.937</td>
+<td>-1.269</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>这个模型告诉我们，随着饮酒，死亡率会增加 7.6627 个百分点。 另一种说法是，酒精会使各种原因的死亡几率增加 8% ((7.6627+93.6184)/93.6184)。 请注意，这也为我们的因果效应估计提供了标准误差。 在这种情况下，效果具有统计显着性，因为 p 值低于 0.01。</p>
+<p>如果我们想直观地验证这个模型，我们可以在我们拥有的数据上显示预测值。 您可以看到，就好像我们有 2 个回归模型：一个用于高于阈值的模型，一个用于低于阈值的模型。</p>
+<div id="cell-12" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> drinking.plot.scatter(x<span class="op">=</span><span class="st">"agecell"</span>, y<span class="op">=</span><span class="st">"all"</span>, color<span class="op">=</span><span class="st">"C0"</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>drinking.assign(predictions<span class="op">=</span>model.fittedvalues).plot(x<span class="op">=</span><span class="st">"agecell"</span>, y<span class="op">=</span><span class="st">"predictions"</span>, ax<span class="op">=</span>ax, color<span class="op">=</span><span class="st">"C1"</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Regression Discontinuity"</span>)<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="16 第十六章 断点回归_files/figure-html/cell-7-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>如果我们对其他原因做同样的事，这是我们会得到的结果。</p>
+<div id="cell-14" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">8</span>,<span class="dv">8</span>))</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> p, cause <span class="kw">in</span> <span class="bu">enumerate</span>([<span class="st">"all"</span>, <span class="st">"mva"</span>, <span class="st">"suicide"</span>], <span class="dv">1</span>):</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    ax <span class="op">=</span> plt.subplot(<span class="dv">3</span>,<span class="dv">1</span>,p)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    drinking.plot.scatter(x<span class="op">=</span><span class="st">"agecell"</span>, y<span class="op">=</span>cause, ax<span class="op">=</span>ax)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    m <span class="op">=</span> smf.wls(<span class="ss">f"</span><span class="sc">{</span>cause<span class="sc">}</span><span class="ss">~agecell*threshold"</span>, rdd_df).fit()</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    ate_pct <span class="op">=</span> <span class="dv">100</span><span class="op">*</span>((m.params[<span class="st">"threshold"</span>] <span class="op">+</span> m.params[<span class="st">"Intercept"</span>])<span class="op">/</span>m.params[<span class="st">"Intercept"</span>] <span class="op">-</span> <span class="dv">1</span>)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    drinking.assign(predictions<span class="op">=</span>m.fittedvalues).plot(x<span class="op">=</span><span class="st">"agecell"</span>, y<span class="op">=</span><span class="st">"predictions"</span>, ax<span class="op">=</span>ax, color<span class="op">=</span><span class="st">"C1"</span>)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    plt.title(<span class="ss">f"Impact of Alcohol on Death: </span><span class="sc">{</span>np<span class="sc">.</span><span class="bu">round</span>(ate_pct, <span class="dv">2</span>)<span class="sc">}</span><span class="ss">%"</span>)</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="16 第十六章 断点回归_files/figure-html/cell-8-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>RDD 告诉我们，酒精会使自杀和车祸死亡的几率增加 15%，这是一个相当大的数字。如果我们想尽量减少死亡率，这些结果是不降低饮酒年龄的有力论据。</p>
+<section id="内核加权" class="level3">
+<h3 class="anchored" data-anchor-id="内核加权">内核加权</h3>
+<p>回归不连续性在很大程度上依赖于线性回归的外推特性。由于我们正在查看 2 条回归线的开头和结尾处的值，因此我们最好正确设置这些限制。可能发生的情况是，回归可能过于关注拟合其他数据点，而代价是在阈值处拟合不佳。如果发生这种情况，我们可能会得到错误的治疗效果衡量标准。</p>
+<p>解决此问题的一种方法是为更接近阈值的点赋予更高的权重。有很多方法可以做到这一点，但一种流行的方法是使用 <strong>triangular kernel</strong> 重新加权样本</p>
+<p><span class="math display">\[
+K(R, c, h) = \mathcal{1}\{|R-c| \leq h\} * \bigg(1-\frac{|R-c|}{h}\bigg)
+\]</span></p>
+<p>这个内核的第一部分是我们是否接近阈值的指示函数。多近？这由带宽参数 <span class="math inline">\(h\)</span> 确定。这个内核的第二部分是一个加权函数。随着我们远离阈值，权重变得越来越小。这些权重除以带宽。如果带宽很大，则权重会以较慢的速度变小。如果带宽很小，权重很快就会变为零。</p>
+<p>为了更容易理解，下面是这个内核应用于我们的问题的权重。我在这里将带宽设置为 1，这意味着我们只会考虑来自不超过 22 岁且不低于 20 岁的人的数据。</p>
+<div id="cell-16" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> kernel(R, c, h):</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    indicator <span class="op">=</span> (np.<span class="bu">abs</span>(R<span class="op">-</span>c) <span class="op">&lt;=</span> h).astype(<span class="bu">float</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> indicator <span class="op">*</span> (<span class="dv">1</span> <span class="op">-</span> np.<span class="bu">abs</span>(R<span class="op">-</span>c)<span class="op">/</span>h)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="cell-17" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>plt.plot(drinking[<span class="st">"agecell"</span>], kernel(drinking[<span class="st">"agecell"</span>], c<span class="op">=</span><span class="dv">0</span>, h<span class="op">=</span><span class="dv">1</span>))</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"agecell"</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Weight"</span>)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Kernel Weight by Age"</span>)<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="16 第十六章 断点回归_files/figure-html/cell-10-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>如果我们将这些权重应用于我们最初的问题，酒精的影响会变得更大，至少对于死于”所有原因”的情况是如此。 它从 7.6627 跃升至 9.7004。 结果仍然非常显著。 另外，请注意我使用的是 <code>wls</code> 而不是 <code>ols</code>。</p>
+<div id="cell-19" class="cell" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> smf.wls(<span class="st">"all~agecell*threshold"</span>, rdd_df,</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>                weights<span class="op">=</span>kernel(drinking[<span class="st">"agecell"</span>], c<span class="op">=</span><span class="dv">0</span>, h<span class="op">=</span><span class="dv">1</span>)).fit()</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>model.summary().tables[<span class="dv">1</span>]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="10">
+<table class="simpletable caption-top table table-sm table-striped small">
+<tbody>
+<tr class="odd">
+<td></td>
+<th data-quarto-table-cell-role="th">coef</th>
+<th data-quarto-table-cell-role="th">std err</th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">P&gt;|t|</th>
+<th data-quarto-table-cell-role="th">[0.025</th>
+<th data-quarto-table-cell-role="th">0.975]</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Intercept</th>
+<td>93.2002</td>
+<td>0.731</td>
+<td>127.429</td>
+<td>0.000</td>
+<td>91.726</td>
+<td>94.674</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">agecell</th>
+<td>0.4109</td>
+<td>1.789</td>
+<td>0.230</td>
+<td>0.819</td>
+<td>-3.196</td>
+<td>4.017</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">threshold</th>
+<td>9.7004</td>
+<td>1.034</td>
+<td>9.378</td>
+<td>0.000</td>
+<td>7.616</td>
+<td>11.785</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">agecell:threshold</th>
+<td>-7.1759</td>
+<td>2.531</td>
+<td>-2.835</td>
+<td>0.007</td>
+<td>-12.276</td>
+<td>-2.075</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="cell-20" class="cell" data-execution_count="11">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> drinking.plot.scatter(x<span class="op">=</span><span class="st">"agecell"</span>, y<span class="op">=</span><span class="st">"all"</span>, color<span class="op">=</span><span class="st">"C0"</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>drinking.assign(predictions<span class="op">=</span>model.fittedvalues).plot(x<span class="op">=</span><span class="st">"agecell"</span>, y<span class="op">=</span><span class="st">"predictions"</span>, ax<span class="op">=</span>ax, color<span class="op">=</span><span class="st">"C1"</span>)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Regression Discontinuity (Local Regression)"</span>)<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="16 第十六章 断点回归_files/figure-html/cell-12-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>And here is what it looks like for the other causes of death. Notice how the regression on the right is more negatively sloped since it disconsiders the right most points。</p>
+<div id="cell-22" class="cell" data-execution_count="12">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">8</span>,<span class="dv">8</span>))</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>weights <span class="op">=</span> kernel(drinking[<span class="st">"agecell"</span>], c<span class="op">=</span><span class="dv">0</span>, h<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> p, cause <span class="kw">in</span> <span class="bu">enumerate</span>([<span class="st">"all"</span>, <span class="st">"mva"</span>, <span class="st">"suicide"</span>], <span class="dv">1</span>):</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    ax <span class="op">=</span> plt.subplot(<span class="dv">3</span>,<span class="dv">1</span>,p)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    drinking.plot.scatter(x<span class="op">=</span><span class="st">"agecell"</span>, y<span class="op">=</span>cause, ax<span class="op">=</span>ax)</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    m <span class="op">=</span> smf.wls(<span class="ss">f"</span><span class="sc">{</span>cause<span class="sc">}</span><span class="ss">~agecell*threshold"</span>, rdd_df, weights<span class="op">=</span>weights).fit()</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    ate_pct <span class="op">=</span> <span class="dv">100</span><span class="op">*</span>((m.params[<span class="st">"threshold"</span>] <span class="op">+</span> m.params[<span class="st">"Intercept"</span>])<span class="op">/</span>m.params[<span class="st">"Intercept"</span>] <span class="op">-</span> <span class="dv">1</span>)</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    drinking.assign(predictions<span class="op">=</span>m.fittedvalues).plot(x<span class="op">=</span><span class="st">"agecell"</span>, y<span class="op">=</span><span class="st">"predictions"</span>, ax<span class="op">=</span>ax, color<span class="op">=</span><span class="st">"C1"</span>)</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    plt.title(<span class="ss">f"Impact of Alcohol on Death: </span><span class="sc">{</span>np<span class="sc">.</span><span class="bu">round</span>(ate_pct, <span class="dv">2</span>)<span class="sc">}</span><span class="ss">%"</span>)</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="16 第十六章 断点回归_files/figure-html/cell-13-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>除了自杀之外，似乎使用核函数加权会使对酒精的负面影响更大。再同样的，如果我们想将死亡率降到最低，我们不应该建议降低法定饮酒年龄，因为酒精对死亡率有明显的影响。</p>
+<p>这个简单的案例涵盖了当断点回归完美运行​​时会发生什么。接下来，我们将看到一些我们应该运行的诊断步骤，以检查我们对 RDD 的信任程度，并讨论一个我们非常关心的话题：教育对收入的影响。</p>
+</section>
+</section>
+<section id="羊皮效应和模糊-rddfuzzy-rdd" class="level2">
+<h2 class="anchored" data-anchor-id="羊皮效应和模糊-rddfuzzy-rdd">羊皮效应和模糊 RDD（Fuzzy RDD）</h2>
+<p>关于教育对收入的影响，经济学有两种主要观点。第一个是广为人知的论点，即教育增加了人力资本，提高了生产力，从而提高了收入。从这个观点来看，教育实际上会让你变得更好。另一种观点认为，教育只是一种信号机制。它只是让您完成所有这些艰巨的测试和学术任务。如果你能做到，它就向市场表明你是一名优秀的员工。这样，教育不会让你更有效率。它只会告诉市场你一直以来的生产力。这里重要的是文凭。如果你有它，你会得到更多的报酬。我们将此称为<strong>羊皮效应</strong>，因为过去文凭是用羊皮印刷的。</p>
+<p>为了检验这一假设，<a href="https://faculty.smu.edu/millimet/classes/eco7321/papers/clark%20martorell%202014.pdf">Clark and Martorell</a> 使用断点回归来衡量 12 年级毕业对收入的影响。为了做到这一点，他们必须考虑一些运行变量，使高于它的学生毕业，而低于它的学生则不毕业。他们在德克萨斯州的教育系统中发现了这样的数据。</p>
+<p>为了在德克萨斯州毕业，必须通过考试。考试从 10 年级开始，学生可以做多次，但最终，他们将在 12 年级末面临最后一次考试机会。这个想法是从参加最后一次考试机会的学生那里获取数据，并将那些几乎没有通过考试的学生与那些勉强通过考试的学生进行比较。这些学生将拥有非常相似的人力资本，但不同的资质水平。也就是说，那些勉强通过的人也将获得文凭。</p>
+<div id="cell-24" class="cell" data-execution_count="13">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>sheepskin <span class="op">=</span> pd.read_csv(<span class="st">"./data/sheepskin.csv"</span>)[[<span class="st">"avgearnings"</span>, <span class="st">"minscore"</span>, <span class="st">"receivehsd"</span>, <span class="st">"n"</span>]]</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>sheepskin.head()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="13">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">avgearnings</th>
+<th data-quarto-table-cell-role="th">minscore</th>
+<th data-quarto-table-cell-role="th">receivehsd</th>
+<th data-quarto-table-cell-role="th">n</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>11845.086</td>
+<td>-30.0</td>
+<td>0.416667</td>
+<td>12</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>9205.679</td>
+<td>-29.0</td>
+<td>0.387097</td>
+<td>31</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>8407.745</td>
+<td>-28.0</td>
+<td>0.318182</td>
+<td>44</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>11114.087</td>
+<td>-27.0</td>
+<td>0.377778</td>
+<td>45</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>10814.624</td>
+<td>-26.0</td>
+<td>0.306667</td>
+<td>75</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>再次，此数据按运行变量分组。 它不仅包含运行变量（minscore，已经以零为中心）和结果（avgearnings），而且还包含在该分数单元中接收文凭的概率和调用的大小 (n)。 因此，例如，在分数低于阈值 -30 的单元格中的 12 名学生中，只有 5 人能够获得文凭 (12 * 0.416)。</p>
+<p>这意味着干预分配中存在一些滑移。 一些低于及格门槛的学生无论如何都设法获得了文凭。 在这里，回归的断点是<strong>模糊的</strong>，而不是干脆清晰的。 请注意获得文凭的概率不会在阈值处从零跳到一。 但它确实从 50% 跃升至 90%。</p>
+<div id="cell-26" class="cell" data-execution_count="14">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>sheepskin.plot.scatter(x<span class="op">=</span><span class="st">"minscore"</span>, y<span class="op">=</span><span class="st">"receivehsd"</span>, figsize<span class="op">=</span>(<span class="dv">10</span>,<span class="dv">5</span>))</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Test Scores Relative to Cut off"</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Fraction Receiving Diplomas"</span>)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Last-chance Exams"</span>)<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="16 第十六章 断点回归_files/figure-html/cell-15-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>我们可以将模糊 RD 视为一种不合规性。通过门槛应该让每个人都能获得文凭，但是那些“从不接受”的学生，却没有得到它。同样，低于门槛应该会阻止你获得文凭，但是那些“总是接受“的学生，无论如何都设法获得它。</p>
+<p>就像当我们有潜在的结果时，我们在这种情况下也有潜在的干预状态。 <span class="math inline">\(T_1\)</span> 是每个人在超过阈值时都会得到的待遇。 <span class="math inline">\(T_0\)</span> 是每个人在低于阈值时都会得到的待遇。您可能已经注意到，我们可以将<strong>阈值视为工具变量</strong>。就像在 IV 中一样，如果我们直接地估计干预效果，它将偏向零值。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/rdd/rdd_fuzzy.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>干预的概率小于 1，甚至高于阈值，使得我们观察到的结果小于真正的潜在结果 <span class="math inline">\(Y_1\)</span>。出于同样的原因，我们观察到的低于阈值的结果高于真正的潜在结果 <span class="math inline">\(Y_0\)</span>。这使得阈值处的干预效果看起来比实际要小，我们将不得不使用 IV 技术来纠正它。</p>
+<p>就像我们假设潜在结果的平稳性一样，我们现在假设它用于潜在的治疗。此外，我们需要假设单调性，就像在 IV 中一样。万一你不记得了，它说明了 <span class="math inline">\(T_{i1}&gt;T_{i0} \ \forall i\)</span>。这意味着从左到右越过门槛只会增加您获得文凭的机会（或者没有拒绝者）。有了这两个假设，我们就有了 LATE 的 Wald Estimator。</p>
+<p><span class="math display">\[
+\dfrac{\lim_{r \to c^+} E[Y_i|R_i=r] - \lim_{r \to c^-} E[Y_i|R_i=r]}{\lim_{r \to c^ +} E[T_i|R_i=r] - \lim_{r \to c^-} E[T_i|R_i=r]} = E[Y_{1i} - Y_{0i} | T_{1i} &gt; T_{0i}, R_i=c]
+\]</span></p>
+<p>请注意，这是在两种意义上的局部估计。首先，它之所以是局部的，因为它只给出阈值 <span class="math inline">\(c\)</span> 处的处理效果。这是 RD 位置。其次，它之所以是局部的第二个原因，在于它只估计服从者的处理效果。这是 IV 位置。</p>
+<p>为了估计这一点，我们将使用 2 线性回归。可以像我们之前所做的那样估计分子。为了得到分母，我们只需将结果替换为处理。但首先，让我们谈谈我们需要运行的健全性检查，以确保我们可以信任我们的 RDD 估计。</p>
+<section id="麦克雷测试mccrary-test" class="level3">
+<h3 class="anchored" data-anchor-id="麦克雷测试mccrary-test">麦克雷测试（McCrary Test）</h3>
+<p>可能打破我们 RDD 论点的一件事是，人们是否可以操纵他们站在门槛的位置。在羊皮示例中，如果刚好低于阈值的学生找到一种绕过系统的方法来稍微提高他们的考试成绩，就会发生这种情况。另一个例子是当您需要低于某个收入水平才能获得政府福利时。一些家庭可能会故意降低收入，只是为了有资格参加该计划。</p>
+<p>在这种情况下，我们往往会看到一种现象，即运行变量密度上的聚束现象（bunching）。这意味着我们将有很多实体略高于或略低于阈值。为了检查这一点，我们可以绘制运行变量的密度函数并查看阈值周围是否有任何尖峰。对于我们的例子，密度由我们数据中的“n”列给出。</p>
+<div id="cell-28" class="cell" data-execution_count="15">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">8</span>,<span class="dv">8</span>))</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> plt.subplot(<span class="dv">2</span>,<span class="dv">1</span>,<span class="dv">1</span>)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>sheepskin.plot.bar(x<span class="op">=</span><span class="st">"minscore"</span>, y<span class="op">=</span><span class="st">"n"</span>, ax<span class="op">=</span>ax)</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"McCrary Test"</span>)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Smoothness at the Threshold"</span>)</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> plt.subplot(<span class="dv">2</span>,<span class="dv">1</span>,<span class="dv">2</span>, sharex<span class="op">=</span>ax)</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>sheepskin.replace({<span class="dv">1877</span>:<span class="dv">1977</span>, <span class="dv">1874</span>:<span class="dv">2277</span>}).plot.bar(x<span class="op">=</span><span class="st">"minscore"</span>, y<span class="op">=</span><span class="st">"n"</span>, ax<span class="op">=</span>ax)</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Test Scores Relative to Cut off"</span>)</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Spike at the Threshold"</span>)<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="16 第十六章 断点回归_files/figure-html/cell-16-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>第一个图显示了我们的数据密度如何。 正如我们所见，阈值周围没有尖峰，这意味着没有聚束。 学生们并没有操纵他们可以落在门槛上的哪个地方。 这里仅出于说明目的，第二个图显示了如果学生可以操纵他们落在阈值的位置，那么聚束会是什么样子。 我们会看到刚刚超过阈值的单元格的密度出现峰值，因为许多学生会在那个单元格上，勉强通过考试。</p>
+<p>解决这个问题，我们可以回过头来估计羊皮效应。 正如我之前所说，Wald 估计器的分子可以像我们在 Sharp RD 中一样进行估计。 在这里，我们将使用带宽为 15 的核函数作为权重。由于我们还有单元格大小，我们将核函数乘以样本大小以获得单元格的最终权重。</p>
+<div id="cell-30" class="cell" data-execution_count="16">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>sheepsking_rdd <span class="op">=</span> sheepskin.assign(threshold<span class="op">=</span>(sheepskin[<span class="st">"minscore"</span>]<span class="op">&gt;</span><span class="dv">0</span>).astype(<span class="bu">int</span>))</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> smf.wls(<span class="st">"avgearnings~minscore*threshold"</span>,</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>                sheepsking_rdd,</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>                weights<span class="op">=</span>kernel(sheepsking_rdd[<span class="st">"minscore"</span>], c<span class="op">=</span><span class="dv">0</span>, h<span class="op">=</span><span class="dv">15</span>)<span class="op">*</span>sheepsking_rdd[<span class="st">"n"</span>]).fit()</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>model.summary().tables[<span class="dv">1</span>]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="16">
+<table class="simpletable caption-top table table-sm table-striped small">
+<tbody>
+<tr class="odd">
+<td></td>
+<th data-quarto-table-cell-role="th">coef</th>
+<th data-quarto-table-cell-role="th">std err</th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">P&gt;|t|</th>
+<th data-quarto-table-cell-role="th">[0.025</th>
+<th data-quarto-table-cell-role="th">0.975]</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Intercept</th>
+<td>1.399e+04</td>
+<td>83.678</td>
+<td>167.181</td>
+<td>0.000</td>
+<td>1.38e+04</td>
+<td>1.42e+04</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">minscore</th>
+<td>181.6636</td>
+<td>16.389</td>
+<td>11.084</td>
+<td>0.000</td>
+<td>148.588</td>
+<td>214.739</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">threshold</th>
+<td>-97.7571</td>
+<td>145.723</td>
+<td>-0.671</td>
+<td>0.506</td>
+<td>-391.839</td>
+<td>196.325</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">minscore:threshold</th>
+<td>18.1955</td>
+<td>30.311</td>
+<td>0.600</td>
+<td>0.552</td>
+<td>-42.975</td>
+<td>79.366</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>这告诉我们文凭的效果是 -97.7571，但这在统计上并不显着（P 值为 0.5）。 如果我们绘制这些结果，我们会在阈值处得到一条非常连续的线。 受过更多教育的人确实赚了更多的钱，但在他们获得 12 年级文凭的时候并没有飞跃。 这个论据支持这样一种观点，即教育通过提高人们的生产力来增加收入，而不仅仅是通过文凭给出一个信号。 换句话说，没有羊皮效应。</p>
+<div id="cell-32" class="cell" data-execution_count="17">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> sheepskin.plot.scatter(x<span class="op">=</span><span class="st">"minscore"</span>, y<span class="op">=</span><span class="st">"avgearnings"</span>, color<span class="op">=</span><span class="st">"C0"</span>)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>sheepskin.assign(predictions<span class="op">=</span>model.fittedvalues).plot(x<span class="op">=</span><span class="st">"minscore"</span>, y<span class="op">=</span><span class="st">"predictions"</span>, ax<span class="op">=</span>ax, color<span class="op">=</span><span class="st">"C1"</span>, figsize<span class="op">=</span>(<span class="dv">8</span>,<span class="dv">5</span>))</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Test Scores Relative to Cutoff"</span>)</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Average Earnings"</span>)</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Last-chance Exams"</span>)<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="16 第十六章 断点回归_files/figure-html/cell-18-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>然而，正如我们从不服从偏差的工作方式中知道的那样，这个结果偏向于零。 为了纠正这个问题，我们需要在第一阶段对其进行缩放并获得 Wald 估计量。 不幸的是，没有一个好的 Python 实现，所以我们必须手动完成并使用自助抽样法来获取标准误。</p>
+<p>下面的代码运行 Wald 估计器的分子，就像我们之前所做的一样，还通过将目标变量替换为干预变量“receivehsd”来构造分母。 最后一步只是将分子除以分母。</p>
+<div id="cell-34" class="cell" data-execution_count="18">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> wald_rdd(data):</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>    weights<span class="op">=</span>kernel(data[<span class="st">"minscore"</span>], c<span class="op">=</span><span class="dv">0</span>, h<span class="op">=</span><span class="dv">15</span>)<span class="op">*</span>data[<span class="st">"n"</span>]</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    denominator <span class="op">=</span> smf.wls(<span class="st">"receivehsd~minscore*threshold"</span>, data, weights<span class="op">=</span>weights).fit()</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    numerator <span class="op">=</span> smf.wls(<span class="st">"avgearnings~minscore*threshold"</span>, data, weights<span class="op">=</span>weights).fit()</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> numerator.params[<span class="st">"threshold"</span>]<span class="op">/</span>denominator.params[<span class="st">"threshold"</span>]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="cell-35" class="cell" data-execution_count="19">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> joblib <span class="im">import</span> Parallel, delayed </span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">45</span>)</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>bootstrap_sample <span class="op">=</span> <span class="dv">1000</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>ates <span class="op">=</span> Parallel(n_jobs<span class="op">=</span><span class="dv">4</span>)(delayed(wald_rdd)(sheepsking_rdd.sample(frac<span class="op">=</span><span class="dv">1</span>, replace<span class="op">=</span><span class="va">True</span>))</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>                          <span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(bootstrap_sample))</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>ates <span class="op">=</span> np.array(ates)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>使用自助法的样本，我们可以画出ATE的分布，并看到95%置信区间在什么地方。</p>
+<div id="cell-37" class="cell" data-execution_count="20">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>sns.distplot(ates, kde<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>plt.vlines(np.percentile(ates, <span class="fl">2.5</span>), <span class="dv">0</span>, <span class="dv">100</span>, linestyles<span class="op">=</span><span class="st">"dotted"</span>)</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>plt.vlines(np.percentile(ates, <span class="fl">97.5</span>), <span class="dv">0</span>, <span class="dv">100</span>, linestyles<span class="op">=</span><span class="st">"dotted"</span>, label<span class="op">=</span><span class="st">"95% CI"</span>)</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"ATE Bootstrap Distribution"</span>)</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>plt.xlim([<span class="op">-</span><span class="dv">10000</span>, <span class="dv">10000</span>])</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>plt.legend()<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="16 第十六章 断点回归_files/figure-html/cell-21-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>如您所见，即使我们按第一阶段缩放效果，它仍然与零没有统计学差异。这意味着教育不是通过简单的羊皮效应来增加收入，而是通过提高一个人的生产力。</p>
+</section>
+</section>
+<section id="关键思想" class="level2">
+<h2 class="anchored" data-anchor-id="关键思想">关键思想</h2>
+<p>我们学会了如何利用人为的不连续性来估计因果效应。这个想法是我们将有一些人为的阈值，使干预的概率跳跃。我们看到的一个例子是年龄如何使饮酒的概率在 21 岁时跃升。我们可以用它来估计饮酒对死亡率的影响。我们利用了在非常接近阈值的地方，我们有一些接近随机试验的东西这样一个事实。非常接近阈值的实体可能会采取任何一种方式，而决定它们落在何处基本上是随机的。有了这个，我们可以比较上面和下面的那些，以获得干预效果。我们看到了如何通过使用核函数的加权线性回归来做到这一点，以及这个方法如何自动地为我们的 ATE 提供标准误估计。</p>
+<p>然后，我们看看在模糊 RD 设计中会发生什么，这里存在不服从的样本点。我们看到可以采用对IV的方式一样来处理这种情况。</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "已复制");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "已复制");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../chapters/15 第十五章 合成控制.html" class="pagination-link" aria-label="第十五章: 合成控制">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">第十五章: 合成控制</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../chapters/17 第十七章 预测模型 101.html" class="pagination-link" aria-label="第十七章: 预测模型 101">
+        <span class="nav-page-text">第十七章: 预测模型 101</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>内容基于《Causal Inference for the Brave and True》中文翻译整理。</p>
+</div>   
+    <div class="nav-footer-center">
+<p>用 Quarto 构建，面向在线阅读与本地复现。</p>
+<div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/xieliaing/CausalInferenceIntro/blob/main/chapters/16 第十六章 断点回归.ipynb" class="toc-action"><i class="bi bi-github"></i>查看代码</a></li><li><a href="https://github.com/xieliaing/CausalInferenceIntro/issues/new" class="toc-action"><i class="bi empty"></i>反馈问题</a></li></ul></div></div>
+    <div class="nav-footer-right">
+<p><a href="https://github.com/xieliaing/CausalInferenceIntro">GitHub 仓库</a></p>
+</div>
+  </div>
+</footer>
+
+
+
+
+<script src="../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

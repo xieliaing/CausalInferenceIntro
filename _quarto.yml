@@ -1,0 +1,101 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "因果推断：从概念到实践"
+  description: "《Causal Inference for the Brave and True》中文翻译与示例站点。"
+  repo-url: https://github.com/pumc-zhou/CausalInferenceIntro
+  repo-actions: [source, issue]
+  page-navigation: true
+  navbar:
+    pinned: true
+    left:
+      - href: index.qmd
+        text: 首页
+    right:
+      - href: https://github.com/pumc-zhou/CausalInferenceIntro
+        text: GitHub
+      - href: https://github.com/matheusfacure/python-causality-handbook
+        text: 原书
+  sidebar:
+    style: docked
+    search: true
+    collapse-level: 2
+    contents:
+      - section: "章节"
+        contents:
+          - href: chapters/01 第一章-因果关系入门.ipynb
+            text: "第一章: 因果关系入门"
+          - href: chapters/02 第二章-随机试验.ipynb
+            text: "第二章: 随机试验"
+          - href: chapters/03 第三章 统计学回顾：最危险的公式.ipynb
+            text: "第三章: 统计学回顾"
+          - href: chapters/04 第四章 图因果模型.ipynb
+            text: "第四章: 图因果模型"
+          - href: chapters/05 第五章 线性回归超乎寻常的有效性.ipynb
+            text: "第五章: 线性回归的有效性"
+          - href: chapters/06 第六章 分组和虚拟变量.ipynb
+            text: "第六章: 分组和虚拟变量"
+          - href: chapters/07 第七章 控制混淆因素之外的考虑.ipynb
+            text: "第七章: 控制混淆之外"
+          - href: chapters/08 第八章 工具变量.ipynb
+            text: "第八章: 工具变量"
+          - href: chapters/09 第九章 非服从性与局部平均效应.ipynb
+            text: "第九章: 非服从性与 LATE"
+          - href: chapters/10 第十章 匹配.ipynb
+            text: "第十章: 匹配"
+          - href: chapters/11 第十一章 倾向得分.ipynb
+            text: "第十一章: 倾向得分"
+          - href: chapters/12 第十二章 双重稳健估计.ipynb
+            text: "第十二章: 双重稳健估计"
+          - href: chapters/13 第十三章 面板数据与固定效应.ipynb
+            text: "第十三章: 面板数据与固定效应"
+          - href: chapters/14 第十四章 双重差分.ipynb
+            text: "第十四章: 双重差分"
+          - href: chapters/15 第十五章 合成控制.ipynb
+            text: "第十五章: 合成控制"
+          - href: chapters/16 第十六章 断点回归.ipynb
+            text: "第十六章: 断点回归"
+          - href: chapters/17 第十七章 预测模型 101.ipynb
+            text: "第十七章: 预测模型 101"
+          - href: chapters/18 第十八章 异质干预效应与个性化.ipynb
+            text: "第十八章: 异质干预效应"
+          - href: chapters/19 第十九章 评估因果模型.ipynb
+            text: "第十九章: 评估因果模型"
+          - href: chapters/20 第二十章 即插即用估计量.ipynb
+            text: "第二十章: 即插即用估计量"
+          - href: chapters/21 第二十一章 元学习器.ipynb
+            text: "第二十一章: 元学习器"
+  page-footer:
+    left: "内容基于《Causal Inference for the Brave and True》中文翻译整理。"
+    center: "Power by Quarto"
+    right: "[GitHub 仓库](https://github.com/pumc-zhou/CausalInferenceIntro)"
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    page-layout: article
+    smooth-scroll: true
+    toc: true
+    toc-location: right
+    toc-title: 本页目录
+    toc-expand: 2
+    toc-depth: 3
+    code-copy: true
+    anchor-sections: true
+    link-external-newwindow: true
+    grid:
+      body-width: 980px
+      sidebar-width: 300px
+      margin-width: 220px
+    lang: zh-CN
+
+execute:
+  freeze: auto
+
+render:
+  - index.qmd
+  - chapters/*.ipynb
+  - "!chapters/.ipynb_checkpoints/**"

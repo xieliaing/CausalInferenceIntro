@@ -1,0 +1,185 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@400;600&display=swap');
+
+:root {
+  --site-ink: #102a43;
+  --site-muted: #52667a;
+  --site-line: rgba(16, 42, 67, 0.12);
+  --site-accent: #0f766e;
+  --site-accent-strong: #115e59;
+  --site-warm: #f6f3ed;
+  --site-panel: rgba(255, 255, 255, 0.92);
+  --site-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+}
+
+body {
+  color: var(--site-ink);
+  background:
+    radial-gradient(circle at top right, rgba(15, 118, 110, 0.08), transparent 32%),
+    radial-gradient(circle at top left, rgba(14, 116, 144, 0.08), transparent 28%),
+    linear-gradient(180deg, #fbfcfd 0%, #f4f7f9 100%);
+  font-family: "IBM Plex Sans", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  color: #0b2239;
+  font-family: "Source Serif 4", "Noto Serif SC", "Songti SC", serif;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+p,
+li {
+  color: var(--site-muted);
+  line-height: 1.75;
+}
+
+a {
+  color: var(--site-accent-strong);
+}
+
+.navbar {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(16, 42, 67, 0.08);
+}
+
+.sidebar nav[role="doc-toc"],
+.sidebar .sidebar-menu-container {
+  border-radius: 16px;
+}
+
+.sidebar .sidebar-item-text {
+  font-size: 0.95rem;
+}
+
+.hero-panel {
+  margin: 1.25rem 0 2.5rem;
+  padding: 2.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 28px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(246, 250, 251, 0.94)),
+    linear-gradient(135deg, rgba(15, 118, 110, 0.05), rgba(14, 116, 144, 0.05));
+  box-shadow: var(--site-shadow);
+}
+
+.hero-eyebrow {
+  display: inline-block;
+  margin-bottom: 0.9rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(15, 118, 110, 0.09);
+  color: var(--site-accent-strong);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hero-title {
+  margin: 0;
+  font-size: clamp(2.4rem, 6vw, 4.3rem);
+  line-height: 1.05;
+}
+
+.hero-lead {
+  max-width: 54rem;
+  margin: 1rem 0 0;
+  font-size: 1.08rem;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  margin-top: 1.5rem;
+}
+
+.hero-actions .btn-primary {
+  background-color: var(--site-accent);
+  border-color: var(--site-accent);
+}
+
+.hero-actions .btn-primary:hover,
+.hero-actions .btn-primary:focus {
+  background-color: var(--site-accent-strong);
+  border-color: var(--site-accent-strong);
+}
+
+.hero-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.8rem;
+}
+
+.metric-card,
+.feature-card,
+.content-card {
+  padding: 1.25rem 1.3rem;
+  border: 1px solid var(--site-line);
+  border-radius: 22px;
+  background: var(--site-panel);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+}
+
+.metric-card {
+  padding: 1.1rem 1.2rem;
+}
+
+.metric-value {
+  color: #0b2239;
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.metric-label {
+  margin-top: 0.2rem;
+  color: var(--site-muted);
+  font-size: 0.9rem;
+}
+
+.feature-card h3,
+.content-card h3 {
+  margin-top: 0;
+  margin-bottom: 0.45rem;
+  font-size: 1.2rem;
+}
+
+.feature-card.compact {
+  height: 100%;
+}
+
+.soft-accent {
+  background:
+    linear-gradient(180deg, rgba(15, 118, 110, 0.07), rgba(255, 255, 255, 0.94));
+}
+
+.callout.callout-style-simple {
+  border-left-color: var(--site-accent);
+  background: rgba(15, 118, 110, 0.05);
+}
+
+div.sourceCode,
+pre.sourceCode {
+  border: 1px solid rgba(16, 42, 67, 0.08);
+  border-radius: 16px;
+}
+
+.page-footer {
+  border-top: 1px solid rgba(16, 42, 67, 0.08);
+}
+
+@media (max-width: 767.98px) {
+  .hero-panel {
+    padding: 1.6rem;
+    border-radius: 22px;
+  }
+
+  .hero-metrics {
+    grid-template-columns: 1fr;
+  }
+}

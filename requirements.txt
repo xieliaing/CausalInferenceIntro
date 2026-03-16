@@ -1,0 +1,22 @@
+# Core notebook runtime
+jupyter
+notebook
+jupyterlab
+ipykernel
+
+# Data analysis
+numpy
+pandas
+scipy
+matplotlib
+seaborn
+scikit-learn
+statsmodels
+linearmodels
+
+# Causal graph / visualization helpers
+graphviz
+
+# Utilities for AutoTranslateNotebooks.py
+nbformat
+googletrans==4.0.0-rc1

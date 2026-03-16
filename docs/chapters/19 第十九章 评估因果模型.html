@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-CN" xml:lang="zh-CN"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="CausalInferenceIntro">
+
+<title>第十九章: 评估因果模型 – 因果推断：从概念到实践</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../chapters/20 第二十章 即插即用估计量.html" rel="next">
+<link href="../chapters/18 第十八章 异质干预效应与个性化.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-f1a637e51edb8e5d5a953483935b5072.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "没有结果",
+    "search-matching-documents-text": "匹配的文档",
+    "search-copy-link-title": "复制搜索链接",
+    "search-hide-matches-text": "隐藏其它匹配结果",
+    "search-more-match-text": "更多匹配结果",
+    "search-more-matches-text": "更多匹配结果",
+    "search-clear-button-title": "清除",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "取消",
+    "search-submit-button-title": "提交",
+    "search-label": "搜索"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-sidebar docked nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    </a>
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">因果推断：从概念到实践</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="搜索"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="展开或折叠导航栏" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="../index.html" aria-current="page"> 
+<span class="menu-text">首页</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/xieliaing/CausalInferenceIntro"> 
+<span class="menu-text">GitHub</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/matheusfacure/python-causality-handbook"> 
+<span class="menu-text">原书</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="展开或折叠侧边栏导航" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/01 第一章-因果关系入门.html">章节</a></li><li class="breadcrumb-item"><a href="../chapters/19 第十九章 评估因果模型.html">第十九章: 评估因果模型</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="展开或折叠侧边栏导航" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="搜索" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+      <a href="../index.html" class="sidebar-logo-link">
+      </a>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="搜索"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">章节</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="展开或折叠此栏">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/01 第一章-因果关系入门.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第一章: 因果关系入门</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/02 第二章-随机试验.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二章: 随机试验</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/03 第三章 统计学回顾：最危险的公式.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第三章: 统计学回顾</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/04 第四章 图因果模型.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第四章: 图因果模型</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/05 第五章 线性回归超乎寻常的有效性.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第五章: 线性回归的有效性</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/06 第六章 分组和虚拟变量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第六章: 分组和虚拟变量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/07 第七章 控制混淆因素之外的考虑.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第七章: 控制混淆之外</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/08 第八章 工具变量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第八章: 工具变量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/09 第九章 非服从性与局部平均效应.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第九章: 非服从性与 LATE</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/10 第十章 匹配.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十章: 匹配</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/11 第十一章 倾向得分.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十一章: 倾向得分</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/12 第十二章 双重稳健估计.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十二章: 双重稳健估计</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/13 第十三章 面板数据与固定效应.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十三章: 面板数据与固定效应</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/14 第十四章 双重差分.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十四章: 双重差分</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/15 第十五章 合成控制.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十五章: 合成控制</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/16 第十六章 断点回归.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十六章: 断点回归</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/17 第十七章 预测模型 101.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十七章: 预测模型 101</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/18 第十八章 异质干预效应与个性化.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十八章: 异质干预效应</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/19 第十九章 评估因果模型.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">第十九章: 评估因果模型</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/20 第二十章 即插即用估计量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二十章: 即插即用估计量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/21 第二十一章 元学习器.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二十一章: 元学习器</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="2">
+    <h2 id="toc-title">本页目录</h2>
+   
+  <ul>
+  <li><a href="#弹性模型带" id="toc-弹性模型带" class="nav-link active" data-scroll-target="#弹性模型带">弹性模型带</a></li>
+  <li><a href="#累积弹性曲线" id="toc-累积弹性曲线" class="nav-link" data-scroll-target="#累积弹性曲线">累积弹性曲线</a></li>
+  <li><a href="#累积增益曲线" id="toc-累积增益曲线" class="nav-link" data-scroll-target="#累积增益曲线">累积增益曲线</a></li>
+  <li><a href="#考虑差异" id="toc-考虑差异" class="nav-link" data-scroll-target="#考虑差异">考虑差异</a></li>
+  <li><a href="#关键思想" id="toc-关键思想" class="nav-link" data-scroll-target="#关键思想">关键思想</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/xieliaing/CausalInferenceIntro/blob/main/chapters/19 第十九章 评估因果模型.ipynb" class="toc-action"><i class="bi bi-github"></i>查看代码</a></li><li><a href="https://github.com/xieliaing/CausalInferenceIntro/issues/new" class="toc-action"><i class="bi empty"></i>反馈问题</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/01 第一章-因果关系入门.html">章节</a></li><li class="breadcrumb-item"><a href="../chapters/19 第十九章 评估因果模型.html">第十九章: 评估因果模型</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">第十九章: 评估因果模型</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">作者</div>
+    <div class="quarto-title-meta-contents">
+             <p>CausalInferenceIntro </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">发布于</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">2026年3月2日</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>在绝大多数关于因果关系的材料中，研究人员使用合成数据来检查他们的方法是否有效。就像我们在“当预测失败时”一章中所做的那样，他们在 <span class="math inline">\(Y_{0i}\)</span> 和 <span class="math inline">\(Y_{1i}\)</span> 上生成数据，以便他们可以检查他们的模型是否正确捕获了干预效果 <span class="math inline">\(Y_{1i} - Y_{0i}\)</span>。这对于学术目的来说很好，但在现实世界中，我们没有那么奢侈的待遇。在工业界中应用这些技术时，我们会一次又一次地被问到为什么我们的模型更好，为什么要在生产中替换当前的模型，或者为什么它不会惨遭失败。这非常重要，以至于我无法理解为什么我们没有看到任何解释我们应该如何用真实数据评估因果推理模型的材料。</p>
+<p>因此，想要应用因果推理模型的数据科学家很难说服管理层信任他们。他们采用的方法之一是展示理论的合理性以及他们在训练模型时的谨慎程度。不幸的是，在一个以训练-测试分割范式为常态的世界中，这么做没有什么用。你的模型的质量必须建立在比漂亮的理论更具体的东西上。想想看，机器学习之所以取得巨大成功，是因为预测模型的验证非常直接。看到预测与实际发生的情况相符，这让人放心。</p>
+<p>不幸的是，在因果推理的情况下，我们如何实现像训练-测试范式这样的东西并不明显。这是因为因果推理对估计一个不可观察的量感兴趣，<span class="math inline">\(\frac{\delta y}{ \delta t}\)</span>。好吧，如果我们看不到它，我们怎么知道我们的模型是否擅长估计它呢？请记住，就好像每个实体都有潜在的，用从干预到结果的估计线的斜率表示的反应，但我们无法衡量它。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/evaluate-causal-models/sneak.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>这是一件非常非常非常困难的事情，我花了很多年才找到接近答案的东西。不是一个确定的模型，但它在实践中有效，并且很具体，我希望它能够从类似于机器学习的训练-测试范式中进行因果推理。诀窍是使用弹性的聚合测量。即使你不能单独估计弹性，你也可以为一个群体做，这就是我们将在这里利用的。</p>
+<div id="cell-2" class="cell" data-tags="[&quot;hide-input&quot;]" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib <span class="im">import</span> pyplot <span class="im">as</span> plt</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> toolz <span class="im">import</span> curry</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> statsmodels.formula.api <span class="im">as</span> smf</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> statsmodels.api <span class="im">as</span> sm</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> GradientBoostingRegressor</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>在本章中，我们将使用非随机数据来估计我们的因果模型，并使用随机数据来评估它。 同样，我们将讨论价格如何影响冰淇淋销售。 正如我们将看到的，随机数据对于评估目的非常有价值。 然而，在现实生活中，收集随机数据通常是昂贵的（如果你知道其中一些价格不是很好，只会让你赔钱，为什么还要随机定价？？？）。 最终发生的情况是，我们经常拥有大量数据，其中处理<strong>不是</strong>随机的，而随机数据（如果有的话）非常少。 由于使用非随机数据评估模型非常棘手，因此如果我们有任何随机数据，我们倾向于将其留作评估目的。</p>
+<p>以防万一您忘记了，这是数据的样子。</p>
+<div id="cell-4" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>prices <span class="op">=</span> pd.read_csv(<span class="st">"./data/ice_cream_sales.csv"</span>) <span class="co"># loads non-random data</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>prices_rnd <span class="op">=</span> pd.read_csv(<span class="st">"./data/ice_cream_sales_rnd.csv"</span>) <span class="co"># loads random data</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(prices_rnd.shape)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>prices.head()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(5000, 5)</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="2">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">temp</th>
+<th data-quarto-table-cell-role="th">weekday</th>
+<th data-quarto-table-cell-role="th">cost</th>
+<th data-quarto-table-cell-role="th">price</th>
+<th data-quarto-table-cell-role="th">sales</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>17.3</td>
+<td>6</td>
+<td>1.5</td>
+<td>5.6</td>
+<td>173</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>25.4</td>
+<td>3</td>
+<td>0.3</td>
+<td>4.9</td>
+<td>196</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>23.3</td>
+<td>5</td>
+<td>1.5</td>
+<td>7.6</td>
+<td>207</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>26.9</td>
+<td>1</td>
+<td>0.3</td>
+<td>5.3</td>
+<td>241</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>20.2</td>
+<td>1</td>
+<td>1.0</td>
+<td>7.2</td>
+<td>227</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>出于比较目的，让我们训练两个模型。 第一个将是具有交互项的线性回归，以便允许弹性在单位之间变化。</p>
+<p><span class="math display">\[
+sales_i = \beta_0 + \beta_1 price_i + \pmb{\beta_2 X}_i + \pmb{\beta_3 X}_i price_i + e_i
+\]</span></p>
+<p>一旦我们拟合了这个模型，我们将能够进行弹性预测。</p>
+<p><span class="math display">\[
+\widehat{\frac{\delta sales}{ \delta price}} = \hat{\beta_1} + \pmb{\hat{\beta_3} X}_i
+\]</span></p>
+<div id="cell-6" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>m1 <span class="op">=</span> smf.ols(<span class="st">"sales ~ price*cost + price*C(weekday) + price*temp"</span>, data<span class="op">=</span>prices).fit()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>第二个模型将是完全非参数、基于机器学习的预测模型：</p>
+<p><span class="math display">\[
+sales_i = G(X_i, price_i) + e_i
+\]</span></p>
+<div id="cell-8" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> [<span class="st">"temp"</span>, <span class="st">"weekday"</span>, <span class="st">"cost"</span>, <span class="st">"price"</span>]</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> <span class="st">"sales"</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">1</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>m2 <span class="op">=</span> GradientBoostingRegressor()</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>m2.fit(prices[X], prices[y])<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>为了确保模型没有严重过度拟合，我们可以比较我们使用训练它的数据的到的<span class="math inline">\(R^2\)</span>和使用新的、看不见的数据得到的 <span class="math inline">\(R^2\)</span>。 （对于那些更精通机器学习的人，请注意性能会有所下降，因为存在概念漂移。模型是在价格不是随机的数据中训练的，但测试集只有随机价格）。</p>
+<div id="cell-10" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Train Score:"</span>, m2.score(prices[X], prices[y]))</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Test Score:"</span>, m2.score(prices_rnd[X], prices_rnd[y]))</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Train Score: 0.9251704824568053
+Test Score: 0.7711074163447711</code></pre>
+</div>
+</div>
+<p>在训练我们的模型之后，我们将从回归模型中获得弹性。 同样，我们将求助于数值近似</p>
+<p><span class="math display">\[
+\frac{\delta y(t)}{\delta t} \approx \frac{y(t+h) - y(t)}{h}
+\]</span></p>
+<p>我们的模型接受了非随机数据的训练。 现在我们转向随机数据进行预测。 就这样我们将所有东西都放在一个地方，我们将把机器学习模型的预测和因果模型的弹性预测添加到单个数据帧“prices_rnd_pred”中。</p>
+<p>此外，我们还包括一个随机模型。 这个想法是这个模型只输出随机数作为预测。 它显然不是很有用，但它可以很好地作为基准。 每当我们谈论进行评估的新方法时，我总是喜欢思考随机（无用）模型会如何做。 如果随机模型能够在评估标准上表现良好，那就说明评估方法的真正好坏。</p>
+<div id="cell-12" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> predict_elast(model, price_df, h<span class="op">=</span><span class="fl">0.01</span>):</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (model.predict(price_df.assign(price<span class="op">=</span>price_df[<span class="st">"price"</span>]<span class="op">+</span>h))</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>            <span class="op">-</span> model.predict(price_df)) <span class="op">/</span> h</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">123</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>prices_rnd_pred <span class="op">=</span> prices_rnd.assign(<span class="op">**</span>{</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"m1_pred"</span>: m2.predict(prices_rnd[X]), <span class="co">## predictive model</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">"m2_pred"</span>: predict_elast(m1, prices_rnd), <span class="co">## elasticity model</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="st">"m3_pred"</span>: np.random.uniform(size<span class="op">=</span>prices_rnd.shape[<span class="dv">0</span>]), <span class="co">## random model</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>prices_rnd_pred.head()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="6">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">temp</th>
+<th data-quarto-table-cell-role="th">weekday</th>
+<th data-quarto-table-cell-role="th">cost</th>
+<th data-quarto-table-cell-role="th">price</th>
+<th data-quarto-table-cell-role="th">sales</th>
+<th data-quarto-table-cell-role="th">m1_pred</th>
+<th data-quarto-table-cell-role="th">m2_pred</th>
+<th data-quarto-table-cell-role="th">m3_pred</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>25.8</td>
+<td>1</td>
+<td>0.3</td>
+<td>7</td>
+<td>230</td>
+<td>224.067406</td>
+<td>-13.096964</td>
+<td>0.696469</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>22.7</td>
+<td>3</td>
+<td>0.5</td>
+<td>4</td>
+<td>190</td>
+<td>189.889147</td>
+<td>1.054695</td>
+<td>0.286139</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>33.7</td>
+<td>7</td>
+<td>1.0</td>
+<td>5</td>
+<td>237</td>
+<td>237.255157</td>
+<td>-17.362642</td>
+<td>0.226851</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>23.0</td>
+<td>4</td>
+<td>0.5</td>
+<td>5</td>
+<td>193</td>
+<td>186.688619</td>
+<td>0.564985</td>
+<td>0.551315</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>24.4</td>
+<td>1</td>
+<td>1.0</td>
+<td>3</td>
+<td>252</td>
+<td>250.342203</td>
+<td>-13.717946</td>
+<td>0.719469</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<section id="弹性模型带" class="level2">
+<h2 class="anchored" data-anchor-id="弹性模型带">弹性模型带</h2>
+<p>现在我们有了预测，我们需要评估它们的好坏。请记住，我们无法观察到弹性，因此没有可以比较的简单基本事实。相反，让我们回想一下我们想要从弹性模型中得到什么。也许这会给我们一些关于如何评估它们的见解。</p>
+<p>制作干预弹性模型的想法来自于需要找出哪些单位对干预更敏感，哪些更不敏感。它来自对个性化的渴望。也许营销活动只在一部分人群中非常有效。也许折扣只适用于某些类型的客户。一个好的因果模型应该可以帮助我们发现哪些客户对提议的干预反应更好和更差。他们应该能够将单位分成他们对干预的弹性或敏感程度。在我们的冰淇淋示例中，该模型应该能够计算出人们在哪几天愿意在冰淇淋上花费更多，或者在哪几天价格弹性的负值较小。</p>
+<p>如果这是目标，那么如果我们能以某种方式将单位从更敏感到不太敏感排序，那将非常有用。由于我们有预测的弹性，我们可以按该预测对单位进行排序，并希望它也按实际弹性对它们进行排序。遗憾的是，我们无法在单位级别上评估该排序。但是，如果我们不需要呢？相反，如果我们评估由排序定义的组怎么办？如果我们的处理是随机分布的（这是随机性进入的地方），那么估计一组单​​位的弹性很容易。我们所需要的只是比较干预与否的结果。</p>
+<p>为了更好地理解这一点，描绘二元处理案例很有用。让我们保留定价示例，但现在的干预量是折扣。换句话说，价格可以高（未处理）或低（处理）。让我们在 Y 轴上绘制销售额，在 X 轴上绘制我们的每个模型，并将价格作为颜色。然后，我们可以将模型轴上的数据分成三个大小相等的组。 <strong>如果干预是随机分配的</strong>，我们可以轻松估计每组的 ATE <span class="math inline">\(E[Y|T=1] - E[Y|T=0]\)</span>。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/evaluate-causal-models/ate_bins.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>在图像中，我们可以看到第一个模型在预测销售额方面有些好（与销售额相关性高），但它产生的组具有大致相同的处理效果，如下图所示。三个部分中有两个具有相同的弹性，只有最后一个具有不同的较低弹性。</p>
+<p>另一方面，第二个模型产生的每一组都有不同的因果效应。这表明该模型确实可以用于个性化。最后，随机模型产生具有完全相同弹性的组。这不是很有用，但它是预期的。如果模型是随机的，则它产生的每个片段都是随机且具有代表性的数据样本。因此，其组中的弹性应该与整个数据集上的 ATE 大致相同。</p>
+<p>只需查看这些图，您就可以了解哪个模型更好。弹性看起来越有序，带之间的差异越大，越好。在这里，模型 2 可能比模型 1 更好，这可能比随机模型更好。</p>
+<p>为了将其推广到连续情况，我们可以使用单变量线性回归模型来估计弹性。</p>
+<p><span class="math display">\[
+y_i = \beta_0 + \beta_1t_i + e_i
+\]</span></p>
+<p>如果我们使用一组样本运行该模型，我们将估计该组内的弹性。</p>
+<p>根据简单线性回归的理论，我们知道</p>
+<p><span class="math display">\[
+\hat{\beta_1}=\dfrac{\sum (t_i - \bar{t}) (y_i - \bar{y})}{\sum(t_i - \bar{t})^2}
+\]</span></p>
+<p>其中 <span class="math inline">\(\bar{t}\)</span> 是处理的样本平均值，<span class="math inline">\(\bar{y}\)</span> 是结果的样本平均值。 这是代码中的样子</p>
+<div id="cell-14" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="at">@curry</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> elast(data, y, t):</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>        <span class="co"># line coeficient for the one variable linear regression </span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> (np.<span class="bu">sum</span>((data[t] <span class="op">-</span> data[t].mean())<span class="op">*</span>(data[y] <span class="op">-</span> data[y].mean())) <span class="op">/</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>                np.<span class="bu">sum</span>((data[t] <span class="op">-</span> data[t].mean())<span class="op">**</span><span class="dv">2</span>))</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>现在让我们将其应用于我们的冰淇淋价格数据。 为此，我们还需要一个函数，将数据集分割成大小相等的分区，并将弹性应用于每个分区。 以下代码将处理该问题。</p>
+<div id="cell-16" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> elast_by_band(df, pred, y, t, bands<span class="op">=</span><span class="dv">10</span>):</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (df</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>            .assign(<span class="op">**</span>{<span class="ss">f"</span><span class="sc">{</span>pred<span class="sc">}</span><span class="ss">_band"</span>:pd.qcut(df[pred], q<span class="op">=</span>bands)}) <span class="co"># makes quantile partitions</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>            .groupby(<span class="ss">f"</span><span class="sc">{</span>pred<span class="sc">}</span><span class="ss">_band"</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>            .<span class="bu">apply</span>(elast(y<span class="op">=</span>y, t<span class="op">=</span>t))) <span class="co"># estimate the elasticity on each partition</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>最后，让我们使用我们之前所做的预测按波段绘制弹性。 在这里，我们将使用每个模型来构建分区，然后估计每个分区的弹性。</p>
+<div id="cell-18" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">3</span>, sharey<span class="op">=</span><span class="va">True</span>, figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">4</span>))</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> m, ax <span class="kw">in</span> <span class="bu">enumerate</span>(axs):</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    elast_by_band(prices_rnd_pred, <span class="ss">f"m</span><span class="sc">{</span>m<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss">_pred"</span>, <span class="st">"sales"</span>, <span class="st">"price"</span>).plot.bar(ax<span class="op">=</span>ax)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="19 第十九章 评估因果模型_files/figure-html/cell-10-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>首先，查看随机模型 (<span class="math inline">\(m3\)</span>)。它在每个分区中具有大致相同的估计弹性。通过查看该图，我们已经可以看出，它对个性化没有太大帮助，因为它无法区分高价格弹性日和低价格弹性日。接下来，考虑预测模型 <span class="math inline">\(m1\)</span>。该模型实际上是有前途的！它设法构建弹性高的组和弹性低的组。这正是我们所需要的。</p>
+<p>最后，因果模型 <span class="math inline">\(m2\)</span> 看起来有点奇怪。它识别出弹性非常低的群体，这里的低实际上意味着高价格敏感度（随着我们提高价格，销售额将大幅下降）。检测那些价格敏感的日子对我们非常有用。如果我们知道它们是什么时候，我们会小心不要在这些日子继续涨价。因果模型还识别了一些不太敏感的区域，因此它可以成功地区分高弹性和低弹性。但是排序不如预测模型好。</p>
+<p>那么，我们应该如何决定呢？哪个更有用？预测模型还是因果模型？预测模型具有更好的排序，但因果模型可以更好地识别极端情况。带状图的弹性是一个很好的初步检查，但它不能准确回答哪个模型更好。我们需要转向更精细的东西。</p>
+</section>
+<section id="累积弹性曲线" class="level2">
+<h2 class="anchored" data-anchor-id="累积弹性曲线">累积弹性曲线</h2>
+<p>再次考虑将价格转换为二元处理的说明性示例。我们会从我们离开的地方拿走它，所以我们有弹性处理带。我们接下来可以做的是根据乐队的敏感程度对乐队进行排序。也就是说，我们把最敏感的组放在第一位，第二个最敏感的组放在第二位，依此类推。对于模型 1 和 3，无需重新订购，因为它们已经订购。对于模型 2，我们必须颠倒排序。</p>
+<p>一旦我们有了有序的组，我们就可以构建我们称之为累积弹性曲线的东西。我们首先计算第一组的弹性；然后，第一个和第二个等等，直到我们包含所有组。最后，我们将只计算整个数据集的弹性。这是我们的说明性示例的外观。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/evaluate-causal-models/cumm_elast.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>请注意，累积弹性中的第一个 bin 只是根据该模型来自最敏感组的 ATE。此外，对于所有模型，累积弹性将收敛到同一点，即整个数据集的 ATE。</p>
+<p>在数学上，我们可以将累积弹性定义为直到单位 <span class="math inline">\(k\)</span> 之前估计的弹性。</p>
+<p><span class="math display">\[
+\widehat{y'(t)}_k = \hat{\beta_1}_k=\dfrac{\sum_i^k (t_i - \bar{t}) (y_i - \bar{y})}{\sum_i^k (t_i - \bar{t})^2}
+\]</span></p>
+<p>为了构建累积弹性曲线，我们在数据集中迭代地运行上述函数以产生以下序列。</p>
+<p><span class="math display">\[
+(\widehat{y'(t)}_1, \widehat{y'(t)}_2, \widehat{y'(t)}_3,..., \widehat{y'(t)}_N)
+\]</span></p>
+<p>就模型评估而言，这是一个非常有趣的序列，因为我们可以对其进行偏好陈述。首先，模型更好的程度</p>
+<p><span class="math inline">\(\hat{y}'(t)_k &gt; \hat{y}'(t)_{k+a}\)</span></p>
+<p>对于任何 <span class="math inline">\(k\)</span> 和 <span class="math inline">\(a&gt;0\)</span>。换句话说，如果一个模型擅长对弹性进行排序，那么在前 <span class="math inline">\(k\)</span> 个样本中观察到的弹性应该高于在前 <span class="math inline">\(k+a\)</span> 个样本中观察到的弹性。或者，简单地说，如果我查看顶部单位，它们应该比它们下面的单位具有更高的弹性。</p>
+<p>其次，模型更好的程度</p>
+<p><span class="math inline">\(\hat{y}'(t)_k - \hat{y}'(t)_{k+a}\)</span></p>
+<p>是最大的，对于任何 <span class="math inline">\(k\)</span> 和 <span class="math inline">\(a&gt;0\)</span>。直觉是，我们不仅希望顶部 <span class="math inline">\(k\)</span> 单位的弹性高于其下方单位的弹性，而且我们希望这种差异尽可能大。</p>
+<p>为了使其更具体，这是用代码表示的这个想法。</p>
+<div id="cell-20" class="cell" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> cumulative_elast_curve(dataset, prediction, y, t, min_periods<span class="op">=</span><span class="dv">30</span>, steps<span class="op">=</span><span class="dv">100</span>):</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    size <span class="op">=</span> dataset.shape[<span class="dv">0</span>]</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="co"># orders the dataset by the `prediction` column</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    ordered_df <span class="op">=</span> dataset.sort_values(prediction, ascending<span class="op">=</span><span class="va">False</span>).reset_index(drop<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># create a sequence of row numbers that will define our Ks</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># The last item is the sequence is all the rows (the size of the dataset)</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    n_rows <span class="op">=</span> <span class="bu">list</span>(<span class="bu">range</span>(min_periods, size, size <span class="op">//</span> steps)) <span class="op">+</span> [size]</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># cumulative computes the elasticity. First for the top min_periods units.</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    <span class="co"># then for the top (min_periods + step*1), then (min_periods + step*2) and so on</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.array([elast(ordered_df.head(rows), y, t) <span class="cf">for</span> rows <span class="kw">in</span> n_rows])</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>关于此功能的一些注意事项。 它假定对弹性进行排序的事物存储在传递给“预测”参数的列中。 此外，第一组有 <code>min_periods</code> 单位，因此它可以与其他组不同。 原因是，由于样本量小，弹性在曲线开始时可能过于嘈杂。 为了解决这个问题，我们可以传递一个已经足够大的第一组。 最后，<code>steps</code> 参数定义了我们在每个后续组中包含多少额外单元。</p>
+<p>使用此功能，我们现在可以根据每个模型产生的顺序绘制累积弹性曲线。</p>
+<div id="cell-22" class="cell" data-tags="[&quot;hide-input&quot;]" data-execution_count="11">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">10</span>,<span class="dv">6</span>))</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> m <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">3</span>):</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    cumu_elast <span class="op">=</span> cumulative_elast_curve(prices_rnd_pred, <span class="ss">f"m</span><span class="sc">{</span>m<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss">_pred"</span>, <span class="st">"sales"</span>, <span class="st">"price"</span>, min_periods<span class="op">=</span><span class="dv">100</span>, steps<span class="op">=</span><span class="dv">100</span>)</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> np.array(<span class="bu">range</span>(<span class="bu">len</span>(cumu_elast)))</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    plt.plot(x<span class="op">/</span>x.<span class="bu">max</span>(), cumu_elast, label<span class="op">=</span><span class="ss">f"M</span><span class="sc">{</span>m<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>plt.hlines(elast(prices_rnd_pred, <span class="st">"sales"</span>, <span class="st">"price"</span>), <span class="dv">0</span>, <span class="dv">1</span>, linestyles<span class="op">=</span><span class="st">"--"</span>, color<span class="op">=</span><span class="st">"black"</span>, label<span class="op">=</span><span class="st">"Avg. Elast."</span>)</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"</span><span class="sc">% o</span><span class="st">f Top Elast. Days"</span>)</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Cumulative Elasticity"</span>)</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Cumulative Elasticity Curve"</span>)</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>plt.legend()<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="19 第十九章 评估因果模型_files/figure-html/cell-12-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>解释累积弹性曲线可能有点挑战性，但这是我的看法。同样，考虑二分类情况可能更容易。曲线的 X 轴代表我们正在处理的样本数量。在这里，我将轴归一化为数据集的比例，所以 0.4 意味着我们正在处理 40% 的样本。 Y 轴是我们在这么多样本上应该预期的弹性。因此，如果一条曲线在 40% 处的值为 -1，则意味着前 40% 单位的弹性为 -1。理想情况下，我们希望尽可能大的样本具有最高的弹性。理想的曲线将在 Y 轴上从高处开始，然后非常缓慢地下降到平均弹性，这表示我们可以处理高百分比的单位，同时仍保持高于平均弹性。</p>
+<p>不用说，我们的模型都没有接近理想的弹性曲线。随机模型 <span class="math inline">\(M3\)</span> 围绕平均弹性波动，并且永远不会离它太远。这意味着该模型无法找到弹性与平均弹性不同的组。至于预测模型 <span class="math inline">\(M1\)</span>，它似乎是反向排序的弹性，因为曲线从低于平均弹性开始。不仅如此，它还在大约 50% 的样本处很快收敛到平均弹性。最后，因果模型 <span class="math inline">\(M2\)</span> 似乎更有趣。一开始它有这种奇怪的行为，累积弹性增加远离平均值，但随后它达到了一个点，我们可以处理大约 75% 的单位，同时保持几乎为 0 的相当不错的弹性。这可能是因为这个模型可以识别非常低弹性（高价格敏感度）的日子。因此，如果我们在那些日子不提价，我们可以对大部分样本（约 75%）进行提价，同时价格敏感度仍然较低。</p>
+<p>在模型评估方面，累积弹性曲线（Cumulative Elasticity Curve） 已经远远好于简单的分区间的弹性概念。在这里，我们设法对我们的模型做出更精确的偏好陈述。不过，这是一条复杂的曲线，难以理解。出于这个原因，我们可以做进一步的改进。</p>
+</section>
+<section id="累积增益曲线" class="level2">
+<h2 class="anchored" data-anchor-id="累积增益曲线">累积增益曲线</h2>
+<p>下一个想法是在累积弹性之上进行非常简单但强大的改进。我们将累积弹性乘以比例样本量。例如，如果累积弹性在 40% 时为 -0.5，那么此时我们将得到 -0.2 (-0.5 * 0.4)。然后，我们将其与随机模型产生的理论曲线进行比较。这条曲线实际上是一条从 0 到平均干预效果的直线。可以这样想：随机模型的累积弹性中的每个点都是 ATE，因为该模型只生成数据的随机代表性分区。如果在 (0,1) 线上的每一点，我们将 ATE 乘以该点，我们最终会得到一条介于 0 和 ATE 之间的直线。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/evaluate-causal-models/cumm_gain.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>一旦我们有了理论上的随机曲线，我们就可以将其用作基准，并将我们的其他模型与它进行比较。所有曲线将在同一点开始和结束。然而，模型的弹性排序越好，曲线在零到一之间的点处偏离随机线的程度就越大。例如，在上图中，M2 优于 M1，因为它在到达终点 ATE 之前发散得更多。对于熟悉 ROC 曲线的人，您可以将累积增益视为因果模型的 ROC。</p>
+<p>从数学上讲，</p>
+<p><span class="math display">\[
+\widehat{F(t)}_k = \hat{\beta_1}_k * \frac{k}{N} =\dfrac{\sum_i^k (t_i - \bar{t}) (y_i - \bar{y })}{\sum_i^k(t_i - \bar{t})^2} * \frac{k}{N}
+\]</span></p>
+<p>要在代码中实现它，我们所要做的就是添加比例样本大小归一化。</p>
+<div id="cell-25" class="cell" data-execution_count="12">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> cumulative_gain(dataset, prediction, y, t, min_periods<span class="op">=</span><span class="dv">30</span>, steps<span class="op">=</span><span class="dv">100</span>):</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    size <span class="op">=</span> dataset.shape[<span class="dv">0</span>]</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    ordered_df <span class="op">=</span> dataset.sort_values(prediction, ascending<span class="op">=</span><span class="va">False</span>).reset_index(drop<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    n_rows <span class="op">=</span> <span class="bu">list</span>(<span class="bu">range</span>(min_periods, size, size <span class="op">//</span> steps)) <span class="op">+</span> [size]</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">## add (rows/size) as a normalizer. </span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.array([elast(ordered_df.head(rows), y, t) <span class="op">*</span> (rows<span class="op">/</span>size) <span class="cf">for</span> rows <span class="kw">in</span> n_rows])</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>使用我们的冰激凌数据，我们会得到如下曲线。</p>
+<div id="cell-27" class="cell" data-tags="[&quot;hide-input&quot;]" data-execution_count="13">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">10</span>,<span class="dv">6</span>))</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> m <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">3</span>):</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    cumu_gain <span class="op">=</span> cumulative_gain(prices_rnd_pred, <span class="ss">f"m</span><span class="sc">{</span>m<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss">_pred"</span>, <span class="st">"sales"</span>, <span class="st">"price"</span>, min_periods<span class="op">=</span><span class="dv">50</span>, steps<span class="op">=</span><span class="dv">100</span>)</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> np.array(<span class="bu">range</span>(<span class="bu">len</span>(cumu_gain)))</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    plt.plot(x<span class="op">/</span>x.<span class="bu">max</span>(), cumu_gain, label<span class="op">=</span><span class="ss">f"M</span><span class="sc">{</span>m<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>plt.plot([<span class="dv">0</span>, <span class="dv">1</span>], [<span class="dv">0</span>, elast(prices_rnd_pred, <span class="st">"sales"</span>, <span class="st">"price"</span>)], linestyle<span class="op">=</span><span class="st">"--"</span>, label<span class="op">=</span><span class="st">"Random Model"</span>, color<span class="op">=</span><span class="st">"black"</span>)</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"</span><span class="sc">% o</span><span class="st">f Top Elast. Days"</span>)</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Cumulative Gain"</span>)</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Cumulative Gain"</span>)</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>plt.legend()<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="19 第十九章 评估因果模型_files/figure-html/cell-14-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>现在很清楚，因果模型（M2）比其他两个要好得多。它与随机线的差异远大于 M1 和 M3。此外，请注意随机模型 M3 如何非常接近理论随机模型。两者之间的区别可能只是随机噪声。</p>
+<p>有了这个，我们介绍了一些关于如何评估因果模型的非常好的想法。仅此一项就是一件大事。即使我们没有要比较的基本事实，我们也设法评估了模型在排序弹性方面的好坏。只缺少最后一件事，即包括围绕这些测量值的置信区间。毕竟，我们不是野蛮人，不是吗？</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/evaluate-causal-models/uncivilised.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+</section>
+<section id="考虑差异" class="level2">
+<h2 class="anchored" data-anchor-id="考虑差异">考虑差异</h2>
+<p>当我们处理弹性曲线时，不考虑方差是错误的。特别是由于它们都使用线性回归理论，因此在它们周围添加置信区间应该相当容易。</p>
+<p>为此，我们将首先创建一个函数，该函数返回线性回归参数的 CI。我在这里使用简单线性回归的公式，但可以随意提取 CI。</p>
+<p><span class="math display">\[
+s_{\hat\beta_1}=\sqrt{\frac{\sum_i\hat\epsilon_i^2}{(n-2)\sum_i(t_i-\bar t)^2}}
+\]</span></p>
+<div id="cell-29" class="cell" data-execution_count="14">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> elast_ci(df, y, t, z<span class="op">=</span><span class="fl">1.96</span>):</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> df.shape[<span class="dv">0</span>]</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    t_bar <span class="op">=</span> df[t].mean()</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    beta1 <span class="op">=</span> elast(df, y, t)</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    beta0 <span class="op">=</span> df[y].mean() <span class="op">-</span> beta1 <span class="op">*</span> t_bar</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    e <span class="op">=</span> df[y] <span class="op">-</span> (beta0 <span class="op">+</span> beta1<span class="op">*</span>df[t])</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    se <span class="op">=</span> np.sqrt(((<span class="dv">1</span><span class="op">/</span>(n<span class="op">-</span><span class="dv">2</span>))<span class="op">*</span>np.<span class="bu">sum</span>(e<span class="op">**</span><span class="dv">2</span>))<span class="op">/</span>np.<span class="bu">sum</span>((df[t]<span class="op">-</span>t_bar)<span class="op">**</span><span class="dv">2</span>))</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.array([beta1 <span class="op">-</span> z<span class="op">*</span>se, beta1 <span class="op">+</span> z<span class="op">*</span>se])</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>通过对我们的<code>cumulative_elast_curve</code>函数进行一些小的修改，我们可以输出弹性的置信区间。</p>
+<div id="cell-31" class="cell" data-execution_count="15">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> cumulative_elast_curve_ci(dataset, prediction, y, t, min_periods<span class="op">=</span><span class="dv">30</span>, steps<span class="op">=</span><span class="dv">100</span>):</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>    size <span class="op">=</span> dataset.shape[<span class="dv">0</span>]</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    ordered_df <span class="op">=</span> dataset.sort_values(prediction, ascending<span class="op">=</span><span class="va">False</span>).reset_index(drop<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    n_rows <span class="op">=</span> <span class="bu">list</span>(<span class="bu">range</span>(min_periods, size, size <span class="op">//</span> steps)) <span class="op">+</span> [size]</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># just replacing a call to `elast` by a call to `elast_ci`</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.array([elast_ci(ordered_df.head(rows), y, t)  <span class="cf">for</span> rows <span class="kw">in</span> n_rows])</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>最后，这是因果 (M2) 模型的 95% CI 的累积弹性曲线。</p>
+<div id="cell-33" class="cell" data-tags="[&quot;hide-input&quot;]" data-execution_count="16">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">10</span>,<span class="dv">6</span>))</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>cumu_gain_ci <span class="op">=</span> cumulative_elast_curve_ci(prices_rnd_pred, <span class="st">"m2_pred"</span>, <span class="st">"sales"</span>, <span class="st">"price"</span>, min_periods<span class="op">=</span><span class="dv">50</span>, steps<span class="op">=</span><span class="dv">200</span>)</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> np.array(<span class="bu">range</span>(<span class="bu">len</span>(cumu_gain_ci)))</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>plt.plot(x<span class="op">/</span>x.<span class="bu">max</span>(), cumu_gain_ci, color<span class="op">=</span><span class="st">"C0"</span>)</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>plt.hlines(elast(prices_rnd_pred, <span class="st">"sales"</span>, <span class="st">"price"</span>), <span class="dv">0</span>, <span class="dv">1</span>, linestyles<span class="op">=</span><span class="st">"--"</span>, color<span class="op">=</span><span class="st">"black"</span>, label<span class="op">=</span><span class="st">"Avg. Elast."</span>)</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"</span><span class="sc">% o</span><span class="st">f Top Elast. Days"</span>)</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Cumulative Elasticity"</span>)</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Cumulative Elasticity for M2 with 95% CI"</span>)</span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>plt.legend()<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="19 第十九章 评估因果模型_files/figure-html/cell-17-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>注意随着我们积累更多的数据集，CI 是如何变得越来越小的。 那是因为样本量增加了。</p>
+<p>至于累积增益曲线，获取 CI 也同样简单。 同样，我们只是将调用 <code>elast</code> 函数替换为调用 <code>elast_ci</code> 函数。</p>
+<div id="cell-35" class="cell" data-execution_count="17">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> cumulative_gain_ci(dataset, prediction, y, t, min_periods<span class="op">=</span><span class="dv">30</span>, steps<span class="op">=</span><span class="dv">100</span>):</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>    size <span class="op">=</span> dataset.shape[<span class="dv">0</span>]</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    ordered_df <span class="op">=</span> dataset.sort_values(prediction, ascending<span class="op">=</span><span class="va">False</span>).reset_index(drop<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    n_rows <span class="op">=</span> <span class="bu">list</span>(<span class="bu">range</span>(min_periods, size, size <span class="op">//</span> steps)) <span class="op">+</span> [size]</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.array([elast_ci(ordered_df.head(rows), y, t) <span class="op">*</span> (rows<span class="op">/</span>size) <span class="cf">for</span> rows <span class="kw">in</span> n_rows])</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>这是因果模型的样子。 请注意，现在 CI 开始时很小，即使曲线开始时的样本量较小。 原因是归一化因子 <span class="math inline">\(\frac{k}{N}\)</span> 回避了 ATE 参数，并且它是 CI。 由于这条曲线应该用于比较模型，所以这应该不是问题，因为曲线会将这个推卸因子平等地应用于所有正在评估的模型。</p>
+<div id="cell-37" class="cell" data-tags="[&quot;hide-input&quot;]" data-execution_count="18">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">10</span>,<span class="dv">6</span>))</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>cumu_gain <span class="op">=</span> cumulative_gain_ci(prices_rnd_pred, <span class="st">"m2_pred"</span>, <span class="st">"sales"</span>, <span class="st">"price"</span>, min_periods<span class="op">=</span><span class="dv">50</span>, steps<span class="op">=</span><span class="dv">200</span>)</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> np.array(<span class="bu">range</span>(<span class="bu">len</span>(cumu_gain)))</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>plt.plot(x<span class="op">/</span>x.<span class="bu">max</span>(), cumu_gain, color<span class="op">=</span><span class="st">"C0"</span>)</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>plt.plot([<span class="dv">0</span>, <span class="dv">1</span>], [<span class="dv">0</span>, elast(prices_rnd_pred, <span class="st">"sales"</span>, <span class="st">"price"</span>)], linestyle<span class="op">=</span><span class="st">"--"</span>, label<span class="op">=</span><span class="st">"Random Model"</span>, color<span class="op">=</span><span class="st">"black"</span>)</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"</span><span class="sc">% o</span><span class="st">f Top Elast. Days"</span>)</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Cumulative Gain"</span>)</span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Cumulative Gain for M2 with 95% CI"</span>)</span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>plt.legend()<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="19 第十九章 评估因果模型_files/figure-html/cell-19-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="关键思想" class="level2">
+<h2 class="anchored" data-anchor-id="关键思想">关键思想</h2>
+<p>在这里，我们看到了三种方法来检查模型在排序弹性方面的好坏。我们使用这些方法来比较和决定具有因果关系的模型。这是非常重要的。我们已经设法检查了一个模型是否擅长识别具有不同弹性的组，即使无法看到弹性！</p>
+<p>在这里，我们严重依赖随机数据。我们在非随机数据上训练了模型，但所有评估都是在随机处理的样本上完成的。那是因为我们需要某种方法来自信地估计弹性。如果没有随机数据，我们在这里使用的简单公式将不起作用。正如我们现在非常清楚的那样，简单的线性回归在存在混杂变量的情况下忽略了变量偏差。</p>
+<p>尽管如此，如果我们能够掌握一些随机数据，我们就已经知道如何比较随机模型了。在下一章中，我们将解决非随机数据的问题，但在开始之前，我最后想说一些关于模型评估的想法。</p>
+<p>让我们重申一下可信赖模型评估的重要性。通过累积增益曲线，我们终于有了一种比较用于因果推理的模型的好方法。我们现在可以决定哪种模型更适合个性化干预。这是非常重要的。您会在因果推理中找到的大多数材料都没有为我们提供进行模型评估的好方法。在我看来，这是我们需要让因果推理像机器学习一样流行的缺失部分。通过良好的评估，我们可以使因果推理更接近已经对预测模型非常有用的训练测试范式。这是一个大胆的声明。这意味着我提到这个的时候很小心，但直到现在，我还没有找到任何好的点评。如果你有一些想法，请告诉我。</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "已复制");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "已复制");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../chapters/18 第十八章 异质干预效应与个性化.html" class="pagination-link" aria-label="第十八章: 异质干预效应">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">第十八章: 异质干预效应</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../chapters/20 第二十章 即插即用估计量.html" class="pagination-link" aria-label="第二十章: 即插即用估计量">
+        <span class="nav-page-text">第二十章: 即插即用估计量</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>内容基于《Causal Inference for the Brave and True》中文翻译整理。</p>
+</div>   
+    <div class="nav-footer-center">
+<p>用 Quarto 构建，面向在线阅读与本地复现。</p>
+<div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/xieliaing/CausalInferenceIntro/blob/main/chapters/19 第十九章 评估因果模型.ipynb" class="toc-action"><i class="bi bi-github"></i>查看代码</a></li><li><a href="https://github.com/xieliaing/CausalInferenceIntro/issues/new" class="toc-action"><i class="bi empty"></i>反馈问题</a></li></ul></div></div>
+    <div class="nav-footer-right">
+<p><a href="https://github.com/xieliaing/CausalInferenceIntro">GitHub 仓库</a></p>
+</div>
+  </div>
+</footer>
+
+
+
+
+<script src="../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

@@ -1,0 +1,1595 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-CN" xml:lang="zh-CN"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="CausalInferenceIntro">
+
+<title>第十八章: 异质干预效应与个性化 – 因果推断：从概念到实践</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../chapters/19 第十九章 评估因果模型.html" rel="next">
+<link href="../chapters/17 第十七章 预测模型 101.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-f1a637e51edb8e5d5a953483935b5072.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "没有结果",
+    "search-matching-documents-text": "匹配的文档",
+    "search-copy-link-title": "复制搜索链接",
+    "search-hide-matches-text": "隐藏其它匹配结果",
+    "search-more-match-text": "更多匹配结果",
+    "search-more-matches-text": "更多匹配结果",
+    "search-clear-button-title": "清除",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "取消",
+    "search-submit-button-title": "提交",
+    "search-label": "搜索"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-sidebar docked nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    </a>
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">因果推断：从概念到实践</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="搜索"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="展开或折叠导航栏" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="../index.html" aria-current="page"> 
+<span class="menu-text">首页</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/xieliaing/CausalInferenceIntro"> 
+<span class="menu-text">GitHub</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/matheusfacure/python-causality-handbook"> 
+<span class="menu-text">原书</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="展开或折叠侧边栏导航" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/01 第一章-因果关系入门.html">章节</a></li><li class="breadcrumb-item"><a href="../chapters/18 第十八章 异质干预效应与个性化.html">第十八章: 异质干预效应</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="展开或折叠侧边栏导航" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="搜索" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+      <a href="../index.html" class="sidebar-logo-link">
+      </a>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="搜索"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">章节</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="展开或折叠此栏">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/01 第一章-因果关系入门.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第一章: 因果关系入门</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/02 第二章-随机试验.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二章: 随机试验</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/03 第三章 统计学回顾：最危险的公式.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第三章: 统计学回顾</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/04 第四章 图因果模型.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第四章: 图因果模型</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/05 第五章 线性回归超乎寻常的有效性.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第五章: 线性回归的有效性</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/06 第六章 分组和虚拟变量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第六章: 分组和虚拟变量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/07 第七章 控制混淆因素之外的考虑.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第七章: 控制混淆之外</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/08 第八章 工具变量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第八章: 工具变量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/09 第九章 非服从性与局部平均效应.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第九章: 非服从性与 LATE</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/10 第十章 匹配.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十章: 匹配</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/11 第十一章 倾向得分.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十一章: 倾向得分</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/12 第十二章 双重稳健估计.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十二章: 双重稳健估计</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/13 第十三章 面板数据与固定效应.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十三章: 面板数据与固定效应</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/14 第十四章 双重差分.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十四章: 双重差分</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/15 第十五章 合成控制.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十五章: 合成控制</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/16 第十六章 断点回归.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十六章: 断点回归</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/17 第十七章 预测模型 101.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十七章: 预测模型 101</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/18 第十八章 异质干预效应与个性化.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">第十八章: 异质干预效应</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/19 第十九章 评估因果模型.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十九章: 评估因果模型</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/20 第二十章 即插即用估计量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二十章: 即插即用估计量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/21 第二十一章 元学习器.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二十一章: 元学习器</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="2">
+    <h2 id="toc-title">本页目录</h2>
+   
+  <ul>
+  <li><a href="#从预测到因果推理" id="toc-从预测到因果推理" class="nav-link active" data-scroll-target="#从预测到因果推理">从预测到因果推理</a></li>
+  <li><a href="#从-ate-到-cate" id="toc-从-ate-到-cate" class="nav-link" data-scroll-target="#从-ate-到-cate">从 ATE 到 CATE</a></li>
+  <li><a href="#预测弹性" id="toc-预测弹性" class="nav-link" data-scroll-target="#预测弹性">预测弹性</a></li>
+  <li><a href="#关键思想" id="toc-关键思想" class="nav-link" data-scroll-target="#关键思想">关键思想</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/xieliaing/CausalInferenceIntro/blob/main/chapters/18 第十八章 异质干预效应与个性化.ipynb" class="toc-action"><i class="bi bi-github"></i>查看代码</a></li><li><a href="https://github.com/xieliaing/CausalInferenceIntro/issues/new" class="toc-action"><i class="bi empty"></i>反馈问题</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/01 第一章-因果关系入门.html">章节</a></li><li class="breadcrumb-item"><a href="../chapters/18 第十八章 异质干预效应与个性化.html">第十八章: 异质干预效应</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">第十八章: 异质干预效应与个性化</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">作者</div>
+    <div class="quarto-title-meta-contents">
+             <p>CausalInferenceIntro </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">发布于</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">2026年3月2日</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="从预测到因果推理" class="level2">
+<h2 class="anchored" data-anchor-id="从预测到因果推理">从预测到因果推理</h2>
+<p>在上一章中，我们简要介绍了机器学习模型。 ML 模型是用于我所说的预测的工具，或者更专业地说，是估计条件期望函数 <span class="math inline">\(E[Y|X]\)</span>。换句话说，当您想从已知输入 <span class="math inline">\(X\)</span> （如英语句子、本月销售、大脑扫描图像）映射到最初未知但定义明确的输出 <span class="math inline">\(Y\)</span>（如日语句子、下个月的销售额或癌症诊断）。因此，如果 ML 处理预测或估计 <span class="math inline">\(E[Y|X]\)</span>，为了使其有用，您必须将您想用 ML 解决的任何问题框定为预测问题，即估计 <span class="math inline">\(E[Y|X]\)</span> 是关键。我们在上一章中介绍了这样一个例子。在那里，我们必须根据客户的特定特征来预测客户的盈利能力：<span class="math inline">\(E[NetValue|Age, Income, Region]\)</span>。这些信息非常有用，因为它使我们能够集中精力与盈利客户打交道，而不是与非盈利客户开展业务。在这里，很好地预测盈利能力是关键。</p>
+<p>请注意，在您将自己从数据生成过程中移除的意义上，这是一种被动的估计方法。在我们的示例中，我们假设给出了客户盈利能力“净值”。我们所要做的就是估计它。换句话说，我们假设除了预测客户的盈利能力外，我们无能为力。我们不能增加它，也不能减少它。但这并不总是正确的。事实上，很多时候，公司都有可以用来提高客户盈利能力的杠杆。这些杠杆的范围可以从优质或更便宜的客户服务到折扣、价格或营销。在行业中，经常会出现我们被插入到数据生成过程中的情况。我们可以影响它。因此，作为在该行业工作的数据科学家，我们经常必须回答最佳行动方案或干预措施，以优化某些业务指标，通常是盈利能力或其他一些中间指标，如转换、成本或销售额。</p>
+<p>在这个我们不是被动观察的世界中，估计 <span class="math inline">\(E[Y|X]\)</span> 并不是全部。这是我们进入因果推理的地方。我们需要在条件期望函数中添加另一部分，也就是对我们参与数据生成过程进行建模的部分，即干预本身：</p>
+<p><span class="math display">\[
+E[Y|X, T]
+\]</span></p>
+<p>我们现在必须区分上下文或外生特征<span class="math inline">\(X\)</span> 和处理<span class="math inline">\(T\)</span>。两者都会影响结果 <span class="math inline">\(Y\)</span>，但是虽然我们无法控制 <span class="math inline">\(X\)</span>，但我们可以决定 <span class="math inline">\(T\)</span> 将取什么值，或者至少对其进行干预。举个具体的例子，<span class="math inline">\(Y\)</span> 可能是一天的销售额，<span class="math inline">\(X\)</span> 可能是您无法控制的上下文特征，但它会为您提供有关销售的信息，例如前几天，<span class="math inline">\(T\)</span> 是您可以干预以增加销售额的处理变量，例如价格、商品库存水平或营销。因果推理是在上下文 <span class="math inline">\(X\)</span> 下估计 <span class="math inline">\(T\)</span> 和 <span class="math inline">\(Y\)</span> 之间因果关系的过程。一旦我们这样做了，优化 <span class="math inline">\(Y\)</span> 只是以最佳方式设置处理 <span class="math inline">\(T\)</span> 的问题</p>
+<p><span class="math display">\[
+\underset{T}{argmax} \ E[Y|X, T]
+\]</span></p>
+<p>从这个意义上说，除了因果推理的积极方面，我们还有一个规范的动机。</p>
+<p>在第一部分，我们试图回答诸如学校教育的价值是什么？法律变化可以降低吸烟水平吗？我们可以通过积极的心态来提高学业成绩吗？酒精对死亡率的影响是什么？从理解世界如何运作的纯科学观点来看，所有这些问题都很有趣。但它们背后也有实际的动机。如果我们知道学校教育对收入的影响，我们就可以理解为此付出的合理价格。用数学术语来说，我们所做的是估计学校教育的因果推理并对其进行优化：<span class="math inline">\(\underset{Educ}{argmax} \ E[Income|X, Educ]\)</span>。</p>
+<p>第一部分的重点是回答干预总体上是积极的、强的还是零。例如，我们想知道一般而言，投资于教育是否是一个好主意。同样在第一部分中，<span class="math inline">\(X\)</span> 的作用是双重的。首先，<span class="math inline">\(X\)</span> 可能包含混杂因素，在这种情况下，因果效应只有在我们考虑或调整 <span class="math inline">\(X\)</span> 时才能识别。或者，<span class="math inline">\(X\)</span> 可以减少因果估计的方差。如果 <span class="math inline">\(X\)</span> 是 <span class="math inline">\(Y\)</span> 的良好预测器，我们可以用它来解释 <span class="math inline">\(Y\)</span> 的方差，从而使因果效应更加明显。</p>
+<p>现在，事情将变得不那么黑白分明了。我们想要的不仅仅是平均干预效果。我们将允许干预对某些人产生积极影响，但对其他人则不然。上下文特征 <span class="math inline">\(X\)</span> 将在定义不同的单位配置文件中发挥作用，每个配置文件可能对处理的反应不同。我们现在想要</p>
+</section>
+<section id="从-ate-到-cate" class="level2">
+<h2 class="anchored" data-anchor-id="从-ate-到-cate">从 ATE 到 CATE</h2>
+<p>到目前为止，我们每次估计干预的因果影响时，都是平均干预效果（或者有时是局部平均干预效果）：</p>
+<p><span class="math display">\[
+E[Y_1−Y_0]
+\]</span></p>
+<p>或等效的连续干预</p>
+<p><span class="math display">\[
+E[y'(t)]
+\]</span></p>
+<p>其中 <span class="math inline">\(y'(t)\)</span> 是响应函数或结果的处理导数。我们已经学会了揭示干预的一般有效性的技术。 ATE 估计是因果推理的基础。对于我们称为程序评估的决策问题，它是一个超级有用的工具。我们想知道我们是否应该向整个人群推出一种干预方法。不要被公共政策条款所迷惑。评估国家教育或健康计划有效性的相同技术也可用于了解推出新产品对公司底线的影响。这里要注意的关键是我们想要告知的决定是我们是否应该干预。</p>
+<p>现在，我们将尝试告知另一种类型的决定：<strong>我们干预谁</strong>？现在，我们允许决定从一个单元更改为另一个单元。干预一个单位而不是另一个单位可能是有益的。我们希望个性化干预。用更专业的术语来说，我们想要估计条件平均干预效果 (CATE)</p>
+<p><span class="math display">\[
+E[Y_1−Y_0 | X] \ \text{或} \ E[y'(t)|X]
+\]</span></p>
+<p>对 <span class="math inline">\(X\)</span> 的条件化意味着我们现在允许处理效果根据每个单元的特性而有所不同。同样，在这里，我们认为并非所有实体对干预的反应都一样好。我们希望利用这种异质性。我们只想处理正确的单位（在二元情况下）或弄清楚每个单位的最佳干预程度是多少（在连续情况下）。</p>
+<p>例如，如果您是一家必须决定每个客户有资格获得贷款的银行，那么您可以确定向所有人提供大量资金并不是一个好主意——尽管这对某些人来说可能是合理的。您必须明智地对待您的干预手段（贷款金额）。也许，根据客户的信用评分 (<span class="math inline">\(X\)</span>)，您可以找出合适的贷款剂量。当然，您无需成为大型机构即可利用个性化。不乏适用的例子。您应该在一年中的哪几天进行销售？你应该为任何产品收取多少费用？对每个人来说，多少运动量才算过量运动量？</p>
+<p>这样想吧。您有一群客户和一种待遇（价格、折扣、贷款……）。您想要个性化的待遇，例如，给不同的客户不同的折扣。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/causal-model/customers.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>为此，您必须对客户进行细分。您创建了对您的干预有不同反应的小组。例如，您希望找到对折扣反应良好的客户和对折扣反应不佳的客户。好吧，客户对处理的反应由条件处理效果 <span class="math inline">\(\frac{\delta Y}{ \delta T}\)</span> 给出。因此，我们可以以某种方式估计，对于每个客户，我们可以将那些对干预反应很好（高干预效果）和那些对干预反应不佳的人分组在一起。如果我们这样做，我们会像下图那样拆分客户空间。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/causal-model/elast-partition.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>这将是美妙的，因为现在我们将能够估计每个分区上的不同处理效果或弹性。请注意，弹性只是从 <span class="math inline">\(T\)</span> 到 <span class="math inline">\(Y\)</span> 的直线或函数的斜率。因此，如果我们可以生成斜率或弹性不同的分区，这意味着这些分区上的实体对处理具有不同的响应性。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/causal-model/elast-split.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>换句话说，您想要摆脱以原始形式预测 <span class="math inline">\(Y\)</span> 并开始预测 <span class="math inline">\(Y\)</span> 在 <span class="math inline">\(T\)</span> 上的导数，<span class="math inline">\(\frac{\delta Y}{ \delta T}\)</span> 为每个单位。例如，假设 <span class="math inline">\(Y\)</span> 是冰淇淋销量，<span class="math inline">\(T\)</span> 是冰淇淋价格，每个单位 <span class="math inline">\(i\)</span> 是一天。让我们把道德问题放在一边，为了争论，假装你每天都能改变冰淇淋的价格。如果您能以某种方式找到 <span class="math inline">\(\frac{\delta Sales}{ \delta Price}\)</span> <strong>低的日子</strong>，那么您可以<strong>提高价格</strong> 而不会在那些日子损失太多销售额。也许你已经这样做了，比如说，当你在假期增加它们时。关键是，根据价格弹性来区分日期是很有用的，因为它为您提供了如何以最佳方式设定价格的基础。</p>
+<p>好吧，你可能会说，但这有点棘手。如果我看不到弹性 <span class="math inline">\(\frac{\delta Sales}{ \delta Price}\)</span>，如何预测它？这是一个很好的观点。弹性在单位级别上基本上是不可观察的。不仅如此，这是一个奇怪的概念。我们更习惯于从原始数量的角度来思考，而不是根据这些相同数量的变化率来思考。因此，为了更好地概念化弹性，这里有一个小技巧。您可以将每个实体视为具有 <span class="math inline">\(Y_i\)</span> 值，在我们的示例中为销售额，但也具有个体弹性 <span class="math inline">\(\frac{delta Y_i}{\delta T_i}\)</span>。弹性是 <span class="math inline">\(Y\)</span> 随 <span class="math inline">\(T\)</span> 变化的程度，因此您可以考虑每个实体也具有与其相关联的斜率系数 <span class="math inline">\(\frac{\delta Y}{ \delta T}_i\)</span>。在我们的示例中，我们会说每一天的销售价格都有一个斜率系数。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/causal-model/elasticity.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>当然，我们看不到那些单独的斜率系数。为了让我们看到各个斜率，我们必须每天在两个不同的价格下观察，并计算每个价格的销售额如何变化。</p>
+<p><span class="math display">\[
+\frac{\delta Y_i}{ \delta T_i} \近似 \frac{Y(T_i) - Y(T_i + \epsilon)}{T_i - (T_i + \epsilon)}
+\]</span></p>
+<p>这又是因果推理的根本问题。我们永远无法在不同的处理条件下看到相同的单元。所以，我们能做些什么？</p>
+</section>
+<section id="预测弹性" class="level2">
+<h2 class="anchored" data-anchor-id="预测弹性">预测弹性</h2>
+<p>我们在这里陷入了复杂的境地。我们已经同意我们需要预测 <span class="math inline">\(\frac{\delta Y_i}{ \delta T_i}\)</span>，遗憾的是这是不可观察的。因此，我们不能使用 ML 算法并将其作为目标插入。但也许我们不需要观察 <span class="math inline">\(\frac{\delta Y_i}{ \delta T_i}\)</span> 来预测它</p>
+<p>这是一个想法。如果我们使用线性回归呢？</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/causal-model/linear-fix.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>假设您将以下线性模型拟合到您的数据中。</p>
+<p><span class="math display">\[
+y_i = \beta_0 + \beta_1 t_i + \beta_2 X_i + e_i
+\]</span></p>
+<p>如果你在干预变量上区分它，你最终会得到</p>
+<p><span class="math display">\[
+\frac{\delta y_i}{\delta t_i} = \beta_1
+\]</span></p>
+<p>既然你可以估计上面的模型得到 <span class="math inline">\(\hat{\beta_1}\)</span>，我们甚至可以大胆地说<strong>即使你无法观察到弹性，你也可以预测它</strong>。在上面的例子中，这是一个相当简单的预测，即我们为每个人预测常数值 <span class="math inline">\(\hat{\beta_1}\)</span>。那是一些东西，但还不是我们想要的。那是ATE，不是CATE。这无助于我们根据实体对干预的反应程度对实体进行分组的任务，因为每个人都得到相同的弹性预测。但是，我们可以做以下简单的改变</p>
+<p><span class="math display">\[
+y_i = \beta_0 + \beta_1 t_i + \beta_2 X_i + \beta_3 t_i X_i + e_i
+\]</span></p>
+<p>这反过来会给我们以下弹性预测</p>
+<p><span class="math display">\[
+\widehat{\frac{\delta y_i}{\delta t_i}} = \hat{\beta_1} + \hat{\beta_3}X_i
+\]</span></p>
+<p>其中 <span class="math inline">\(\beta_3\)</span> 是 <span class="math inline">\(X\)</span> 中特征的向量系数。</p>
+<p>现在由不同的 <span class="math inline">\(X_i\)</span> 定义的每个实体将有不同的弹性预测。换句话说，弹性预测会随着 <span class="math inline">\(X\)</span> 的变化而变化。唉，回归可以为我们提供一种估计 CATE <span class="math inline">\(E[y'(t)|X]\)</span> 的方法。</p>
+<p>我们终于到了某个地方。上面的模型允许我们对每个实体进行弹性预测。通过这些预测，我们可以创建更多有用的组。我们可以将具有高预测弹性的单元组合在一起。我们可以对预测弹性低的那些做同样的事情。最后，通过我们的弹性预测，我们可以根据我们认为实体对干预的反应程度对它们进行分组。</p>
+<p>理论到此为止。是时候通过一个示例来说明如何制作这种弹性模型了。让我们考虑一下我们的冰淇淋示例。每个单位 <span class="math inline">\(i\)</span> 是一天。对于每一天，我们都知道是否是工作日，制作冰淇淋的成本是多少（您可以将成本视为质量的代表）以及当天的平均温度。这些将是我们的特征空间 <span class="math inline">\(X\)</span>。然后，我们有我们的干预手段、价格和我们的结果，即售出的冰淇淋数量。对于这个例子，我们将考虑随机处理，这样我们现在不必担心偏差。</p>
+<div id="cell-4" class="cell" data-tags="[&quot;hide-input&quot;]" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib <span class="im">import</span> pyplot <span class="im">as</span> plt</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> statsmodels.formula.api <span class="im">as</span> smf</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> statsmodels.api <span class="im">as</span> sm</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> GradientBoostingRegressor</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="cell-5" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>prices_rnd <span class="op">=</span> pd.read_csv(<span class="st">"./data/ice_cream_sales_rnd.csv"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(prices_rnd.shape)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>prices_rnd.head()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(5000, 5)</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="2">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">temp</th>
+<th data-quarto-table-cell-role="th">weekday</th>
+<th data-quarto-table-cell-role="th">cost</th>
+<th data-quarto-table-cell-role="th">price</th>
+<th data-quarto-table-cell-role="th">sales</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>25.8</td>
+<td>1</td>
+<td>0.3</td>
+<td>7</td>
+<td>230</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>22.7</td>
+<td>3</td>
+<td>0.5</td>
+<td>4</td>
+<td>190</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>33.7</td>
+<td>7</td>
+<td>1.0</td>
+<td>5</td>
+<td>237</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>23.0</td>
+<td>4</td>
+<td>0.5</td>
+<td>5</td>
+<td>193</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>24.4</td>
+<td>1</td>
+<td>1.0</td>
+<td>3</td>
+<td>252</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>请记住我们的目标：我们需要根据具体的“功能”、“临时”、“工作日”和“成本”来决定何时收取更多费用以及何时收取更少费用。 如果这是目标，则需要评估干预效果异质性模型在实现该目标方面的有用性。 我们稍后会谈到这一点（下一章会详细介绍）。 现在，让我们将数据集拆分为训练和测试集。</p>
+<div id="cell-7" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">123</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>train, test <span class="op">=</span> train_test_split(prices_rnd)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>现在我们有了训练数据，我们需要建立一个模型，让我们能够区分价格弹性高的日子和价格弹性低的日子。 我们这样做的方法是简单地预测价格弹性。 具体如何？ 首先，让我们考虑使用以下线性模型</p>
+<p><span class="math display">\[
+sales_i = \beta_0 + \beta_1 price_i + \pmb{\beta_2}X_i + e_i
+\]</span></p>
+<p>如果我们检查这个模型的参数，我们可以看到我们预测的弹性会是什么样子。</p>
+<div id="cell-9" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>m1 <span class="op">=</span> smf.ols(<span class="st">"sales ~ price + temp+C(weekday)+cost"</span>, data<span class="op">=</span>train).fit()</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>m1.summary().tables[<span class="dv">1</span>]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="4">
+<table class="simpletable caption-top table table-sm table-striped small">
+<tbody>
+<tr class="odd">
+<td></td>
+<th data-quarto-table-cell-role="th">coef</th>
+<th data-quarto-table-cell-role="th">std err</th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">P&gt;|t|</th>
+<th data-quarto-table-cell-role="th">[0.025</th>
+<th data-quarto-table-cell-role="th">0.975]</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Intercept</th>
+<td>186.7113</td>
+<td>1.770</td>
+<td>105.499</td>
+<td>0.000</td>
+<td>183.241</td>
+<td>190.181</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">C(weekday)[T.2]</th>
+<td>-25.0512</td>
+<td>0.924</td>
+<td>-27.114</td>
+<td>0.000</td>
+<td>-26.863</td>
+<td>-23.240</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">C(weekday)[T.3]</th>
+<td>-24.5834</td>
+<td>0.901</td>
+<td>-27.282</td>
+<td>0.000</td>
+<td>-26.350</td>
+<td>-22.817</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">C(weekday)[T.4]</th>
+<td>-24.3807</td>
+<td>0.897</td>
+<td>-27.195</td>
+<td>0.000</td>
+<td>-26.138</td>
+<td>-22.623</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">C(weekday)[T.5]</th>
+<td>-24.9036</td>
+<td>0.894</td>
+<td>-27.850</td>
+<td>0.000</td>
+<td>-26.657</td>
+<td>-23.150</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">C(weekday)[T.6]</th>
+<td>-24.0921</td>
+<td>0.903</td>
+<td>-26.693</td>
+<td>0.000</td>
+<td>-25.862</td>
+<td>-22.323</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">C(weekday)[T.7]</th>
+<td>-0.8635</td>
+<td>0.888</td>
+<td>-0.972</td>
+<td>0.331</td>
+<td>-2.605</td>
+<td>0.878</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">price</th>
+<td>-2.7515</td>
+<td>0.106</td>
+<td>-25.970</td>
+<td>0.000</td>
+<td>-2.959</td>
+<td>-2.544</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">temp</th>
+<td>1.9848</td>
+<td>0.060</td>
+<td>33.117</td>
+<td>0.000</td>
+<td>1.867</td>
+<td>2.102</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">cost</th>
+<td>4.4718</td>
+<td>0.528</td>
+<td>8.462</td>
+<td>0.000</td>
+<td>3.436</td>
+<td>5.508</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>对于 <span class="math inline">\(m1\)</span>，预测的价格弹性 <span class="math inline">\(\widehat{\dfrac{\delta y_i}{\delta t_i}}\)</span> 将由 <span class="math inline">\(\hat{\beta_1}\)</span>，在我们的例子中是 -2.75。这意味着，我们为冰淇淋收取的每额外巴西雷亚尔，我们预计销售额将下降约 3 个单位。</p>
+<p>注意这个 <span class="math inline">\(m1\)</span> 如何为每个人预测完全相同的弹性。因此，如果我们想知道人们在哪些日子对冰淇淋价格不那么敏感，这不是一个很好的模型。当我们在这里需要的是 CATE 时，它会估计 ATE。请记住，我们的目标是以这样一种方式对实体进行分区，以便我们可以针对每个单独的分区个性化和优化我们的处理（价格）。如果每个预测都相同，我们就无法进行分区。我们没有区分敏感单位和非敏感单位。为了纠正这一点，考虑我们的第二个模型：</p>
+<p><span class="math display">\[
+sales_i = \beta_0 + \beta_1 price_i + \beta_2 price_i * temp_i * + \pmb{\beta_3}X_i + e_i
+\]</span></p>
+<p>第二个模型包括价格和温度之间的<strong>交互项</strong>。这意味着它允许弹性在不同温度下有所不同。我们在这里实际上要说的是，人们对价格上涨或多或少敏感，具体取决于温度。</p>
+<div id="cell-11" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>m2 <span class="op">=</span> smf.ols(<span class="st">"sales ~ price*temp + C(weekday) + cost"</span>, data<span class="op">=</span>train).fit()</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>m2.summary().tables[<span class="dv">1</span>]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="5">
+<table class="simpletable caption-top table table-sm table-striped small">
+<tbody>
+<tr class="odd">
+<td></td>
+<th data-quarto-table-cell-role="th">coef</th>
+<th data-quarto-table-cell-role="th">std err</th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">P&gt;|t|</th>
+<th data-quarto-table-cell-role="th">[0.025</th>
+<th data-quarto-table-cell-role="th">0.975]</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Intercept</th>
+<td>192.4767</td>
+<td>4.371</td>
+<td>44.037</td>
+<td>0.000</td>
+<td>183.907</td>
+<td>201.046</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">C(weekday)[T.2]</th>
+<td>-25.0805</td>
+<td>0.924</td>
+<td>-27.143</td>
+<td>0.000</td>
+<td>-26.892</td>
+<td>-23.269</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">C(weekday)[T.3]</th>
+<td>-24.5871</td>
+<td>0.901</td>
+<td>-27.290</td>
+<td>0.000</td>
+<td>-26.354</td>
+<td>-22.821</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">C(weekday)[T.4]</th>
+<td>-24.4225</td>
+<td>0.897</td>
+<td>-27.231</td>
+<td>0.000</td>
+<td>-26.181</td>
+<td>-22.664</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">C(weekday)[T.5]</th>
+<td>-24.8953</td>
+<td>0.894</td>
+<td>-27.844</td>
+<td>0.000</td>
+<td>-26.648</td>
+<td>-23.142</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">C(weekday)[T.6]</th>
+<td>-24.1269</td>
+<td>0.903</td>
+<td>-26.726</td>
+<td>0.000</td>
+<td>-25.897</td>
+<td>-22.357</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">C(weekday)[T.7]</th>
+<td>-0.8581</td>
+<td>0.888</td>
+<td>-0.966</td>
+<td>0.334</td>
+<td>-2.599</td>
+<td>0.883</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">price</th>
+<td>-3.6299</td>
+<td>0.618</td>
+<td>-5.873</td>
+<td>0.000</td>
+<td>-4.842</td>
+<td>-2.418</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">temp</th>
+<td>1.7459</td>
+<td>0.176</td>
+<td>9.912</td>
+<td>0.000</td>
+<td>1.401</td>
+<td>2.091</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">price:temp</th>
+<td>0.0366</td>
+<td>0.025</td>
+<td>1.443</td>
+<td>0.149</td>
+<td>-0.013</td>
+<td>0.086</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">cost</th>
+<td>4.4558</td>
+<td>0.529</td>
+<td>8.431</td>
+<td>0.000</td>
+<td>3.420</td>
+<td>5.492</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>一旦我们估计模型，预测的弹性由下式给出</p>
+<p><span class="math display">\[
+\widehat{\frac{\delta sales_i}{\delta price_i}} = \hat{\beta_1} + \hat{\beta_3}temp_i
+\]</span></p>
+<p>请注意，<span class="math inline">\(\hat{\beta_3}\)</span> 为正 0,03，基线弹性 <span class="math inline">\(\beta_1\)</span>（在 <span class="math inline">\(0C^o\)</span> 处的弹性）为 -3.6。这意味着，平均而言，随着我们提高价格，销售额下降，这是有道理的。这也意味着温度每升高一度，人们对冰淇淋价格上涨的敏感度就会降低（尽管幅度不大）。例如，在 <span class="math inline">\(25C^o\)</span>，我们每多收取一次巴西雷亚尔，我们的销售额就会下降 2.8 个单位 <span class="math inline">\((-3.6 + (0.03 * 25))\)</span>。但是在 <span class="math inline">\(35C^o\)</span>，我们每多收取一次巴西雷亚尔，它们只会下降 2.5 个单位 <span class="math inline">\((-3.6 + (0.03 * 35))\)</span>。这也是一种直觉。随着天气越来越热，人们愿意为冰淇淋支付更多费用。</p>
+<p>我们可以走得更远。下一个模型包括所有特征空间的交互项。这意味着弹性会随着温度、星期几和成本而变化。</p>
+<p><span class="math display">\[
+sales_i = \beta_0 + \beta_1 price_i + \pmb{\beta_2 X_i}*price_i + \pmb{\beta_3}X_i + e_i
+\]</span></p>
+<div id="cell-13" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>m3 <span class="op">=</span> smf.ols(<span class="st">"sales ~ price*cost + price*C(weekday) + price*temp"</span>, data<span class="op">=</span>train).fit()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>根据上述模型，单位水平弹性或 CATE 将由下式给出</p>
+<p><span class="math display">\[
+\frac{\delta 销售额}{\delta 价格} = \beta_1 + \pmb{\beta_2 X_i}
+\]</span></p>
+<p>其中 <span class="math inline">\(\beta_1\)</span> 是价格系数，<span class="math inline">\(\pmb{\beta_2}\)</span> 是交互系数的向量。</p>
+<p>最后，让我们看看如何实际做出这些弹性预测。一种方法是从模型中提取弹性参数并使用上面的公式。但是，我们将采用更一般的近似值。由于弹性只不过是干预结果的导数，我们可以使用导数的定义。</p>
+<p><span class="math display">\[
+\frac{\delta y}{\delta t} = \dfrac{y(t+\epsilon) - y(t)}{ (t + \epsilon) - t }
+\]</span></p>
+<p>随着 <span class="math inline">\(\epsilon\)</span> 变为零。我们可以通过将 <span class="math inline">\(\epsilon\)</span> 替换为 1 来近似这个定义。</p>
+<p><span class="math display">\[
+\frac{\delta y}{\delta t} \近似 \hat{y}(t+1) - \hat{y}(t)
+\]</span></p>
+<p>其中 <span class="math inline">\(\hat{y}\)</span> 由我们模型的预测给出。换句话说，我将用我的模型做出两个预测：一个传递原始数据，另一个传递原始数据，但处理增加一个单位。这些预测之间的差异是我的 CATE 预测。</p>
+<p>下面，您可以看到执行此操作的函数。由于我们使用了训练集来估计我们的模型，我们现在将对测试集进行预测。首先，让我们使用我们的第一个 ATE 模型 <span class="math inline">\(m1\)</span>。</p>
+<div id="cell-15" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> pred_elasticity(m, df, t<span class="op">=</span><span class="st">"price"</span>):</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> df.assign(<span class="op">**</span>{</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>        <span class="st">"pred_elast"</span>: m.predict(df.assign(<span class="op">**</span>{t:df[t]<span class="op">+</span><span class="dv">1</span>})) <span class="op">-</span> m.predict(df)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>pred_elasticity(m1, test).head()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="7">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">temp</th>
+<th data-quarto-table-cell-role="th">weekday</th>
+<th data-quarto-table-cell-role="th">cost</th>
+<th data-quarto-table-cell-role="th">price</th>
+<th data-quarto-table-cell-role="th">sales</th>
+<th data-quarto-table-cell-role="th">pred_elast</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2648</th>
+<td>18.6</td>
+<td>7</td>
+<td>0.5</td>
+<td>10</td>
+<td>185</td>
+<td>-2.751463</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2456</th>
+<td>26.0</td>
+<td>3</td>
+<td>0.5</td>
+<td>10</td>
+<td>200</td>
+<td>-2.751463</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4557</th>
+<td>23.7</td>
+<td>3</td>
+<td>0.3</td>
+<td>8</td>
+<td>192</td>
+<td>-2.751463</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">4884</th>
+<td>28.9</td>
+<td>4</td>
+<td>1.5</td>
+<td>6</td>
+<td>213</td>
+<td>-2.751463</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">92</th>
+<td>23.7</td>
+<td>1</td>
+<td>0.5</td>
+<td>8</td>
+<td>207</td>
+<td>-2.751463</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>使用 <span class="math inline">\(m1\)</span> 进行弹性预测并不好玩。 我们可以看到它预测了所有日子的完全相同的值。 那是因为该模型上没有交互项。 但是，如果我们使用 <span class="math inline">\(m3\)</span> 进行预测，它会为每天输出不同的弹性预测。 那是因为现在，弹性或干预效果取决于当天的具体特征。</p>
+<div id="cell-17" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>pred_elast3 <span class="op">=</span> pred_elasticity(m3, test)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">1</span>)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>pred_elast3.sample(<span class="dv">5</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="8">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">temp</th>
+<th data-quarto-table-cell-role="th">weekday</th>
+<th data-quarto-table-cell-role="th">cost</th>
+<th data-quarto-table-cell-role="th">price</th>
+<th data-quarto-table-cell-role="th">sales</th>
+<th data-quarto-table-cell-role="th">pred_elast</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4764</th>
+<td>31.1</td>
+<td>6</td>
+<td>1.0</td>
+<td>3</td>
+<td>212</td>
+<td>1.144309</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">4324</th>
+<td>24.8</td>
+<td>7</td>
+<td>0.5</td>
+<td>10</td>
+<td>182</td>
+<td>-9.994303</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4536</th>
+<td>25.0</td>
+<td>2</td>
+<td>1.5</td>
+<td>6</td>
+<td>205</td>
+<td>0.279273</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3466</th>
+<td>26.0</td>
+<td>3</td>
+<td>1.5</td>
+<td>3</td>
+<td>205</td>
+<td>0.308320</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">115</th>
+<td>19.3</td>
+<td>3</td>
+<td>0.3</td>
+<td>9</td>
+<td>177</td>
+<td>-0.349745</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>请注意预测是如何从 -9 变为 1 的数字。这些不是销售列的预测，其数量级为数百。相反，<strong>这是一个预测，如果我们将价格提高一个单位，销售额会发生多少变化</strong>。在赌注之外，我们可以看到一些奇怪的数字。例如，看一下第 4764 天。它预测的是正弹性。换句话说，我们预测如果我们提高冰淇淋的价格，销售额将会增加。这不符合我们的经济意识。可能是模型对该预测进行了一些奇怪的外推。幸运的是，您不必为此担心太多。请记住，我们的最终目标是根据单位对干预的敏感程度来划分单位。 <strong>不是</strong>提出有史以来最准确的弹性预测。对于我们的主要目标，如果弹性预测根据单元的敏感程度对单元进行排序就足够了。换句话说，即使像 1.1 或 0.5 这样的正弹性预测没有多大意义，我们所需要的只是排序正确，也就是说，我们希望预测为 1.1 的单位比单位受价格上涨的影响更小预测为 0.5。</p>
+<p>好的，我们有弹性或 CATE 模型。但仍然存在一个潜在的问题：它们与 ML 预测模型相比如何？现在让我们试试吧。我们将使用机器学习算法，使用价格、温度、工作日和成本作为特征 <span class="math inline">\(X\)</span> 并尝试预测冰淇淋销售。</p>
+<div id="cell-19" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> [<span class="st">"temp"</span>, <span class="st">"weekday"</span>, <span class="st">"cost"</span>, <span class="st">"price"</span>]</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> <span class="st">"sales"</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>ml <span class="op">=</span> GradientBoostingRegressor()</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>ml.fit(train[X], train[y])</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="co"># make sure the model is not overfiting.</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>ml.score(test[X], test[y])</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="9">
+<pre><code>0.9124088322890127</code></pre>
+</div>
+</div>
+<p>该模型可以预测我们每天的销售额。 但它适合我们真正想要的吗？ 换句话说，这个模型能区分人们对冰淇淋价格更敏感的日子吗？ 它可以帮助我们根据价格敏感度决定收取多少费用吗？</p>
+<p>要查看哪个模型更有用，让我们尝试使用它们来分割个体单元。 对于每个模型，我们将个体单元分成 2 组。 我们希望一个群体对价格上涨反应灵敏，而另一个群体则反应不大。 如果是这样的话，我们可以围绕这些群体组织我们的业务：对于属于高响应群体的日子，我们最好不要将价格定得太高。 对于低响应群体，我们可以提高价格而不会冒太大的销售风险。</p>
+<div id="cell-21" class="cell" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>bands_df <span class="op">=</span> pred_elast3.assign(</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    elast_band <span class="op">=</span> pd.qcut(pred_elast3[<span class="st">"pred_elast"</span>], <span class="dv">2</span>), <span class="co"># create two groups based on elasticity predictions </span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    pred_sales <span class="op">=</span> ml.predict(pred_elast3[X]),</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    pred_band <span class="op">=</span> pd.qcut(ml.predict(pred_elast3[X]), <span class="dv">2</span>), <span class="co"># create two groups based on sales predictions</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>bands_df.head()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="10">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">temp</th>
+<th data-quarto-table-cell-role="th">weekday</th>
+<th data-quarto-table-cell-role="th">cost</th>
+<th data-quarto-table-cell-role="th">price</th>
+<th data-quarto-table-cell-role="th">sales</th>
+<th data-quarto-table-cell-role="th">pred_elast</th>
+<th data-quarto-table-cell-role="th">elast_band</th>
+<th data-quarto-table-cell-role="th">pred_sales</th>
+<th data-quarto-table-cell-role="th">pred_band</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2648</th>
+<td>18.6</td>
+<td>7</td>
+<td>0.5</td>
+<td>10</td>
+<td>185</td>
+<td>-10.301045</td>
+<td>(-10.597999999999999, -0.00555]</td>
+<td>186.878081</td>
+<td>(161.089, 198.735]</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2456</th>
+<td>26.0</td>
+<td>3</td>
+<td>0.5</td>
+<td>10</td>
+<td>200</td>
+<td>0.036165</td>
+<td>(-0.00555, 1.389]</td>
+<td>203.188327</td>
+<td>(198.735, 257.746]</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4557</th>
+<td>23.7</td>
+<td>3</td>
+<td>0.3</td>
+<td>8</td>
+<td>192</td>
+<td>-0.132057</td>
+<td>(-10.597999999999999, -0.00555]</td>
+<td>188.800637</td>
+<td>(161.089, 198.735]</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">4884</th>
+<td>28.9</td>
+<td>4</td>
+<td>1.5</td>
+<td>6</td>
+<td>213</td>
+<td>0.860663</td>
+<td>(-0.00555, 1.389]</td>
+<td>210.430813</td>
+<td>(198.735, 257.746]</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">92</th>
+<td>23.7</td>
+<td>1</td>
+<td>0.5</td>
+<td>8</td>
+<td>207</td>
+<td>-9.953698</td>
+<td>(-10.597999999999999, -0.00555]</td>
+<td>209.044522</td>
+<td>(198.735, 257.746]</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>接下来，我们需要比较这两个人群分层模型哪一个是最好的。 我现在可能有点超前了，因为我们只会在下一章中讨论 CATE 模型评估。 但我觉得我可以让你尝尝它的样子。 检查这些分层模式有多好的一种非常简单的方法 - 我的意思是好用 - 就是绘制每个分区的销售价格回归线。 我们可以通过 Seaborn 的 <code>regplot</code> 和 <code>FacetGrid</code> 轻松实现这一点。</p>
+<p>下面，我们可以看到使用弹性预测进行的分层。 请记住，所有这些都是在测试集中完成的。</p>
+<div id="cell-23" class="cell" data-execution_count="11">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>g <span class="op">=</span> sns.FacetGrid(bands_df, col<span class="op">=</span><span class="st">"elast_band"</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>g.map_dataframe(sns.regplot, x<span class="op">=</span><span class="st">"price"</span>, y<span class="op">=</span><span class="st">"sales"</span>)</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>g.set_titles(col_template<span class="op">=</span><span class="st">"Elast. Band </span><span class="sc">{col_name}</span><span class="st">"</span>)<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="18 第十八章 异质干预效应与个性化_files/figure-html/cell-12-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>正如我们所看到的，看起来这种分层方案很有用。 对于第一个分层，价格敏感性很高。 随着价格的上涨，销售额下降了很多。 然而，对于第二个分层，随着价格的上涨，销售大致保持不变。 事实上，当我们提高价格时，甚至看起来销量也在上升，但这可能是噪音。</p>
+<p>现在与使用 ML 预测模型进行的用户分层进行对比：</p>
+<div id="cell-25" class="cell" data-execution_count="12">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>g <span class="op">=</span> sns.FacetGrid(bands_df, col<span class="op">=</span><span class="st">"pred_band"</span>)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>g.map_dataframe(sns.regplot, x<span class="op">=</span><span class="st">"price"</span>, y<span class="op">=</span><span class="st">"sales"</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>g.set_titles(col_template<span class="op">=</span><span class="st">"Pred. Band </span><span class="sc">{col_name}</span><span class="st">"</span>)<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="18 第十八章 异质干预效应与个性化_files/figure-html/cell-13-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>我真的很喜欢这个图，因为它传达了一个非常重要的观点。如您所见，预测模型分层在 y 轴上分割个体单元。如第一幅图所示，在第一个分层所对应的日子里，我们没有售出很多冰淇淋，但在第二个分层对应那些日子里，我们确实卖得更多。我觉得这很神奇，因为预测模型正在做它应该做的事情：它预测销售。它可以区分冰淇淋销售量低和高的日子。</p>
+<p>唯一的问题是预测在这里并不是特别有用。最终，我们想知道什么时候可以提高价格，什么时候不能。但是，一旦我们查看预测模型分层中线的斜率，我们就会发现它们并没有太大变化。换句话说，由预测模型定义的两个分层对价格上涨的反应大致相同。这并没有让我们深入了解哪些日子可以提高价格，因为看起来价格根本不会影响销售。</p>
+</section>
+<section id="关键思想" class="level2">
+<h2 class="anchored" data-anchor-id="关键思想">关键思想</h2>
+<p>我们最终正式确定了条件平均干预效果的概念以及它如何对个性化有用。即，如果我们能了解每个单位对一种干预的反应，即如果我们能了解干预效果的异质性，我们就可以根据单位的个体特点给予最好的干预。</p>
+<p>我们还将这个目标与预测模型的目标进行了对比。也就是说，我们正在重新考虑估计任务，从预测原始格式的 <span class="math inline">\(Y\)</span> 到预测 <span class="math inline">\(Y\)</span> 如何随 <span class="math inline">\(T\)</span>、<span class="math inline">\(\frac{\delta y}{\delta t}\)</span>。</p>
+<p>可悲的是，如何为此构建模型并不明显。由于我们不能直接观察弹性，因此很难建立一个预测它的模型。但是线性回归拯救了我们。通过使用适合预测 <span class="math inline">\(Y\)</span> 的回归模型，我们找到了一种方法来预测 <span class="math inline">\(\frac{\delta y}{\delta t}\)</span>。我们还必须包括干预和特征的交互项。这使得我们对每个客户的弹性预测都不同。换句话说，我们现在正在估计 <span class="math inline">\(E[T'(t) | X]\)</span>。然后使用这些弹性预测将我们的单位分组为或多或少对干预敏感，最终帮助我们确定每组的干预水平。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/causal-model/economists.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>所有这一切引发的一个自然问题是，我们是否可以用通用机器学习模型替换线性回归并使用它来预测弹性。答案是肯定的，但有一些需要注意的地方。本章使用了一个非常简单的 CATE 模型，因为我认为使用线性回归更容易理解它们背后的概念。不过不用担心。我们将在接下来的章节中看到一些更复杂的模型。但在此之前，我首先需要介绍一个非常重要的话题，即我们如何比较两个 CATE 模型并决定哪个更好。</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "已复制");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "已复制");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../chapters/17 第十七章 预测模型 101.html" class="pagination-link" aria-label="第十七章: 预测模型 101">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">第十七章: 预测模型 101</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../chapters/19 第十九章 评估因果模型.html" class="pagination-link" aria-label="第十九章: 评估因果模型">
+        <span class="nav-page-text">第十九章: 评估因果模型</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>内容基于《Causal Inference for the Brave and True》中文翻译整理。</p>
+</div>   
+    <div class="nav-footer-center">
+<p>用 Quarto 构建，面向在线阅读与本地复现。</p>
+<div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/xieliaing/CausalInferenceIntro/blob/main/chapters/18 第十八章 异质干预效应与个性化.ipynb" class="toc-action"><i class="bi bi-github"></i>查看代码</a></li><li><a href="https://github.com/xieliaing/CausalInferenceIntro/issues/new" class="toc-action"><i class="bi empty"></i>反馈问题</a></li></ul></div></div>
+    <div class="nav-footer-right">
+<p><a href="https://github.com/xieliaing/CausalInferenceIntro">GitHub 仓库</a></p>
+</div>
+  </div>
+</footer>
+
+
+
+
+<script src="../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-CN" xml:lang="zh-CN"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="CausalInferenceIntro">
+
+<title>第一章：因果关系入门 – 因果推断：从概念到实践</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../chapters/02 第二章-随机试验.html" rel="next">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-f1a637e51edb8e5d5a953483935b5072.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "没有结果",
+    "search-matching-documents-text": "匹配的文档",
+    "search-copy-link-title": "复制搜索链接",
+    "search-hide-matches-text": "隐藏其它匹配结果",
+    "search-more-match-text": "更多匹配结果",
+    "search-more-matches-text": "更多匹配结果",
+    "search-clear-button-title": "清除",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "取消",
+    "search-submit-button-title": "提交",
+    "search-label": "搜索"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-sidebar docked nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    </a>
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">因果推断：从概念到实践</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="搜索"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="展开或折叠导航栏" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="../index.html" aria-current="page"> 
+<span class="menu-text">首页</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/xieliaing/CausalInferenceIntro"> 
+<span class="menu-text">GitHub</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/matheusfacure/python-causality-handbook"> 
+<span class="menu-text">原书</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="展开或折叠侧边栏导航" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/01 第一章-因果关系入门.html">章节</a></li><li class="breadcrumb-item"><a href="../chapters/01 第一章-因果关系入门.html">第一章: 因果关系入门</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="展开或折叠侧边栏导航" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="搜索" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+      <a href="../index.html" class="sidebar-logo-link">
+      </a>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="搜索"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">章节</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="展开或折叠此栏">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/01 第一章-因果关系入门.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">第一章: 因果关系入门</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/02 第二章-随机试验.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二章: 随机试验</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/03 第三章 统计学回顾：最危险的公式.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第三章: 统计学回顾</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/04 第四章 图因果模型.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第四章: 图因果模型</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/05 第五章 线性回归超乎寻常的有效性.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第五章: 线性回归的有效性</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/06 第六章 分组和虚拟变量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第六章: 分组和虚拟变量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/07 第七章 控制混淆因素之外的考虑.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第七章: 控制混淆之外</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/08 第八章 工具变量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第八章: 工具变量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/09 第九章 非服从性与局部平均效应.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第九章: 非服从性与 LATE</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/10 第十章 匹配.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十章: 匹配</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/11 第十一章 倾向得分.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十一章: 倾向得分</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/12 第十二章 双重稳健估计.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十二章: 双重稳健估计</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/13 第十三章 面板数据与固定效应.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十三章: 面板数据与固定效应</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/14 第十四章 双重差分.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十四章: 双重差分</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/15 第十五章 合成控制.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十五章: 合成控制</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/16 第十六章 断点回归.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十六章: 断点回归</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/17 第十七章 预测模型 101.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十七章: 预测模型 101</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/18 第十八章 异质干预效应与个性化.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十八章: 异质干预效应</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/19 第十九章 评估因果模型.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十九章: 评估因果模型</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/20 第二十章 即插即用估计量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二十章: 即插即用估计量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/21 第二十一章 元学习器.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二十一章: 元学习器</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="2">
+    <h2 id="toc-title">本页目录</h2>
+   
+  <ul>
+  <li><a href="#为什么需要关心因果关系" id="toc-为什么需要关心因果关系" class="nav-link active" data-scroll-target="#为什么需要关心因果关系">为什么需要关心因果关系？</a></li>
+  <li><a href="#数据科学不再是过去所认为的样子或最终应该呈现的样子" id="toc-数据科学不再是过去所认为的样子或最终应该呈现的样子" class="nav-link" data-scroll-target="#数据科学不再是过去所认为的样子或最终应该呈现的样子">数据科学不再是过去所认为的样子（或最终应该呈现的样子）</a></li>
+  <li><a href="#回答不同类型的问题" id="toc-回答不同类型的问题" class="nav-link" data-scroll-target="#回答不同类型的问题">回答不同类型的问题</a></li>
+  <li><a href="#当关联确实是因果时" id="toc-当关联确实是因果时" class="nav-link" data-scroll-target="#当关联确实是因果时">当关联确实是因果时</a></li>
+  <li><a href="#偏差" id="toc-偏差" class="nav-link" data-scroll-target="#偏差">偏差</a></li>
+  <li><a href="#关键思想" id="toc-关键思想" class="nav-link" data-scroll-target="#关键思想">关键思想</a></li>
+  <li><a href="#参考资料" id="toc-参考资料" class="nav-link" data-scroll-target="#参考资料">参考资料</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/xieliaing/CausalInferenceIntro/blob/main/chapters/01 第一章-因果关系入门.ipynb" class="toc-action"><i class="bi bi-github"></i>查看代码</a></li><li><a href="https://github.com/xieliaing/CausalInferenceIntro/issues/new" class="toc-action"><i class="bi empty"></i>反馈问题</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/01 第一章-因果关系入门.html">章节</a></li><li class="breadcrumb-item"><a href="../chapters/01 第一章-因果关系入门.html">第一章: 因果关系入门</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">第一章：因果关系入门</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">作者</div>
+    <div class="quarto-title-meta-contents">
+             <p>CausalInferenceIntro </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">发布于</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">2026年3月2日</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="为什么需要关心因果关系" class="level2">
+<h2 class="anchored" data-anchor-id="为什么需要关心因果关系">为什么需要关心因果关系？</h2>
+<p>首先，您可能想知道：它对我有什么好处？下面的文字就将围绕“它”展开：</p>
+</section>
+<section id="数据科学不再是过去所认为的样子或最终应该呈现的样子" class="level2">
+<h2 class="anchored" data-anchor-id="数据科学不再是过去所认为的样子或最终应该呈现的样子">数据科学不再是过去所认为的样子（或最终应该呈现的样子）</h2>
+<p>数据科学家被哈佛商业评论评为 <a href="https://hbr.org/2012/10/data-scientist-the-sexiest-job-of-the-21st-century">21世纪最有吸引力的工作</a>。这不是空话。十年来，数据科学家一直是人们关注的焦点。人工智能专家的薪水<a href="(https://www.economist.com/business/2016/04/02/million-dollar-babies)">可与体育巨星相媲美</a>。在追求名利的过程中，成千上万的年轻专业人士开始了一场看似疯狂的淘金热，以尽快获得数据科学的头衔。整个新行业都围绕着炒作而兴起。神奇的教学方法可以让你成为数据科学家，而无需你看一个数学公式。如果您的公司能够释放数据的潜力，咨询专家承诺将投入数百万美元。人工智能或机器学习，被称为新电力，而数据，则被成为新石油。</p>
+<p>与此同时，我们有点忘记了那些一直在用数据做“老式”科学的人。在这段时间里，经济学家试图回答教育对一个人收入的真正影响是什么，生物统计学家试图了解饱和脂肪是否会导致更高的心脏病发作几率，心理学家试图了解肯定的话是否真的会导致心脏病发作。婚姻更幸福。老实说，数据科学家并不是一个新兴领域。由于媒体提供了大量的免费营销，我们刚刚才意识到这一点。</p>
+<p>使用Jim Collins的比喻，想想给自己倒一杯你最喜欢的冰镇啤酒。如果您以正确的方式执行此操作，杯子里大部分将是啤酒，但顶部会有一指厚的泡沫层。这个杯子装的就像数据科学。</p>
+<ol type="1">
+<li>它可以是啤酒。 统计基础，科学好奇心，对难题的热情。 数百年来，所有这些都被证明非常有价值。</li>
+<li>它也可以是泡沫。 建立在不切实际的期望之上的那些蓬松东西最终会消失。</li>
+</ol>
+<p>这种泡沫可能以比你想象中更快的速度掉下来。 正如《经济学人》所说：</p>
+<blockquote class="blockquote">
+<p>那些预测人工智能将产生改变世界影响的顾问还报告说，真正公司的真正管理者发现人工智能很难实施，而且对它的热情正在降温。 研究公司 Gartner 的 Svetlana Sicular 表示，2020 年可能是人工智能跌入其公司广为人知的“炒作周期”下坡的一年。 投资者开始意识到赶潮流：风险投资基金 MMC 对欧洲人工智能初创公司的一项调查发现，40% 的人似乎根本没有使用任何人工智能。</p>
+</blockquote>
+<p>在所有这些热潮中，作为数据科学家——或者更确切的说，作为“纯粹”的科学家——我们应该做什么？ 作为初学者，如果您很聪明，您将学会忽略泡沫。 我们是为了啤酒。 数学和统计学一直很有用，现在不太可能停止。 其次，学习是什么让你的工作有价值和有用，而不是没有人想出如何使用的最新闪亮工具。</p>
+<p>最后，但同样重要的，是请记住没有捷径可走。 数学和统计学知识之所以有价值，正是因为它们很难获得。 如果每个人都能做到，供应过剩就会压低价格。 所以<strong>振奋起来</strong>！ 尽可能地学习它们。 哎呀，为什么不呢？ 一路上玩得开心，因为我们只为<strong>勇敢而真实</strong>的人开始这个任务。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/intro/tougher-up-cupcake1.jpg" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+</section>
+<section id="回答不同类型的问题" class="level2">
+<h2 class="anchored" data-anchor-id="回答不同类型的问题">回答不同类型的问题</h2>
+<p>机器学习目前非常擅长回答的问题类型是预测类型。正如 Ajay Agrawal、Joshua Gans 和 Avi Goldfarb 在《<a href="https://www.predictionmachines.ai/">预测机器</a>》一书中所说，“人工智能的新浪潮实际上并没有给我们带来智能，而是智能的一个关键组成部分——预测”。我们可以用机器学习做各种美妙的事情。唯一的要求是我们将问题构建为预测问题。想从英语翻译成葡萄牙语？然后构建一个 ML 模型，在给定英语句子时预测葡萄牙语句子。想识别人脸？然后构建一个 ML 模型，该模型预测图片子部分中是否存在人脸。想造一辆自动驾驶汽车吗？然后构建一个 ML 模型来预测车轮的方向以及当呈现来自汽车周围的图像和传感器时的刹车和油门压力。</p>
+<p>然而，ML 并不是万能的。它可以在非常严格的边界下创造奇迹，但如果它使用的数据与模型习惯的数据略有不同，它仍然会失败。再举一个来自 Prediction Machines 的例子，“在许多行业中，低价格与低销量有关。比如在酒店行业，旅游旺季外价格低，需求旺盛、酒店爆满时价格高。鉴于这些数据，一个幼稚的预测可能表明提高价格会导致售出更多房间。”</p>
+<p>ML 在这种逆因果关系类型的问题上是出了名的糟糕。这类问题要求我们回答“假设发生”这样的问题，经济学家称之为反事实。假设我目前要求的商品不是这个价格，而是使用另一个价格，会发生什么情况？假设我不采用这种低脂饮食，而是采用低糖饮食，会发生什么？假设您在银行工作，提供信贷，您将必须弄清楚更改客户线会如何改变您的收入。或者，假设您在当地政府工作，您可能会被要求弄清楚如何改善学校教育系统。您是否应该因为数字知识时代告诉您而将平板电脑送给每个孩子？或者你应该建造一个老式的图书馆？</p>
+<p>这些问题的核心是我们希望知道答案的因果调查。因果问题渗透到日常问题中，例如弄清楚如何提高销售额，但它们也在我们非常个人和宝贵的困境中发挥重要作用：我是否必须上一所昂贵的学校才能在生活中取得成功（是吗？教育导致收入）？移民是否会降低我找到工作的机会（移民是否会导致失业率上升）？向穷人汇款会降低犯罪率吗？不管你在哪个领域，很可能你已经或将不得不回答某种类型的因果问题。不幸的是，对于 ML，我们不能依靠相关类型预测来解决它们。</p>
+<p>回答这类问题比大多数人想象的要困难。您的父母可能已经向您反复说过“关联不是因果关系”，但实际上要解释为什么会这样却是有点困难的。这也是因果关系入门这一章要讲的。至于本书的其余部分，它将致力于弄清楚如何使关联成为因果关系。</p>
+</section>
+<section id="当关联确实是因果时" class="level2">
+<h2 class="anchored" data-anchor-id="当关联确实是因果时">当关联确实是因果时</h2>
+<p>直觉上，我们模糊地知道为什么关联不是因果关系。 如果有人告诉您，为学生提供平板电脑的学校比不提供平板电脑的学校表现更好，您可以很快指出，那些配备平板电脑的学校可能更富有。 因此，即使没有平板电脑，他们的表现也会比平均水平更好。 因此，我们不能得出结论说，在课堂上给孩子们使用平板电脑会提高他们的学习成绩。 我们只能说学校的平板电脑与学习成绩表现好有关。</p>
+<div id="cell-1" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.special <span class="im">import</span> expit</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib <span class="im">import</span> pyplot <span class="im">as</span> plt</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib <span class="im">import</span> style</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>style.use(<span class="st">"fivethirtyeight"</span>)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">123</span>)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>tuition <span class="op">=</span> np.random.normal(<span class="dv">1000</span>, <span class="dv">300</span>, n).<span class="bu">round</span>()</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>tablet <span class="op">=</span> np.random.binomial(<span class="dv">1</span>, expit((tuition <span class="op">-</span> tuition.mean()) <span class="op">/</span> tuition.std())).astype(<span class="bu">bool</span>)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>enem_score <span class="op">=</span> np.random.normal(<span class="dv">200</span> <span class="op">-</span> <span class="dv">50</span> <span class="op">*</span> tablet <span class="op">+</span> <span class="fl">0.7</span> <span class="op">*</span> tuition, <span class="dv">200</span>)</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>enem_score <span class="op">=</span> (enem_score <span class="op">-</span> enem_score.<span class="bu">min</span>()) <span class="op">/</span> enem_score.<span class="bu">max</span>()</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>enem_score <span class="op">*=</span> <span class="dv">1000</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> pd.DataFrame(<span class="bu">dict</span>(enem_score<span class="op">=</span>enem_score, Tuition<span class="op">=</span>tuition, Tablet<span class="op">=</span>tablet))</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="cell-2" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">6</span>,<span class="dv">8</span>))</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>sns.boxplot(y<span class="op">=</span><span class="st">"enem_score"</span>, x<span class="op">=</span><span class="st">"Tablet"</span>, data<span class="op">=</span>data).set_title(<span class="st">'ENEM score by Tablet in Class'</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="01 第一章-因果关系入门_files/figure-html/cell-3-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>为了超越简单的直觉，让我们首先建立一些符号。 这将是我们谈论因果关系的共同语言。 把它想象成我们将用来识别其他勇敢和真正的因果战士的通用语言，它将在未来的许多战斗中组成我们的呼声。</p>
+<p>用 <span class="math inline">\(T_i\)</span> 表达单元i的干预介入量（treatment intake）.</p>
+<p><span class="math display">\[
+T_i=\begin{cases}
+1 \ \text{if unit i received the treatment}\\
+0 \ \text{otherwise}\\
+\end{cases}
+\]</span></p>
+<p>这里的干预不需要是药物或医学领域的任何东西。 相反，它只是一个术语，我们将用它来表示一些我们想知道其效果的干预。 在我们的案例中，治疗是给学生服用药片。 作为旁注，您有时可能会看到 <span class="math inline">\(D\)</span> 而不是 <span class="math inline">\(T\)</span> 来表示处理。</p>
+<p>现在，让我们将 <span class="math inline">\(Y_i\)</span> 称为单元 i 的观察结果变量。</p>
+<p>结果是我们感兴趣的变量。 我们想知道干预是否有任何影响。 在我们的平板电脑示例中，它将是学习成绩。</p>
+<p>这就是事情变得有趣的地方。 <strong>因果推断的基本问题</strong>是我们永远无法在经过处理和未经处理的情况下观察到同一个单元。 就好像我们有两条不同的道路，我们只能知道我们走的那条路前面有什么。 正如Robert Frost的诗：</p>
+<blockquote class="blockquote">
+<p>两条路在黄树林中分岔，<br>
+很抱歉我不能同时走过这两条路<br>
+作为一名独行者，我驻足许久<br>
+尽我所能地往前看<br>
+直到在灌木旁蜿蜒消失；</p>
+</blockquote>
+<p>为了解决这个问题，我们将在<strong>潜在结果</strong>方面进行很多讨论。它们被成为潜在的结果是因为它们实际上并没有发生。相反，它们表示在采取某些干预的情况下<strong>会发生什么</strong>。我们有时将发生的潜在结果称为事实，而将未发生的潜在结果称为反事实。</p>
+<p>至于符号，我们使用了一个额外的下标：</p>
+<p><span class="math inline">\(Y_{0i}\)</span> 是未经处理的单元 i 的潜在结果。</p>
+<p><span class="math inline">\(Y_{1i}\)</span> 是<strong>相同</strong>单元 i 的潜在结果。</p>
+<p>有时您可能会看到表示为函数 <span class="math inline">\(Y_i(t)\)</span> 的潜在结果，所以要小心。 <span class="math inline">\(Y_{0i}\)</span> 可以是 <span class="math inline">\(Y_i(0)\)</span> 而 <span class="math inline">\(Y_{1i}\)</span> 可以是 <span class="math inline">\(Y_i(1)\)</span>。在这里，我们大部分时间将使用下标符号。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/intro/potential_outcomes.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>回到我们的例子，<span class="math inline">\(Y_{1i}\)</span> 是学生 i 如果他或她在带平板电脑的教室里的学习成绩。不管是不是这样，对于<span class="math inline">\(Y_{1i}\)</span>都没有关系。不管怎样都是一样的。如果学生 i 拿到平板电脑，我们可以观察到 <span class="math inline">\(Y_{1i}\)</span>。如果没有，我们可以观察到<span class="math inline">\(Y_{0i}\)</span>。注意在最后一种情况下，<span class="math inline">\(Y_{1i}\)</span> 仍然是定义的，我们只是看不到它。在这种情况下，这是一个反事实的潜在结果。</p>
+<p>有了潜在的结果，我们可以定义个体治疗效果：</p>
+<p><span class="math inline">\(Y_{1i} - Y_{0i}\)</span></p>
+<p>当然，由于因果推断的根本问题，我们永远无法知道个体的治疗效果，因为我们只观察了其中一种潜在结果。目前，让我们关注一些比估计个体治疗效果更容易的事情。相反，让我们关注<strong>平均处理效果</strong>，其定义如下。</p>
+<p><span class="math inline">\(ATE = E[Y_1 - Y_0]\)</span></p>
+<p>其中，<code>E[...]</code> 是期望值。另一个更容易估计的数量是<strong>对被干预者的平均干预效果</strong>：</p>
+<p><span class="math inline">\(ATT = E[Y_1 - Y_0 | T=1]\)</span></p>
+<p>现在，我知道我们不能看到两种潜在的结果，但为了争论，我们假设我们可以。假设因果推理之神对我们进行的许多统计斗争感到满意，并以上帝般的力量奖励我们，以查看替代的潜在结果。有了这种能力，假设我们收集了 4 所学校的数据。我们知道他们是否向学生提供平板电脑以及他们在某些年度学术测试中的分数。在这里，平板电脑是治疗方法，所以 <span class="math inline">\(T=1\)</span> 如果学校向孩子们提供平板电脑。 <span class="math inline">\(Y\)</span> 将是测试分数。</p>
+<div id="cell-4" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(<span class="bu">dict</span>(</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    i<span class="op">=</span> [<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>],</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    y0<span class="op">=</span>[<span class="dv">500</span>,<span class="dv">600</span>,<span class="dv">800</span>,<span class="dv">700</span>],</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    y1<span class="op">=</span>[<span class="dv">450</span>,<span class="dv">600</span>,<span class="dv">600</span>,<span class="dv">750</span>],</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    t<span class="op">=</span> [<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">1</span>],</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    y<span class="op">=</span> [<span class="dv">500</span>,<span class="dv">600</span>,<span class="dv">600</span>,<span class="dv">750</span>],</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    te<span class="op">=</span>[<span class="op">-</span><span class="dv">50</span>,<span class="dv">0</span>,<span class="op">-</span><span class="dv">200</span>,<span class="dv">50</span>],</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>))</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="5">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">i</th>
+<th data-quarto-table-cell-role="th">y0</th>
+<th data-quarto-table-cell-role="th">y1</th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">y</th>
+<th data-quarto-table-cell-role="th">te</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>1</td>
+<td>500</td>
+<td>450</td>
+<td>0</td>
+<td>500</td>
+<td>-50</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>2</td>
+<td>600</td>
+<td>600</td>
+<td>0</td>
+<td>600</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>3</td>
+<td>800</td>
+<td>600</td>
+<td>1</td>
+<td>600</td>
+<td>-200</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>4</td>
+<td>700</td>
+<td>750</td>
+<td>1</td>
+<td>750</td>
+<td>50</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>这里的 <span class="math inline">\(ATE\)</span> 将是最后一列的平均值，即治疗效果的平均值：</p>
+<p><span class="math inline">\(ATE=(-50 + 0 - 200 + 50)/4 = -50\)</span></p>
+<p>这意味着平板电脑会使学生的学习成绩平均降低 50 分。 当 <span class="math inline">\(T=1\)</span> 时，这里的 <span class="math inline">\(ATT\)</span> 将是最后一列的平均值：</p>
+<p><span class="math inline">\(ATT=(- 200 + 50)/2 = -75\)</span></p>
+<p>也就是说，对于接受治疗的学校，平板电脑使学生的学习成绩平均降低了 75 分。 当然，我们永远无法知道这一点。 实际上，上表如下所示：</p>
+<div id="cell-6" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(<span class="bu">dict</span>(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    i<span class="op">=</span> [<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>],</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    y0<span class="op">=</span>[<span class="dv">500</span>,<span class="dv">600</span>,np.nan,np.nan],</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    y1<span class="op">=</span>[np.nan,np.nan,<span class="dv">600</span>,<span class="dv">750</span>],</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    t<span class="op">=</span> [<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">1</span>],</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    y<span class="op">=</span> [<span class="dv">500</span>,<span class="dv">600</span>,<span class="dv">600</span>,<span class="dv">750</span>],</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    te<span class="op">=</span>[np.nan,np.nan,np.nan,np.nan],</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>))</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="6">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">i</th>
+<th data-quarto-table-cell-role="th">y0</th>
+<th data-quarto-table-cell-role="th">y1</th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">y</th>
+<th data-quarto-table-cell-role="th">te</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>1</td>
+<td>500.0</td>
+<td>NaN</td>
+<td>0</td>
+<td>500</td>
+<td>NaN</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>2</td>
+<td>600.0</td>
+<td>NaN</td>
+<td>0</td>
+<td>600</td>
+<td>NaN</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>3</td>
+<td>NaN</td>
+<td>600.0</td>
+<td>1</td>
+<td>600</td>
+<td>NaN</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>4</td>
+<td>NaN</td>
+<td>750.0</td>
+<td>1</td>
+<td>750</td>
+<td>NaN</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>您可能会说，这肯定不理想，但我不能仍然采用处理过的平均值并将其与未处理过的平均值进行比较吗？ 换句话说，我不能只做 <span class="math inline">\(ATE=(600+750)/2 - (500 + 600)/2 = 125\)</span> 吗？ 嗯，不！ 注意结果的不同。 那是因为你刚刚犯了将联想误认为因果关系的最严重的罪过。 要了解原因，让我们来看看因果推理的主要敌人。</p>
+</section>
+<section id="偏差" class="level2">
+<h2 class="anchored" data-anchor-id="偏差">偏差</h2>
+<p>偏差是使关联不同于因果关系的原因。幸运的是，我们的直觉很容易理解。让我们在课堂示例中回顾一下我们的平板电脑。当面对声称为孩子提供平板电脑的学校会获得更高考试成绩的说法时，我们可以反驳说，即使没有平板电脑，这些学校也可能会获得更高的考试成绩。那是因为他们可能比其他学校有更多的钱；因此，他们可以支付更好的教师，负担更好的教室，等等。换句话说，经过处理的学校（使用平板电脑）与未经处理的学校没有可比性。</p>
+<p>用潜在结果符号表示这一点就是说 <span class="math inline">\(Y_0\)</span> 处理的 <span class="math inline">\(Y_0\)</span> 与未处理的 <span class="math inline">\(Y_0\)</span> 不同。请记住，处理过的 ** 的 <span class="math inline">\(Y_0\)</span> 是反事实的**。我们无法观察它，但我们可以推理它。在这种特殊情况下，我们甚至可以利用我们对世界如何运作的理解走得更远。我们可以说，接受处理的学校的 <span class="math inline">\(Y_0\)</span> 可能大于未处理学校的 <span class="math inline">\(Y_0\)</span>。这是因为有能力为孩子提供平板电脑的学校也可以负担其他有助于提高考试成绩的因素。让它沉入一会儿。习惯谈论潜在的结果需要一些时间。再读一遍这一段，确保你理解它。</p>
+<p>考虑到这一点，我们可以用非常简单的数学来说明为什么关联不是因果关系。关联是通过 <span class="math inline">\(E[Y|T=1] - E[Y|T=0]\)</span> 来衡量的。在我们的示例中，这是有平板电脑的学校的平均考试成绩减去没有平板电脑的学校的平均考试成绩。另一方面，因果关系由<span class="math inline">\(E[Y_1 - Y_0]\)</span>衡量。</p>
+<p>为了了解它们之间的关系，让我们进行关联测量并将观察到的结果替换为潜在结果。对于治疗，观察到的结果是<span class="math inline">\(Y_1\)</span>。对于未治疗者，观察到的结果是<span class="math inline">\(Y_0\)</span>。</p>
+<p><span class="math display">\[
+E[Y|T=1] - E[Y|T=0] = E[Y_1|T=1] - E[Y_0|T=0]
+\]</span></p>
+<p>现在，让我们加减<span class="math inline">\(E[Y_0|T=1]\)</span>。这是一个反事实的结果。它说明如果他们没有接受治疗，治疗的结果会是什么。</p>
+<p><span class="math display">\[
+E[Y|T=1] - E[Y|T=0] = E[Y_1|T=1] - E[Y_0|T=0] + E[Y_0|T=1] - E[Y_0|T =1]
+\]</span></p>
+<p>最后，我们对术语重新排序，合并一些期望，然后瞧：</p>
+<p><span class="math display">\[
+E[Y|T=1] - E[Y|T=0] = \underbrace{E[Y_1 - Y_0|T=1]}_{ATT} + \underbrace{\{ E[Y_0|T=1] - E[Y_0|T=0] \}}_{BIAS}
+\]</span></p>
+<p>这个简单的数学题包含了我们在因果问题中会遇到的所有问题。我不能强调你了解它的方方面面是多么重要。如果你被迫在手臂上纹身，这个方程应该是一个很好的候选者。这是一件非常值得抓住的事情，并且真正理解告诉我们什么，就像一些可以用 100 种不同方式解释的神圣文本。事实上，让我们更深入地了解一下。让我们把它分解成它的一些含义。首先，这个等式说明了为什么关联不是因果关系。正如我们所看到的，关联等于对被治疗者的治疗效果加上一个偏差项。 <strong>偏差是由治疗组和对照组在治疗前的差异决定的，也就是说，如果他们都没有接受治疗</strong>。当有人告诉我们教室里的平板电脑可以提高学习成绩时，我们现在可以准确地说出为什么我们会怀疑。我们认为，在这个例子中，<span class="math inline">\(E[Y_0|T=0] &lt; E[Y_0|T=1]\)</span>，也就是说，有能力为孩子提供平板电脑的学校比那些不能提供的学校本身表现就会更好，<strong>不管是否提供平板电脑</strong>。</p>
+<p>为什么会发生这种情况？一旦我们进入混淆那一章，我们将更多地讨论这一点，但现在你可以想到偏差的产生，因为许多我们无法控制的事情随着干预而发生变化。因此，经过干预和未经干预的学校不仅在平板电脑上有所不同。他们在学费、地点、师资等方面也有所不同……如果我们要说课堂上提供平板电脑可以提高学习成绩，我们需要有和没有平板电脑的学校在其他各方面，平均而言，彼此相似。</p>
+<div id="cell-8" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">10</span>,<span class="dv">6</span>))</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>sns.scatterplot(x<span class="op">=</span><span class="st">"Tuition"</span>, y<span class="op">=</span><span class="st">"enem_score"</span>, hue<span class="op">=</span><span class="st">"Tablet"</span>, data<span class="op">=</span>data, s<span class="op">=</span><span class="dv">70</span>).set_title(<span class="st">'ENEM score by Tuition Cost'</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="01 第一章-因果关系入门_files/figure-html/cell-6-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>现在我们了解了问题，让我们看看解决方案。我们也可以说使关联等于因果关系是必要的。 <strong>如果 <span class="math inline">\(E[Y_0|T=0] = E[Y_0|T=1]\)</span>，那么，关联就是因果关系！</strong> 理解这一点不仅仅是记住方程式。这里有一个强烈的直觉论证。说<span class="math inline">\(E[Y_0|T=0] = E[Y_0|T=1]\)</span>就是说干预组和对照组干预前具有可比性。或者，在被处理者没有被处理的情况下，如果我们可以观察到它的<span class="math inline">\(Y_0\)</span>，那么它的结果将与未处理的相同。在数学上，偏差项会消失：</p>
+<p><span class="math display">\[
+E[Y|T=1] - E[Y|T=0] = E[Y_1 - Y_0|T=1] = ATT
+\]</span></p>
+<p>此外，如果处理和未处理仅在处理本身不同，即 <span class="math inline">\(E[Y_0|T=0] = E[Y_0|T=1]\)</span></p>
+<p>我们认为对处理的因果影响与未处理的相同（因为它们非常相似）。</p>
+<p><span class="math display">\[
+\begin{align}
+E[Y_1 - Y_0|T=1] &amp;= E[Y_1|T=1] - E[Y_0|T=1] \\
+&amp;= E[Y_1|T=1] - E[Y_0|T=0] \\
+&amp;= E[Y|T=1] - E[Y|T=0]
+\end{align}
+\]</span></p>
+<p>不仅如此，<span class="math inline">\(E[Y_1 - Y_0|T=1]=E[Y_1 - Y_0|T=0]\)</span>，仅仅因为经过处理和未经处理是可以互换的。因此，在这种情况下，<strong>手段的差异成为因果效应</strong>：</p>
+<p><span class="math display">\[
+E[Y|T=1] - E[Y|T=0] = ATT = ATE
+\]</span></p>
+<p>再一次，这非常重要，我认为值得再看一遍，现在有漂亮的图片。如果我们在干预组和未干预组之间做一个简单的平均比较，这就是我们得到的（蓝点没有接受治疗，也就是平板电脑）：</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/intro/anatomy1.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>请注意两组之间的结果差异可能有两个原因：</p>
+<ol type="1">
+<li>干预效果。给孩子平板电脑导致的考试分数增加。</li>
+<li>干预因素本身之外，干预组和未干预组之间的其他差异。在这种情况下，干预组和未干预组的区别在于干预组的学费要高得多。考试成绩的一些差异可能是由于更高的学费带来了更好的教育。</li>
+</ol>
+<p>真正的干预效果只有在我们拥有观察潜在结果的神力时才能获得，如下左图所示。个体干预效果是该单位的结果与同一单位在获得替代治疗的情况下将具有的另一个理论结果之间的差异。这些是反事实结果，以浅色表示。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/intro/anatomy2.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>在右边的图中，我们描述了我们之前讨论过的偏差是什么。如果我们让每个人都不接受干预，我们就会产生偏差。在这种情况下，我们只剩下 <span class="math inline">\(T_0\)</span> 潜在结果。然后，我们看到干预组和未干预组有何不同。如果他们这样做，则意味着干预之外的其他因素导致干预组和未干预组的不同。这就是偏差，是真实干预效果的阴影。</p>
+<p>现在，将此与没有偏差的假设情况进行对比。假设平板电脑被随机分配给学校。在这种情况下，贫富学校接受干预的机会是一样的。干预因素将很好地分布在所有学费范围内。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/intro/anatomy3.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>在这种情况下，干预和未干预之间的结果差异是平均因果效应。发生这种情况是因为除了干预本身之外，干预组和未干预组之间没有其他差异来源。我们看到的所有差异都必须归因于它。这种情况的另一种说法就是没有偏差。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/intro/anatomy4.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>如果我们将每个人都设置为不接受治疗，只观察 <span class="math inline">\(Y_0\)</span> s，我们将发现治疗组和未治疗组之间没有差异。</p>
+<p>这就是因果推理的艰巨任务。这是关于寻找消除偏差的巧妙方法，使接受干预的和未接受干预的两组对象具有可比性，以便我们看到的所有差异只是平均干预效果。归根结底，因果推断是要弄清楚世界是如何运转的，排除所有的妄想和误解。现在我们明白了这一点，我们可以继续掌握一些最强大的方法来消除偏见，勇敢和真实的武器来确定因果关系。</p>
+</section>
+<section id="关键思想" class="level2">
+<h2 class="anchored" data-anchor-id="关键思想">关键思想</h2>
+<p>到目前为止，我们已经看到关联不是因果关系。最重要的是，我们已经确切地看到了为什么它不是，以及我们如何使关联成为因果关系。我们还引入了潜在结果符号，作为围绕因果推理的一种方式。有了它，我们将统计视为两种潜在的现实：一种是给予干预，另一种是不给予干预。但是，不幸的是，我们只能测量其中之一，这就是因果推断的根本问题所在。</p>
+<p>展望未来，我们将看到一些估计因果效应的基本技术，从随机试验的黄金标准开始。在我们进行的过程中，我还将回顾一些统计概念。我将以在因果推理课程中经常使用的引述作为结尾，该引述取自1972年的系列美剧《功夫》：</p>
+<blockquote class="blockquote">
+<p>“人一生中发生的事情都已写好了。一个人必须按照命运的安排度过一生。” - Caine （虔官昌）说<br>
+“是的，但每个人都可以按照自己的选择自由地生活。虽然它们看起来相反，但两者都是真实的。” - 老人</p>
+</blockquote>
+</section>
+<section id="参考资料" class="level2">
+<h2 class="anchored" data-anchor-id="参考资料">参考资料</h2>
+<p>我喜欢将这本书视为对 Joshua Angrist、Alberto Abadie 和 Christopher Walters 令人惊叹的计量经济学课程的致敬。 这里的大部分想法都来自他们在美国经济学会（AEA）的课程。 阅读这些教材让我在艰难的2020年保持清醒。</p>
+<ul>
+<li><a href="https://www.aeaweb.org/conference/cont-ed/2017-webcasts">Cross-Section Econometrics</a></li>
+<li><a href="https://www.aeaweb.org/conference/cont-ed/2020-webcasts">Mastering Mostly Harmless Econometrics</a></li>
+</ul>
+<p>我还想参考 Angrist 的精彩书籍。 他们向我展示了计量经济学，或者他们所说的“度量”，不仅非常有用，而且非常有趣。</p>
+<ul>
+<li><a href="https://www.mostlyharmlesseconometrics.com/">Mostly Harmless Econometrics</a></li>
+<li><a href="https://www.masteringmetrics.com/">Mastering ’Metrics</a></li>
+</ul>
+<p>最后一本参考资料是下面这本Miguel Hernan and Jamie Robins的书。在我必须回答的最棘手的因果问题中，它一直是我值得信赖的伙伴。</p>
+<ul>
+<li><a href="https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/">Causal Inference Book</a></li>
+</ul>
+<p>啤酒的比喻来自于JL Colins超棒的股市投资系列博客 <a href="https://jlcollinsnh.com/2012/04/15/stocks-part-1-theres-a-major-market-crash-coming-and-dr-lo-cant-save-you/">Stock Series</a>。对于所有希望高效率投资自己资金的人来说，这是不可错过的内容。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/poetry.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "已复制");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "已复制");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../chapters/02 第二章-随机试验.html" class="pagination-link" aria-label="第二章: 随机试验">
+        <span class="nav-page-text">第二章: 随机试验</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>内容基于《Causal Inference for the Brave and True》中文翻译整理。</p>
+</div>   
+    <div class="nav-footer-center">
+<p>用 Quarto 构建，面向在线阅读与本地复现。</p>
+<div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/xieliaing/CausalInferenceIntro/blob/main/chapters/01 第一章-因果关系入门.ipynb" class="toc-action"><i class="bi bi-github"></i>查看代码</a></li><li><a href="https://github.com/xieliaing/CausalInferenceIntro/issues/new" class="toc-action"><i class="bi empty"></i>反馈问题</a></li></ul></div></div>
+    <div class="nav-footer-right">
+<p><a href="https://github.com/xieliaing/CausalInferenceIntro">GitHub 仓库</a></p>
+</div>
+  </div>
+</footer>
+
+
+
+
+<script src="../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

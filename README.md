@@ -47,3 +47,118 @@
 21 |    第二十一章: 元学习器|   2022-11-15
 
 该书遵守[MIT License](./LICENSE)。
+
+## 本地运行指南 2026-03-02
+
+### 安装 python 及相关程序
+
+建议使用 **Python 3.10 ~ 3.12**。Windows 用户优先推荐安装 [Miniconda](https://docs.conda.io/en/latest/miniconda.html)，也可以使用官方 Python。
+
+此外建议安装：
+
+- [Git](https://git-scm.com/)
+- [VS Code](https://code.visualstudio.com/)（可选，但推荐）
+- Jupyter（会在下方通过 `pip` 安装）
+
+### 获取项目代码
+
+```bash
+git clone https://github.com/xieliaing/CausalInferenceIntro.git
+cd CausalInferenceIntro
+```
+
+### 创建并激活虚拟环境（推荐）
+
+#### 方案 A：使用 conda（推荐）
+
+```bash
+conda create -n causal-intro python=3.11 -y
+conda activate causal-intro
+```
+
+#### 方案 B：使用 venv
+
+```bash
+python -m venv .venv
+```
+
+Windows PowerShell：
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+macOS / Linux：
+
+```bash
+source .venv/bin/activate
+```
+
+### 安装依赖
+
+项目中的 Notebook 主要依赖如下（可先安装最小集合）：
+
+```bash
+pip install -U pip
+pip install jupyter notebook jupyterlab numpy pandas scipy matplotlib seaborn scikit-learn statsmodels linearmodels graphviz
+```
+
+如果你需要运行翻译脚本 `AutoTranslateNotebooks.py`，再额外安装：
+
+```bash
+pip install nbformat googletrans==4.0.0-rc1
+```
+
+或者你可以直接使用如下命令安装本项目所需的依赖项：
+
+```bash
+pip install -r requirements.txt
+```
+
+### 启动并运行 Notebook
+
+在仓库根目录运行：
+
+```bash
+jupyter lab
+```
+
+或：
+
+```bash
+jupyter notebook
+```
+
+然后在浏览器中打开 `chapters/` 目录，按顺序运行对应章节。
+
+### 可选：运行翻译脚本
+
+```bash
+python AutoTranslateNotebooks.py "chapters/01 第一章-因果关系入门.ipynb" "chapters/01 第一章-因果关系入门_机器翻译.ipynb"
+```
+
+说明：
+
+- 第 1 个参数是输入 Notebook
+- 第 2 个参数是输出 Notebook
+- 若出现翻译 API 报错，请稍后重试或更换网络环境
+
+### 常见问题
+
+1. **命令找不到（python / pip / jupyter）**
+	- 请确认已激活虚拟环境，或将 Python 加入 PATH。
+
+2. **PowerShell 无法激活 venv**
+	- 可临时执行：
+	```powershell
+	Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+	```
+
+3. **Notebook 打开后缺包报错**
+	- 在当前环境补装缺失包，例如：
+	```bash
+	pip install <package_name>
+	```
+
+4. **图形模型相关章节绘图失败**
+	- 请确认本机已安装 Graphviz 程序，并将其加入系统 PATH。

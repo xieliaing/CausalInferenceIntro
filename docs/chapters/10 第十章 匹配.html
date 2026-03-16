@@ -1,0 +1,1765 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-CN" xml:lang="zh-CN"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="CausalInferenceIntro">
+
+<title>第十章: 匹配 – 因果推断：从概念到实践</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../chapters/11 第十一章 倾向得分.html" rel="next">
+<link href="../chapters/09 第九章 非服从性与局部平均效应.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-f1a637e51edb8e5d5a953483935b5072.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "没有结果",
+    "search-matching-documents-text": "匹配的文档",
+    "search-copy-link-title": "复制搜索链接",
+    "search-hide-matches-text": "隐藏其它匹配结果",
+    "search-more-match-text": "更多匹配结果",
+    "search-more-matches-text": "更多匹配结果",
+    "search-clear-button-title": "清除",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "取消",
+    "search-submit-button-title": "提交",
+    "search-label": "搜索"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-sidebar docked nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    </a>
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">因果推断：从概念到实践</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="搜索"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="展开或折叠导航栏" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="../index.html" aria-current="page"> 
+<span class="menu-text">首页</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/xieliaing/CausalInferenceIntro"> 
+<span class="menu-text">GitHub</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/matheusfacure/python-causality-handbook"> 
+<span class="menu-text">原书</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="展开或折叠侧边栏导航" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/01 第一章-因果关系入门.html">章节</a></li><li class="breadcrumb-item"><a href="../chapters/10 第十章 匹配.html">第十章: 匹配</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="展开或折叠侧边栏导航" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="搜索" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+      <a href="../index.html" class="sidebar-logo-link">
+      </a>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="搜索"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">章节</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="展开或折叠此栏">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/01 第一章-因果关系入门.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第一章: 因果关系入门</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/02 第二章-随机试验.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二章: 随机试验</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/03 第三章 统计学回顾：最危险的公式.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第三章: 统计学回顾</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/04 第四章 图因果模型.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第四章: 图因果模型</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/05 第五章 线性回归超乎寻常的有效性.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第五章: 线性回归的有效性</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/06 第六章 分组和虚拟变量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第六章: 分组和虚拟变量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/07 第七章 控制混淆因素之外的考虑.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第七章: 控制混淆之外</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/08 第八章 工具变量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第八章: 工具变量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/09 第九章 非服从性与局部平均效应.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第九章: 非服从性与 LATE</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/10 第十章 匹配.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">第十章: 匹配</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/11 第十一章 倾向得分.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十一章: 倾向得分</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/12 第十二章 双重稳健估计.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十二章: 双重稳健估计</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/13 第十三章 面板数据与固定效应.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十三章: 面板数据与固定效应</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/14 第十四章 双重差分.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十四章: 双重差分</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/15 第十五章 合成控制.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十五章: 合成控制</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/16 第十六章 断点回归.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十六章: 断点回归</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/17 第十七章 预测模型 101.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十七章: 预测模型 101</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/18 第十八章 异质干预效应与个性化.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十八章: 异质干预效应</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/19 第十九章 评估因果模型.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十九章: 评估因果模型</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/20 第二十章 即插即用估计量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二十章: 即插即用估计量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/21 第二十一章 元学习器.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二十一章: 元学习器</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="2">
+    <h2 id="toc-title">本页目录</h2>
+   
+  <ul>
+  <li><a href="#回归到底在做什么" id="toc-回归到底在做什么" class="nav-link active" data-scroll-target="#回归到底在做什么">回归到底在做什么？</a></li>
+  <li><a href="#子分类估计器" id="toc-子分类估计器" class="nav-link" data-scroll-target="#子分类估计器">子分类估计器</a></li>
+  <li><a href="#匹配估计器" id="toc-匹配估计器" class="nav-link" data-scroll-target="#匹配估计器">匹配估计器</a></li>
+  <li><a href="#匹配偏差" id="toc-匹配偏差" class="nav-link" data-scroll-target="#匹配偏差">匹配偏差</a></li>
+  <li><a href="#维度的诅咒" id="toc-维度的诅咒" class="nav-link" data-scroll-target="#维度的诅咒">维度的诅咒</a></li>
+  <li><a href="#关键思想" id="toc-关键思想" class="nav-link" data-scroll-target="#关键思想">关键思想</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/xieliaing/CausalInferenceIntro/blob/main/chapters/10 第十章 匹配.ipynb" class="toc-action"><i class="bi bi-github"></i>查看代码</a></li><li><a href="https://github.com/xieliaing/CausalInferenceIntro/issues/new" class="toc-action"><i class="bi empty"></i>反馈问题</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/01 第一章-因果关系入门.html">章节</a></li><li class="breadcrumb-item"><a href="../chapters/10 第十章 匹配.html">第十章: 匹配</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">第十章: 匹配</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">作者</div>
+    <div class="quarto-title-meta-contents">
+             <p>CausalInferenceIntro </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">发布于</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">2026年3月2日</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="回归到底在做什么" class="level2">
+<h2 class="anchored" data-anchor-id="回归到底在做什么">回归到底在做什么？</h2>
+<p>到目前为止，我们已经看到，当我们进行测试与控制比较时，回归在控制附加变量方面做得非常出色。如果我们有独立性，<span class="math inline">\((Y_0, Y_1)\perp T | X\)</span>，那么回归可以通过控制 X 来识别 ATE。回归的方式有点神奇。为了对它有一些直观的了解，让我们记住所有变量 X 都是虚拟变量的情况。如果是这种情况，回归会将数据划分为虚拟单元格并计算测试和控制之间的平均差异。这种均值差异使 Xs 保持不变，因为我们是在 X dummy 的固定单元格中进行的。就好像我们在做 <span class="math inline">\(E[Y|T=1] - E[Y|T=0] | X=x\)</span>，其中 <span class="math inline">\(x\)</span> 是一个虚拟单元（所有虚拟单元例如设置为 1）。然后回归结合每个单元格中的估计以产生最终的 ATE。这样做的方法是将权重应用到与该组处理的方差成正比的单元格。</p>
+<div id="45a25139" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>warnings.filterwarnings(<span class="st">'ignore'</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib <span class="im">import</span> style</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib <span class="im">import</span> pyplot <span class="im">as</span> plt</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> statsmodels.formula.api <span class="im">as</span> smf</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> graphviz <span class="im">as</span> gr</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>matplotlib inline</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>style.use(<span class="st">"fivethirtyeight"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>举个例子，假设我试图估计一种药物的效果，我有 6 个男人和 4 个女人。 我的反应变量是住院天数，我希望我的药物可以降低住院天数。 对男性而言，真正的因果效应是-3，因此该药物将住院时间缩短了3 天。 对于女性，它是-2。 更有趣的是，男性更容易受到这种疾病的影响，并且在医院停留的时间更长。 他们也得到了更多的药物。 6 名男性中只有 1 人没有得到药物。 另一方面，女性对这种疾病的抵抗力更强，所以她们在医院的时间更少。 50% 的女性得到了这种药物。</p>
+<div id="61e1771c" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>drug_example <span class="op">=</span> pd.DataFrame(<span class="bu">dict</span>(</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    sex<span class="op">=</span> [<span class="st">"M"</span>,<span class="st">"M"</span>,<span class="st">"M"</span>,<span class="st">"M"</span>,<span class="st">"M"</span>,<span class="st">"M"</span>, <span class="st">"W"</span>,<span class="st">"W"</span>,<span class="st">"W"</span>,<span class="st">"W"</span>],</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    drug<span class="op">=</span>[<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">0</span>,   <span class="dv">1</span>,<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">0</span>],</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    days<span class="op">=</span>[<span class="dv">5</span>,<span class="dv">5</span>,<span class="dv">5</span>,<span class="dv">5</span>,<span class="dv">5</span>,<span class="dv">8</span>,  <span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">2</span>,<span class="dv">4</span>]</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>))</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>请注意，治疗和对照的简单比较会产生负面影响，即药物似乎不如实际有效。 这是意料之中的，因为我们已经省略了性别混淆因素。 在这种情况下，估计的 ATE 小于真实的 ATE，因为男性服用的药物更多，更容易受到疾病的影响。</p>
+<div id="d6ec0084" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>drug_example.query(<span class="st">"drug==1"</span>)[<span class="st">"days"</span>].mean() <span class="op">-</span> drug_example.query(<span class="st">"drug==0"</span>)[<span class="st">"days"</span>].mean()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="4">
+<pre><code>-1.1904761904761898</code></pre>
+</div>
+</div>
+<p>由于男性的真实效果是 -3，女性的真实效果是 -2，ATE 应该是</p>
+<p><span class="math display">\[
+ATE=\dfrac{(-3*6) + (-2*4)}{10}=-2.6
+\]</span></p>
+<p>该估计是通过 1) 将数据划分为混杂单元格，在这种情况下为男性和女性，2) 估计对每个单元格的影响，以及 3) 将估计值与加权平均值相结合，其中权重是样本量单元格或协变量组。如果我们的数据中男性和女性的大小完全相同，则 ATE 估计值将正好在两组 ATE 的中间，即 -2.5。由于我们的数据集中男性多于女性，因此 ATE 估计值更接近于男性的 ATE。这称为非参数估计，因为它没有假设数据是如何生成的。</p>
+<p>如果我们使用回归控制性别，我们将添加线性假设。回归还将数据划分为男性和女性，并估计对这两个组的影响。到现在为止还挺好。然而，当谈到组合对每组的影响时，它并没有按样本量来衡量它们。相反，回归使用与该组中治疗的方差成比例的权重。在我们的案例中，男性的治疗差异小于女性，因为对照组中只有一名男性。准确地说，男性的干预变量 <code>T</code>的 方差为 <span class="math inline">\(0.139=1/6*(1 - 1/6)\)</span>，女性样本的方差则为 <span class="math inline">\(0.25=2/4*(1 - 2/4)\)</span>。因此，在我们的示例中，回归将赋予女性更高的权重，并且 ATE 将更接近于 -2 的女性 ATE。</p>
+<div id="d2dbccb9" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>smf.ols(<span class="st">'days ~ drug + C(sex)'</span>, data<span class="op">=</span>drug_example).fit().summary().tables[<span class="dv">1</span>]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="5">
+<table class="simpletable caption-top table table-sm table-striped small">
+<tbody>
+<tr class="odd">
+<td></td>
+<th data-quarto-table-cell-role="th">coef</th>
+<th data-quarto-table-cell-role="th">std err</th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">P&gt;|t|</th>
+<th data-quarto-table-cell-role="th">[0.025</th>
+<th data-quarto-table-cell-role="th">0.975]</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Intercept</th>
+<td>7.5455</td>
+<td>0.188</td>
+<td>40.093</td>
+<td>0.000</td>
+<td>7.100</td>
+<td>7.990</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">C(sex)[T.W]</th>
+<td>-3.3182</td>
+<td>0.176</td>
+<td>-18.849</td>
+<td>0.000</td>
+<td>-3.734</td>
+<td>-2.902</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">drug</th>
+<td>-2.4545</td>
+<td>0.188</td>
+<td>-13.042</td>
+<td>0.000</td>
+<td>-2.900</td>
+<td>-2.010</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>这个结果对于虚拟变量来说更直观，但是，回归有它自己独特的运作方式，它在估计连续变量效果的同时假设了连续变量不变。同样对于连续变量，ATE 将指向协变量具有更多方差的方向。</p>
+<p>所以我们已经看到回归有它的特质。它是线性的、参数化的、喜欢高方差特征……这可能是好是坏，具体取决于上下文。因此，重要的是要了解我们可以用来控制混淆因素的其他技术。它们不仅是你手边因果工具中的一个额外工具，而且了解处理混淆的不同方法可以扩展我们对问题的理解。出于这个原因，我现在向您介绍 <strong>子分类估计器（Subclassification Estimator）！</strong></p>
+</section>
+<section id="子分类估计器" class="level2">
+<h2 class="anchored" data-anchor-id="子分类估计器">子分类估计器</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/matching/explain.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>如果我们想要估计一些因果效应，比如工作培训对收入的影响，<strong>并且</strong>该情况下的干预不是随机分配的时候，我们需要注意混淆因素。比如，因为可能只有更有求职动力的人才会参加培训，因此无论培训如何，他们都会获得更高的收入。我们需要估计培训计划在动机水平大致相同的小组以及我们可能存在的任何其他混淆因素中的效果。</p>
+<p>更一般的情况下，如果我们想要估计一些因果效应，但由于某些变量 <code>X</code> 带来的混淆而很难做到时，我们需要做的是在 <code>X</code> 相同的小组内进行干预与对照的比较。如果我们具备条件独立 <span class="math inline">\((Y_0, Y_1)\perp T | X\)</span>，那么我们可以将 ATE 写成如下。</p>
+<p><span class="math display">\[
+ATE = \int(E[Y|X, T=1] - E[Y|X, T=0])dP(x)
+\]</span></p>
+<p>这个积分的作用是遍历特征 X 分布的所有空间，计算所有这些微小空间的均值差异，并将所有内容组合到 ATE 中。另一种看待这一点的方法是考虑一组离散的特征。在这种情况下，我们可以说特征 X 对 K 个不同的单元格 <span class="math inline">\(\{X_1, X_2, ..., X_k\}\)</span> 进行计算，我们正在做的是计算每个单元格中的干预效果并结合他们进入ATE。在这种离散情况下，将积分转换为和，我们可以推导出子分类估计量</p>
+<p><span class="math display">\[
+\hat{ATE} = \sum^K_{i=0}(\bar{Y}_{k1} - \bar{Y}_{k0}) * \dfrac{N_k}{N}
+\]</span></p>
+<p>其中变量上的横线符号代表被干预样本的表现平均值，<span class="math inline">\(Y_{k1}\)</span>，和未干预样本的表现平均值，<span class="math inline">\(Y_{k0}\)</span>，单元格 k 和 <span class="math inline">\(N_{k}\)</span> 是同一单元格中的观察数。如您所见，我们正在计算每个单元格的本地 ATE，并使用加权平均值将它们组合起来，其中权重是单元格的样本大小。在我们上面的医学例子中，这将是第一个估计，它给了我们-2.6。</p>
+</section>
+<section id="匹配估计器" class="level2">
+<h2 class="anchored" data-anchor-id="匹配估计器">匹配估计器</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/matching/its-a-match.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>子分类估计器在实践中用得不多（我们很快就会明白为什么，主要是因为维度诅咒这个原因），但它让我们很好地、直观地了解了因果推理估计器应该做什么，以及它应该如何控制混淆因素。这使我们能够探索其他类型的估计器，例如匹配估计器。</p>
+<p>这个想法非常相似。由于某种混淆因素 X 使得经过干预的和未干预的样本单元最初无法比较，我可以通过<strong>将每个经过干预的单元与类似的未经干预的单元匹配</strong>来做到这一点。这就像我为每个干预单元找到一个未经干预的双胞胎。通过进行这样的比较，干预过的和未经干预的样本再次变得可比较。</p>
+<p>举个例子，假设我们试图估计一个练习生训练计划对收入的影响。这是练习生的基本情况：</p>
+<div id="54a2edbf" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>trainee <span class="op">=</span> pd.read_csv(<span class="st">"./data/trainees.csv"</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>trainee.query(<span class="st">"trainees==1"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="6">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">unit</th>
+<th data-quarto-table-cell-role="th">trainees</th>
+<th data-quarto-table-cell-role="th">age</th>
+<th data-quarto-table-cell-role="th">earnings</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>1</td>
+<td>1</td>
+<td>28</td>
+<td>17700</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>2</td>
+<td>1</td>
+<td>34</td>
+<td>10200</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>3</td>
+<td>1</td>
+<td>29</td>
+<td>14400</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>4</td>
+<td>1</td>
+<td>25</td>
+<td>20800</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>5</td>
+<td>1</td>
+<td>29</td>
+<td>6100</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">5</th>
+<td>6</td>
+<td>1</td>
+<td>23</td>
+<td>28600</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">6</th>
+<td>7</td>
+<td>1</td>
+<td>33</td>
+<td>21900</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">7</th>
+<td>8</td>
+<td>1</td>
+<td>27</td>
+<td>28800</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">8</th>
+<td>9</td>
+<td>1</td>
+<td>31</td>
+<td>20300</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">9</th>
+<td>10</td>
+<td>1</td>
+<td>26</td>
+<td>28100</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">10</th>
+<td>11</td>
+<td>1</td>
+<td>25</td>
+<td>9400</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">11</th>
+<td>12</td>
+<td>1</td>
+<td>27</td>
+<td>14300</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">12</th>
+<td>13</td>
+<td>1</td>
+<td>29</td>
+<td>12500</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">13</th>
+<td>14</td>
+<td>1</td>
+<td>24</td>
+<td>19700</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">14</th>
+<td>15</td>
+<td>1</td>
+<td>25</td>
+<td>10100</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">15</th>
+<td>16</td>
+<td>1</td>
+<td>43</td>
+<td>10700</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">16</th>
+<td>17</td>
+<td>1</td>
+<td>28</td>
+<td>11500</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">17</th>
+<td>18</td>
+<td>1</td>
+<td>27</td>
+<td>10700</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">18</th>
+<td>19</td>
+<td>1</td>
+<td>28</td>
+<td>16300</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>下面是非练习生的基本情况：</p>
+<div id="31f0301d" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>trainee.query(<span class="st">"trainees==0"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="7">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">unit</th>
+<th data-quarto-table-cell-role="th">trainees</th>
+<th data-quarto-table-cell-role="th">age</th>
+<th data-quarto-table-cell-role="th">earnings</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">19</th>
+<td>20</td>
+<td>0</td>
+<td>43</td>
+<td>20900</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">20</th>
+<td>21</td>
+<td>0</td>
+<td>50</td>
+<td>31000</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">21</th>
+<td>22</td>
+<td>0</td>
+<td>30</td>
+<td>21000</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">22</th>
+<td>23</td>
+<td>0</td>
+<td>27</td>
+<td>9300</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">23</th>
+<td>24</td>
+<td>0</td>
+<td>54</td>
+<td>41100</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">24</th>
+<td>25</td>
+<td>0</td>
+<td>48</td>
+<td>29800</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">25</th>
+<td>26</td>
+<td>0</td>
+<td>39</td>
+<td>42000</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">26</th>
+<td>27</td>
+<td>0</td>
+<td>28</td>
+<td>8800</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">27</th>
+<td>28</td>
+<td>0</td>
+<td>24</td>
+<td>25500</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">28</th>
+<td>29</td>
+<td>0</td>
+<td>33</td>
+<td>15500</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">29</th>
+<td>31</td>
+<td>0</td>
+<td>26</td>
+<td>400</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">30</th>
+<td>32</td>
+<td>0</td>
+<td>31</td>
+<td>26600</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">31</th>
+<td>33</td>
+<td>0</td>
+<td>26</td>
+<td>16500</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">32</th>
+<td>34</td>
+<td>0</td>
+<td>34</td>
+<td>24200</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">33</th>
+<td>35</td>
+<td>0</td>
+<td>25</td>
+<td>23300</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">34</th>
+<td>36</td>
+<td>0</td>
+<td>24</td>
+<td>9700</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">35</th>
+<td>37</td>
+<td>0</td>
+<td>29</td>
+<td>6200</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">36</th>
+<td>38</td>
+<td>0</td>
+<td>35</td>
+<td>30200</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">37</th>
+<td>39</td>
+<td>0</td>
+<td>32</td>
+<td>17800</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">38</th>
+<td>40</td>
+<td>0</td>
+<td>23</td>
+<td>9500</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">39</th>
+<td>41</td>
+<td>0</td>
+<td>32</td>
+<td>25900</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>如果我对均值做一个简单比较，我们会发现那些练习生相比非练习生赚的更少。</p>
+<div id="02e2852b" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>trainee.query(<span class="st">"trainees==1"</span>)[<span class="st">"earnings"</span>].mean() <span class="op">-</span> trainee.query(<span class="st">"trainees==0"</span>)[<span class="st">"earnings"</span>].mean()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="8">
+<pre><code>-4297.49373433584</code></pre>
+</div>
+</div>
+<p>但是，如果我们看一下上面的表格，我们会注意到练习生比非练习生年轻得多，这表明年龄可能是一个混淆因素。让我们使用年龄匹配来尝试纠正这一点。我们将从接受干预的人那里取出1号单元，并将其与27号单元配对，因为两者都是28岁。对于单元2，我们将它与单元34配对，而单元3则与单元37配对，对于单元4我们将它与单元35配对…当涉及到5号单元时，我们需要从未接受干预的人中找到29岁的人，但那是37号单元，它已经配对了。这其实不是问题，因为我们可以多次使用相同的单元。如果可以匹配的单位超过1个，我们可以在它们之间随机选择。</p>
+<p>这是前 7 个单元在匹配后的数据集中的样子：</p>
+<div id="3b6230cb" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># make dataset where no one has the same age</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>unique_on_age <span class="op">=</span> (trainee</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>                 .query(<span class="st">"trainees==0"</span>)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>                 .drop_duplicates(<span class="st">"age"</span>))</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>matches <span class="op">=</span> (trainee</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>           .query(<span class="st">"trainees==1"</span>)</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>           .merge(unique_on_age, on<span class="op">=</span><span class="st">"age"</span>, how<span class="op">=</span><span class="st">"left"</span>, suffixes<span class="op">=</span>(<span class="st">"_t_1"</span>, <span class="st">"_t_0"</span>))</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>           .assign(t1_minuts_t0 <span class="op">=</span> <span class="kw">lambda</span> d: d[<span class="st">"earnings_t_1"</span>] <span class="op">-</span> d[<span class="st">"earnings_t_0"</span>]))</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>matches.head(<span class="dv">7</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="9">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">unit_t_1</th>
+<th data-quarto-table-cell-role="th">trainees_t_1</th>
+<th data-quarto-table-cell-role="th">age</th>
+<th data-quarto-table-cell-role="th">earnings_t_1</th>
+<th data-quarto-table-cell-role="th">unit_t_0</th>
+<th data-quarto-table-cell-role="th">trainees_t_0</th>
+<th data-quarto-table-cell-role="th">earnings_t_0</th>
+<th data-quarto-table-cell-role="th">t1_minuts_t0</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>1</td>
+<td>1</td>
+<td>28</td>
+<td>17700</td>
+<td>27</td>
+<td>0</td>
+<td>8800</td>
+<td>8900</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>2</td>
+<td>1</td>
+<td>34</td>
+<td>10200</td>
+<td>34</td>
+<td>0</td>
+<td>24200</td>
+<td>-14000</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>3</td>
+<td>1</td>
+<td>29</td>
+<td>14400</td>
+<td>37</td>
+<td>0</td>
+<td>6200</td>
+<td>8200</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>4</td>
+<td>1</td>
+<td>25</td>
+<td>20800</td>
+<td>35</td>
+<td>0</td>
+<td>23300</td>
+<td>-2500</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>5</td>
+<td>1</td>
+<td>29</td>
+<td>6100</td>
+<td>37</td>
+<td>0</td>
+<td>6200</td>
+<td>-100</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">5</th>
+<td>6</td>
+<td>1</td>
+<td>23</td>
+<td>28600</td>
+<td>40</td>
+<td>0</td>
+<td>9500</td>
+<td>19100</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">6</th>
+<td>7</td>
+<td>1</td>
+<td>33</td>
+<td>21900</td>
+<td>29</td>
+<td>0</td>
+<td>15500</td>
+<td>6400</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>请注意，最后一列的收益差额为已干预单元和与其匹配的未干预单位之间的差异。如果我们取最后一列的平均值，我们得到控制年龄情况下的ATET估计值。请注意，与之前我们使用简单均值差值的估计值相比，该估计值现在显著为正。</p>
+<div id="53ca557e" class="cell" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>matches[<span class="st">"t1_minuts_t0"</span>].mean()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="10">
+<pre><code>2457.8947368421054</code></pre>
+</div>
+</div>
+<p>但这是一个人为设置的例子，只是为了引入匹配这个概念。实际上，我们通常有多个特征，并且单元间也是不能完全可以匹配。在这种情况下，我们必须定义一些接近度的测量值，以比较单元之间的接近程度。一个常见的指标是欧几里得范数 <span class="math inline">\(||X_i - X_j||\)</span>。 但是，这种差异在特征的大小变化时并不是保持不变。这意味着，与收入等量纲更大的特征相比，在计算此范数时，类似年纪这种以十分之一为单位的特征的重要性要小得多。因此，在应用范数之前，我们需要缩放特征的值，使它们具有大致相同的比例。</p>
+<p>定义了距离的测度指标后，我们现在可以将匹配定义为寻找要匹配的样本的最近邻居。在数学方面，我们可以通过以下方式编写匹配估计器：</p>
+<p><span class="math display">\[
+\hat{ATE} = \frac{1}{N} \sum^N_{i=0}(2T_i - 1)\big(Y_i - Y_{jm}(i)\big)
+\]</span></p>
+<p>其中 <span class="math inline">\(Y_{jm}(i)\)</span> 是来自与 <span class="math inline">\(Y_i\)</span> 最相似的另一个干预组的样本。我们这样做<span class="math inline">\(2T_i - 1\)</span>次，并以两种方式匹配：从干预组匹配对照组样本，以及从对照组匹配干预样本。</p>
+<p>为了测试这个估计器，让我们考虑一个医学示例。跟上次一样，我们想找到药物对病人恢复时间长短的效果。不幸的是，这种影响被疾病的严重程度、性别以及年龄所混淆。我们有理由相信，病情更严重的患者接受药物治疗的机会更高。</p>
+<div id="378ebd64" class="cell" data-execution_count="11">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>med <span class="op">=</span> pd.read_csv(<span class="st">"./data/medicine_impact_recovery.csv"</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>med.head()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="11">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">sex</th>
+<th data-quarto-table-cell-role="th">age</th>
+<th data-quarto-table-cell-role="th">severity</th>
+<th data-quarto-table-cell-role="th">medication</th>
+<th data-quarto-table-cell-role="th">recovery</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>0</td>
+<td>35.049134</td>
+<td>0.887658</td>
+<td>1</td>
+<td>31</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>1</td>
+<td>41.580323</td>
+<td>0.899784</td>
+<td>1</td>
+<td>49</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>1</td>
+<td>28.127491</td>
+<td>0.486349</td>
+<td>0</td>
+<td>38</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>1</td>
+<td>36.375033</td>
+<td>0.323091</td>
+<td>0</td>
+<td>35</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>0</td>
+<td>25.091717</td>
+<td>0.209006</td>
+<td>0</td>
+<td>15</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>如果我们看一个简单的均值差，<span class="math inline">\(E[Y|T=1]-E[Y|T=0]\)</span>，我们得到受到治疗的病人平均需要比未接受治疗的病人多16.9天才能恢复。这可能是由于混淆，因为我们不认为药物会对患者造成伤害。</p>
+<div id="11656cbf" class="cell" data-execution_count="12">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>med.query(<span class="st">"medication==1"</span>)[<span class="st">"recovery"</span>].mean() <span class="op">-</span> med.query(<span class="st">"medication==0"</span>)[<span class="st">"recovery"</span>].mean()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="12">
+<pre><code>16.895799546498726</code></pre>
+</div>
+</div>
+<p>为了纠正这个偏差，我们需要使用匹配来控制X。首先，我们一定要记得缩放我们的特征，否则，类似年龄这样的特征在我们计算两个样本点间距离的时候，会比严重性这种特征有更高的重要性。我们可以通过对特征进行归一化的方式来解决这个问题。</p>
+<div id="ad8943a8" class="cell" data-execution_count="13">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># scale features</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> [<span class="st">"severity"</span>, <span class="st">"age"</span>, <span class="st">"sex"</span>]</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> <span class="st">"recovery"</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>med <span class="op">=</span> med.assign(<span class="op">**</span>{f: (med[f] <span class="op">-</span> med[f].mean())<span class="op">/</span>med[f].std() <span class="cf">for</span> f <span class="kw">in</span> X})</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>med.head()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="13">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">sex</th>
+<th data-quarto-table-cell-role="th">age</th>
+<th data-quarto-table-cell-role="th">severity</th>
+<th data-quarto-table-cell-role="th">medication</th>
+<th data-quarto-table-cell-role="th">recovery</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>-0.996980</td>
+<td>0.280787</td>
+<td>1.459800</td>
+<td>1</td>
+<td>31</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>1.002979</td>
+<td>0.865375</td>
+<td>1.502164</td>
+<td>1</td>
+<td>49</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>1.002979</td>
+<td>-0.338749</td>
+<td>0.057796</td>
+<td>0</td>
+<td>38</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>1.002979</td>
+<td>0.399465</td>
+<td>-0.512557</td>
+<td>0</td>
+<td>35</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>-0.996980</td>
+<td>-0.610473</td>
+<td>-0.911125</td>
+<td>0</td>
+<td>15</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>现在，到匹配本身。我们将使用来自 <a href="https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsRegressor.html">Sklearn</a> 的 K 最近邻算法，而不是编写匹配函数。此算法通过在估计或训练集中查找最近的数据点来进行预测。</p>
+<p>为了匹配，我们需要其中的2个函数。一个是; <code>mt0</code> ，它将存储未干预的样本，并在被要求时在未处理的点中找到匹配项。另一个，<code>mt1</code>，将存储被干预的样本，并在需要时在被干预的样本点中找到匹配项。在此拟合步骤之后，我们可以使用这些 KNN 模型进行预测，从而是我们的匹配样本。</p>
+<div id="7a5aad96" class="cell" data-execution_count="14">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.neighbors <span class="im">import</span> KNeighborsRegressor</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>treated <span class="op">=</span> med.query(<span class="st">"medication==1"</span>)</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>untreated <span class="op">=</span> med.query(<span class="st">"medication==0"</span>)</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>mt0 <span class="op">=</span> KNeighborsRegressor(n_neighbors<span class="op">=</span><span class="dv">1</span>).fit(untreated[X], untreated[y])</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>mt1 <span class="op">=</span> KNeighborsRegressor(n_neighbors<span class="op">=</span><span class="dv">1</span>).fit(treated[X], treated[y])</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>predicted <span class="op">=</span> pd.concat([</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># find matches for the treated looking at the untreated knn model</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>    treated.assign(match<span class="op">=</span>mt0.predict(treated[X])),</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># find matches for the untreated looking at the treated knn model</span></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>    untreated.assign(match<span class="op">=</span>mt1.predict(untreated[X]))</span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>])</span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>predicted.head()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="14">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">sex</th>
+<th data-quarto-table-cell-role="th">age</th>
+<th data-quarto-table-cell-role="th">severity</th>
+<th data-quarto-table-cell-role="th">medication</th>
+<th data-quarto-table-cell-role="th">recovery</th>
+<th data-quarto-table-cell-role="th">match</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>-0.996980</td>
+<td>0.280787</td>
+<td>1.459800</td>
+<td>1</td>
+<td>31</td>
+<td>39.0</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>1.002979</td>
+<td>0.865375</td>
+<td>1.502164</td>
+<td>1</td>
+<td>49</td>
+<td>52.0</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">7</th>
+<td>-0.996980</td>
+<td>1.495134</td>
+<td>1.268540</td>
+<td>1</td>
+<td>38</td>
+<td>46.0</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">10</th>
+<td>1.002979</td>
+<td>-0.106534</td>
+<td>0.545911</td>
+<td>1</td>
+<td>34</td>
+<td>45.0</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">16</th>
+<td>-0.996980</td>
+<td>0.043034</td>
+<td>1.428732</td>
+<td>1</td>
+<td>30</td>
+<td>39.0</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>匹配完成后，我们就可以应用匹配估计器的公式了： <span class="math display">\[
+\hat{ATE} = \frac{1}{N} \sum^N_{i=0} (2T_i - 1)\big(Y_i - Y_{jm}(i)\big)
+\]</span></p>
+<div id="6481511a" class="cell" data-execution_count="15">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>np.mean((<span class="dv">2</span><span class="op">*</span>predicted[<span class="st">"medication"</span>] <span class="op">-</span> <span class="dv">1</span>)<span class="op">*</span>(predicted[<span class="st">"recovery"</span>] <span class="op">-</span> predicted[<span class="st">"match"</span>]))</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="15">
+<pre><code>-0.9954</code></pre>
+</div>
+</div>
+<p>使用这种匹配，我们可以看到药物的效果不再是增加恢复所需时间。这意味着，控制X后，药物平均将恢复时间减少约1天。这已经是一个巨大的改进，毕竟之前的有偏估计可是预测恢复时间需要增加16.9天。</p>
+<p>但是，我们仍然可以做得更好。</p>
+</section>
+<section id="匹配偏差" class="level2">
+<h2 class="anchored" data-anchor-id="匹配偏差">匹配偏差</h2>
+<p>事实证明，我们上面设计的匹配估计器还是有偏差的。为了看到这一点，让我们考虑ATE估计器，而不是ATE，只是因为它写起来更简单。其原理也适用于ATE。</p>
+<p><span class="math display">\[
+\hat{ATET} = \frac{1}{N_1}\sum(Y_i - Y_j(i))
+\]</span></p>
+<p>其中 <span class="math inline">\(N_1\)</span> 是接受治疗的个体数，<span class="math inline">\(Y_j(i)\)</span> 是未经治疗的单元 i 的匹配。为了检查偏差，我们所做的是希望我们可以应用中心极限定理，以便该定理收敛到平均值为零的正态分布。</p>
+<p><span class="math display">\[
+\sqrt{N_1}(\hat{ATET} - ATET）
+\]</span></p>
+<p>但是，这并不总是发生。如果我们定义给定 X 的均值结果，<span class="math inline">\(\mu_0(x)=E[Y|X=x， T=0]\)</span>，我们将得到如下结果：（顺便说一句，我省略了证明，因为它不是这里的重点）。</p>
+<p><span class="math display">\[
+E[\sqrt{N_1}(\hat{ATET} - ATET)] = E[\sqrt{N_1}(\mu_0(X_i) - \mu_0(X_j(i)))]
+\]</span></p>
+<p>现在，<span class="math inline">\(\mu_0(X_i) - \mu_0(X_j(i))\)</span> 并不是那么容易理解，所以让我们更仔细地看一下。 <span class="math inline">\(\mu_0(X_i)\)</span> 是未处理的处理单元的结果 Y 值。因此，它是单元 i 的反事实结果 <span class="math inline">\(Y_0\)</span>。 <span class="math inline">\(\mu_0(X_j(i))\)</span> 是未处理单元 j 的结果，它是单元 i 的匹配项。因此，它也是 <span class="math inline">\(Y_0\)</span> ，但现在用于单元 j。只有这一次，这是一个事实结果，因为 j 在未处理组中。现在，因为 j 和 i 只是相似，但并不相同，所以这很可能不为零。换句话说，<span class="math inline">\(X_i \approx X_j\)</span>。所以，<span class="math inline">\(Y_{0i} \approx Y_{0j}\)</span>。</p>
+<p>随着我们增加样本量，将会有更多的单元来匹配，所以单元 i 和它的匹配 j 之间的差异也会变得更小。但是这种差异会慢慢收敛到零。结果 <span class="math inline">\(E[\sqrt{N_1}(\mu_0(X_i) - \mu_0(X_j(i)))]\)</span> 可能不会收敛到零，因为 <span class="math inline">\(\sqrt{N_1}\ \) 增长快于 \\((\mu_0(X_i) - \mu_0(X_j(i)))\)</span> 减少。</p>
+<p>当匹配差异很大时，就会出现偏差。幸运的是，我们知道如何纠正它。每个观察都将 <span class="math inline">\((\mu_0(X_i) - \mu_0(X_j(i)))\)</span> 贡献给偏差，所以我们需要做的就是从估计器中的每个匹配比较中减去这个数量。为此，我们可以将 <span class="math inline">\(\mu_0(X_j(i))\)</span> 替换为对这个数量 <span class="math inline">\(\hat{\mu_0}(X_j(i))\)</span> 的某种估计，它可以可以通过线性回归等模型获得。这会将 ATET 估计器更新为以下等式</p>
+<p><span class="math display">\[
+\hat{ATET} = \frac{1}{N_1}\sum \big((Y_i - Y_{j(i)}) - (\hat{\mu_0}(X_i) - \hat{\mu_0}(X_{j(i)}))\big)
+\]</span></p>
+<p>where <span class="math inline">\(\hat{\mu_0}(x)\)</span> is some estimative of <span class="math inline">\(E[Y|X, T=0]\)</span>, like a linear regression fitted only on the untreated sample.</p>
+<div id="2004709f" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LinearRegression</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="co"># fit the linear regression model to estimate mu_0(x)</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>ols0 <span class="op">=</span> LinearRegression().fit(untreated[X], untreated[y])</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>ols1 <span class="op">=</span> LinearRegression().fit(treated[X], treated[y])</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="co"># find the units that match to the treated</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>treated_match_index <span class="op">=</span> mt0.kneighbors(treated[X], n_neighbors<span class="op">=</span><span class="dv">1</span>)[<span class="dv">1</span>].ravel()</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a><span class="co"># find the units that match to the untreatd</span></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>untreated_match_index <span class="op">=</span> mt1.kneighbors(untreated[X], n_neighbors<span class="op">=</span><span class="dv">1</span>)[<span class="dv">1</span>].ravel()</span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>predicted <span class="op">=</span> pd.concat([</span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>    (treated</span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>     <span class="co"># find the Y match on the other group</span></span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>     .assign(match<span class="op">=</span>mt0.predict(treated[X])) </span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>     </span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>     <span class="co"># build the bias correction term</span></span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>     .assign(bias_correct<span class="op">=</span>ols0.predict(treated[X]) <span class="op">-</span> ols0.predict(untreated.iloc[treated_match_index][X]))),</span>
+<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a>    (untreated</span>
+<span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a>     .assign(match<span class="op">=</span>mt1.predict(untreated[X]))</span>
+<span id="cb20-22"><a href="#cb20-22" aria-hidden="true" tabindex="-1"></a>     .assign(bias_correct<span class="op">=</span>ols1.predict(untreated[X]) <span class="op">-</span> ols1.predict(treated.iloc[untreated_match_index][X])))</span>
+<span id="cb20-23"><a href="#cb20-23" aria-hidden="true" tabindex="-1"></a>])</span>
+<span id="cb20-24"><a href="#cb20-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-25"><a href="#cb20-25" aria-hidden="true" tabindex="-1"></a>predicted.head()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>一个直接出现的问题是：这不是破坏了匹配这个出发点吗？如果无论如何我都必须运行线性回归，我为什么不一直就使用回归，而不是这个复杂的匹配模型。有这个想法很正常，所以我应该花一些时间来回答它。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/matching/ubiquitous-ols.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>首先，我们拟合的这个线性回归并没有外推干预维度来获得干预效果。相反，它的目的只是为了纠正偏差。这里的线性回归是局部的，从某种意义上说，如果它看起来像未干预的，它不会尝试查看干预后的情况。它没有进行任何推断。这是留给匹配的部分。估计器的核心仍然是匹配组件。我想在这里说明的一点是，OLS方法相对这个估计量本身其实是一个次要考虑的因素。</p>
+<p>第二点是匹配是一个非参数估计。它不假设线性或任何类型的参数模型。因此，它比线性回归更灵活，并且可以在线性回归不会的情况下工作，即非线性非常强的情况。</p>
+<p>这是否意味着您应该只使用匹配？嗯，这是一个棘手的问题。 Alberto Abadie 提出了一个理由，认为更应该偏好匹配方法。它更灵活，一旦你有了代码，运行起来也同样简单。我并不完全相信这一点。至少，Abadie 花了很多时间研究和开发估计器（是的，他是帮助匹配算法发展到现在这个阶段的科学家之一），所以他显然对匹配这种方法有个人的偏好。其次，线性回归的简单性在匹配中是看不到的。线性回归比匹配更容易掌握“保持其他一切不变”的偏导数数学。但这只是我的偏好。老实说，这个问题没有明确的答案。无论如何，回到我们的例子。</p>
+<p>使用偏差校正公式，我得到以下 ATE 估计。</p>
+<div id="8026cc18" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>np.mean((<span class="dv">2</span><span class="op">*</span>predicted[<span class="st">"medication"</span>] <span class="op">-</span> <span class="dv">1</span>)<span class="op">*</span>((predicted[<span class="st">"recovery"</span>] <span class="op">-</span> predicted[<span class="st">"match"</span>])<span class="op">-</span>predicted[<span class="st">"bias_correct"</span>]))</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>当然，我们还需要围绕这个测量放置一个置信区间，但现在数学理论已经足够了。 在实践中，我们可以简单地使用别人的代码并导入一个匹配的估计器。 这是来自python库 <a href="https://github.com/laurencium/causalinference">causalinference</a> 的一个。</p>
+<div id="eee843a3" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> causalinference <span class="im">import</span> CausalModel</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>cm <span class="op">=</span> CausalModel(</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    Y<span class="op">=</span>med[<span class="st">"recovery"</span>].values, </span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    D<span class="op">=</span>med[<span class="st">"medication"</span>].values, </span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>    X<span class="op">=</span>med[[<span class="st">"severity"</span>, <span class="st">"age"</span>, <span class="st">"sex"</span>]].values</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>cm.est_via_matching(matches<span class="op">=</span><span class="dv">1</span>, bias_adj<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(cm.estimates)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>最后，我们可以自信地说，我们的药物确实可以减少人们在医院的时间。 ATE 估计值比我的略低，所以可能我的代码并不完美，所以这是尽量使用别人的成熟代码，而不是自己从头构建代码的另一个原因。</p>
+<p>在我们结束这个话题之前，我只是想稍微解释一下匹配偏差的原因。我们看到当单元和它的匹配不太相似时，匹配是有偏差的。但是是什么导致它们如此不同呢？</p>
+</section>
+<section id="维度的诅咒" class="level2">
+<h2 class="anchored" data-anchor-id="维度的诅咒">维度的诅咒</h2>
+<p>事实证明，答案非常简单直观。很容易找到与一些特征相匹配的人，比如性别。但如果我们添加更多特征，如年龄、收入、出生城市等，找到匹配项就变得越来越难。更一般地说，我们拥有的特征越多，单位与其匹配之间的距离就越大。</p>
+<p>这不仅仅是伤害匹配估计器的事情。它与我们之前看到的子分类估计器相关联。早期，在那个人为的医学示例中，对于男人和女人，构建子分类估计器非常容易。那是因为我们只有两个牢房：男人和女人。但如果我们有更多会发生什么？假设我们有 2 个连续的特征，比如年龄和收入，我们设法将它们离散成 5 个桶。这将为我们提供 25 个单元格，或 <span class="math inline">\(5^2\)</span>。如果我们有 10 个协变量，每个协变量有 3 个桶呢？好像不多吧？好吧，这会给我们 59049 个单元格，或 <span class="math inline">\(3^{10}\)</span>。很容易看出这如何很快就变得不成比例。这是所有数据科学中普遍存在的现象，被称为<strong>维度的诅咒</strong>！！！</p>
+<p><img src="./data/img/curse-of-dimensionality.jpg" class="img-fluid" alt="img"> 图片来源：https://deepai.org/machine-learning-glossary-and-terms/curse-of-dimensionality</p>
+<p>尽管它的名字吓人且自命不凡，但这仅意味着填充特征空间所需的数据点数量随着特征或维度的数量呈指数增长。因此，如果需要 X 个数据点来填充例如 3 个特征空间的空间，则需要成倍增加的点来填充 4 个特征空间。</p>
+<p>在子分类估计器的上下文中，维数灾难意味着如果我们有很多特征，它就会受到影响。许多特征意味着 X 中有多个单元格。如果有多个单元格，其中一些单元格的数据将非常少。其中一些甚至可能只进行了治疗或仅进行了控制，因此无法估计那里的 ATE，这会破坏我们的估计量。在匹配上下文中，这意味着特征空间将非常空间并且单元将彼此相距很远。这将增加匹配之间的距离并导致偏差问题。</p>
+<p>至于线性回归，它实际上很好地处理了这个问题。它所做的是将所有特征 X 投影到一个单一的 Y 维度中。然后，它对该投影进行处理和控制比较。因此，以某种方式，线性回归执行某种降维来估计 ATE。它相当优雅。</p>
+<p>大多数因果模型也有一些方法来处理维度灾难。我不会一直重复自己，但在看它们时应该牢记这一点。例如，当我们在下一节中处理倾向得分时，试着看看它是如何解决这个问题的。</p>
+</section>
+<section id="关键思想" class="level2">
+<h2 class="anchored" data-anchor-id="关键思想">关键思想</h2>
+<p>我们已经开始了解线性回归的作用以及它如何帮助我们识别因果关系。也就是说，我们理解回归可以看作是将数据集划分为单元，计算每个单元中的 ATE，然后将单元的 ATE 组合成整个数据集的单个 ATE。</p>
+<p>从那里，我们推导出了一个非常通用的带有子分类的因果推理估计器。我们看到该估计器在实践中如何不是很有用，但它为我们提供了一些关于如何解决因果推理估计问题的有趣见解。这让我们有机会讨论匹配估计器。</p>
+<p>通过查看每个处理单元并找到与其非常相似并且对于未处理单元类似的未处理对来匹配混杂因素的对照。我们看到了如何使用 KNN 算法来实现这个方法，以及如何使用回归来消除它的偏差。最后，我们讨论了匹配和线性回归之间的区别。我们看到了匹配如何是一种非参数估计器，它不像线性回归那样依赖于线性。</p>
+<p>最后，我们深入研究了高维数据集的问题，并且我们看到了因果推理方法如何受到它的影响。</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "已复制");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "已复制");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../chapters/09 第九章 非服从性与局部平均效应.html" class="pagination-link" aria-label="第九章: 非服从性与 LATE">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">第九章: 非服从性与 LATE</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../chapters/11 第十一章 倾向得分.html" class="pagination-link" aria-label="第十一章: 倾向得分">
+        <span class="nav-page-text">第十一章: 倾向得分</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>内容基于《Causal Inference for the Brave and True》中文翻译整理。</p>
+</div>   
+    <div class="nav-footer-center">
+<p>用 Quarto 构建，面向在线阅读与本地复现。</p>
+<div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/xieliaing/CausalInferenceIntro/blob/main/chapters/10 第十章 匹配.ipynb" class="toc-action"><i class="bi bi-github"></i>查看代码</a></li><li><a href="https://github.com/xieliaing/CausalInferenceIntro/issues/new" class="toc-action"><i class="bi empty"></i>反馈问题</a></li></ul></div></div>
+    <div class="nav-footer-right">
+<p><a href="https://github.com/xieliaing/CausalInferenceIntro">GitHub 仓库</a></p>
+</div>
+  </div>
+</footer>
+
+
+
+
+<script src="../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

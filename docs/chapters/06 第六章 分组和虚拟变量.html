@@ -1,0 +1,1788 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-CN" xml:lang="zh-CN"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="CausalInferenceIntro">
+
+<title>第六章: 分组和虚拟变量 – 因果推断：从概念到实践</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../chapters/07 第七章 控制混淆因素之外的考虑.html" rel="next">
+<link href="../chapters/05 第五章 线性回归超乎寻常的有效性.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-f1a637e51edb8e5d5a953483935b5072.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "没有结果",
+    "search-matching-documents-text": "匹配的文档",
+    "search-copy-link-title": "复制搜索链接",
+    "search-hide-matches-text": "隐藏其它匹配结果",
+    "search-more-match-text": "更多匹配结果",
+    "search-more-matches-text": "更多匹配结果",
+    "search-clear-button-title": "清除",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "取消",
+    "search-submit-button-title": "提交",
+    "search-label": "搜索"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-sidebar docked nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    </a>
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">因果推断：从概念到实践</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="搜索"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="展开或折叠导航栏" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="../index.html" aria-current="page"> 
+<span class="menu-text">首页</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/xieliaing/CausalInferenceIntro"> 
+<span class="menu-text">GitHub</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/matheusfacure/python-causality-handbook"> 
+<span class="menu-text">原书</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="展开或折叠侧边栏导航" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/01 第一章-因果关系入门.html">章节</a></li><li class="breadcrumb-item"><a href="../chapters/06 第六章 分组和虚拟变量.html">第六章: 分组和虚拟变量</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="展开或折叠侧边栏导航" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="搜索" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+      <a href="../index.html" class="sidebar-logo-link">
+      </a>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="搜索"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">章节</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="展开或折叠此栏">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/01 第一章-因果关系入门.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第一章: 因果关系入门</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/02 第二章-随机试验.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二章: 随机试验</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/03 第三章 统计学回顾：最危险的公式.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第三章: 统计学回顾</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/04 第四章 图因果模型.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第四章: 图因果模型</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/05 第五章 线性回归超乎寻常的有效性.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第五章: 线性回归的有效性</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/06 第六章 分组和虚拟变量.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">第六章: 分组和虚拟变量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/07 第七章 控制混淆因素之外的考虑.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第七章: 控制混淆之外</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/08 第八章 工具变量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第八章: 工具变量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/09 第九章 非服从性与局部平均效应.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第九章: 非服从性与 LATE</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/10 第十章 匹配.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十章: 匹配</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/11 第十一章 倾向得分.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十一章: 倾向得分</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/12 第十二章 双重稳健估计.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十二章: 双重稳健估计</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/13 第十三章 面板数据与固定效应.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十三章: 面板数据与固定效应</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/14 第十四章 双重差分.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十四章: 双重差分</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/15 第十五章 合成控制.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十五章: 合成控制</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/16 第十六章 断点回归.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十六章: 断点回归</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/17 第十七章 预测模型 101.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十七章: 预测模型 101</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/18 第十八章 异质干预效应与个性化.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十八章: 异质干预效应</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/19 第十九章 评估因果模型.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第十九章: 评估因果模型</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/20 第二十章 即插即用估计量.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二十章: 即插即用估计量</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/21 第二十一章 元学习器.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">第二十一章: 元学习器</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="2">
+    <h2 id="toc-title">本页目录</h2>
+   
+  <ul>
+  <li><a href="#分组数据回归" id="toc-分组数据回归" class="nav-link active" data-scroll-target="#分组数据回归">分组数据回归</a></li>
+  <li><a href="#虚拟变量回归" id="toc-虚拟变量回归" class="nav-link" data-scroll-target="#虚拟变量回归">虚拟变量回归</a></li>
+  <li><a href="#关键思想" id="toc-关键思想" class="nav-link" data-scroll-target="#关键思想">关键思想</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/xieliaing/CausalInferenceIntro/blob/main/chapters/06 第六章 分组和虚拟变量.ipynb" class="toc-action"><i class="bi bi-github"></i>查看代码</a></li><li><a href="https://github.com/xieliaing/CausalInferenceIntro/issues/new" class="toc-action"><i class="bi empty"></i>反馈问题</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/01 第一章-因果关系入门.html">章节</a></li><li class="breadcrumb-item"><a href="../chapters/06 第六章 分组和虚拟变量.html">第六章: 分组和虚拟变量</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">第六章: 分组和虚拟变量</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">作者</div>
+    <div class="quarto-title-meta-contents">
+             <p>CausalInferenceIntro </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">发布于</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">2026年3月2日</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="分组数据回归" class="level2">
+<h2 class="anchored" data-anchor-id="分组数据回归">分组数据回归</h2>
+<p>并非所有数据点都是一样的。 如果我们再次查看我们的 ENEM 数据集，相比小规模学校的分数，我们更相信规模较大的学校的分数。 这并不是说大型学校更好或什么， 而只是因为它们的较大规模意味着更小的方差。</p>
+<div id="cell-2" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>warnings.filterwarnings(<span class="st">'ignore'</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy <span class="im">import</span> stats</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib <span class="im">import</span> style</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib <span class="im">import</span> pyplot <span class="im">as</span> plt</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> statsmodels.formula.api <span class="im">as</span> smf</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>style.use(<span class="st">"fivethirtyeight"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="cell-3" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">876</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>enem <span class="op">=</span> pd.read_csv(<span class="st">"./data/enem_scores.csv"</span>).sample(<span class="dv">200</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">8</span>,<span class="dv">4</span>))</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>sns.scatterplot(y<span class="op">=</span><span class="st">"avg_score"</span>, x<span class="op">=</span><span class="st">"number_of_students"</span>, data<span class="op">=</span>enem)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>sns.scatterplot(y<span class="op">=</span><span class="st">"avg_score"</span>, x<span class="op">=</span><span class="st">"number_of_students"</span>, s<span class="op">=</span><span class="dv">100</span>, label<span class="op">=</span><span class="st">"Trustworthy"</span>,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>                data<span class="op">=</span>enem.query(<span class="ss">f"number_of_students==</span><span class="sc">{</span>enem<span class="sc">.</span>number_of_students<span class="sc">.</span><span class="bu">max</span>()<span class="sc">}</span><span class="ss">"</span>))</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>sns.scatterplot(y<span class="op">=</span><span class="st">"avg_score"</span>, x<span class="op">=</span><span class="st">"number_of_students"</span>, s<span class="op">=</span><span class="dv">100</span>, label<span class="op">=</span><span class="st">"Not so Much"</span>,</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>                data<span class="op">=</span>enem.query(<span class="ss">f"avg_score==</span><span class="sc">{</span>enem<span class="sc">.</span>avg_score<span class="sc">.</span><span class="bu">max</span>()<span class="sc">}</span><span class="ss">"</span>))</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"ENEM Score by Number of Students in the School"</span>)<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06 第六章 分组和虚拟变量_files/figure-html/cell-3-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>在上面的数据中，直观上，左边的点对我的模型的影响应该比右边的点小。本质上，右边的点实际上是许多其他数据点组合成一个。如果我们可以拆分它们并对未分组的数据进行线性回归，那么它们对模型估计的贡献确实比左侧的未捆绑点要大得多。</p>
+<p>这种同时具有一个低方差区域和另一个高方差区域的现象称为<strong>异方差</strong>。简而言之，异方差是指因变量的方差在各个特征变量的值域内方差不是恒定的。在上面的例子中，我们可以看到因变量方差随着特征样本大小的增加而减少。再举一个我们有异方差的例子，如果你按年龄绘制工资，你会发现老年人的工资差异大于年轻人的工资差异。但是，到目前为止，方差不同的最常见原因是分组数据。</p>
+<p>像上面这样的分组数据在数据分析中非常常见。原因之一是保密。政府和公司不能泄露个人数据，因为这会违反他们必须遵守的数据隐私要求。如果他们需要将数据导出给外部研究人员，他们只能通过对数据进行分组的方式来完成。这样，个人集合在一起，不再是唯一可识别的。</p>
+<p>对我们来说幸运的是，回归可以很好地处理这些类型的数据。要了解如何做，让我们首先采用一些未分组的数据，例如我们在工资和教育方面的数据。在这些数据集中，每个工人对应一行数据，所以我们知道这个数据集中每个人的工资以及他或她有多少年的教育。</p>
+<div id="cell-5" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>wage <span class="op">=</span> pd.read_csv(<span class="st">"./data/wage.csv"</span>)[[<span class="st">"wage"</span>, <span class="st">"lhwage"</span>, <span class="st">"educ"</span>, <span class="st">"IQ"</span>]]</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>wage.head()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="3">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">wage</th>
+<th data-quarto-table-cell-role="th">lhwage</th>
+<th data-quarto-table-cell-role="th">educ</th>
+<th data-quarto-table-cell-role="th">IQ</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>769</td>
+<td>2.956212</td>
+<td>12</td>
+<td>93</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>808</td>
+<td>2.782539</td>
+<td>18</td>
+<td>119</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>825</td>
+<td>3.026504</td>
+<td>14</td>
+<td>108</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>650</td>
+<td>2.788093</td>
+<td>12</td>
+<td>96</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>562</td>
+<td>2.642622</td>
+<td>11</td>
+<td>74</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>如果我们运行一个回归模型来找出教育与对数小时工资的关系，我们会得到以下结果。</p>
+<div id="cell-7" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>model_1 <span class="op">=</span> smf.ols(<span class="st">'lhwage ~ educ'</span>, data<span class="op">=</span>wage).fit()</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>model_1.summary().tables[<span class="dv">1</span>]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="4">
+<table class="simpletable caption-top table table-sm table-striped small">
+<tbody>
+<tr class="odd">
+<td></td>
+<th data-quarto-table-cell-role="th">coef</th>
+<th data-quarto-table-cell-role="th">std err</th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">P&gt;|t|</th>
+<th data-quarto-table-cell-role="th">[0.025</th>
+<th data-quarto-table-cell-role="th">0.975]</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Intercept</th>
+<td>2.2954</td>
+<td>0.089</td>
+<td>25.754</td>
+<td>0.000</td>
+<td>2.121</td>
+<td>2.470</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">educ</th>
+<td>0.0529</td>
+<td>0.007</td>
+<td>8.107</td>
+<td>0.000</td>
+<td>0.040</td>
+<td>0.066</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>现在，让我们暂时假设这些数据有某种保密限制， 它的提供者无法提供个性化数据。 因此，我们请他将每个人按受教育年限分组，并只给我们平均对数小时工资和每个组中的人数。 这让我们只剩下 10 个数据点。</p>
+<div id="cell-9" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>group_wage <span class="op">=</span> (wage</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>              .assign(count<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>              .groupby(<span class="st">"educ"</span>)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>              .agg({<span class="st">"lhwage"</span>:<span class="st">"mean"</span>, <span class="st">"count"</span>:<span class="st">"count"</span>})</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>              .reset_index())</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>group_wage</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="5">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">educ</th>
+<th data-quarto-table-cell-role="th">lhwage</th>
+<th data-quarto-table-cell-role="th">count</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>9</td>
+<td>2.856475</td>
+<td>10</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>10</td>
+<td>2.786911</td>
+<td>35</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>11</td>
+<td>2.855997</td>
+<td>43</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>12</td>
+<td>2.922168</td>
+<td>393</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>13</td>
+<td>3.021182</td>
+<td>85</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">5</th>
+<td>14</td>
+<td>3.042352</td>
+<td>77</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">6</th>
+<td>15</td>
+<td>3.090766</td>
+<td>45</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">7</th>
+<td>16</td>
+<td>3.176184</td>
+<td>150</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">8</th>
+<td>17</td>
+<td>3.246566</td>
+<td>40</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">9</th>
+<td>18</td>
+<td>3.144257</td>
+<td>57</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>不要怕！ 回归不需要大数据就可以工作！ 我们可以做的是为我们的线性回归模型提供权重。 这样，相对样本量稍小的群体，模型会更多地考虑样本量更大的群体。 请注意我是如何用 smf.wls 替换 smf.ols 的，以获得加权最小二乘法。 新方法会让一切变得不同，虽然这点不容易被注意到。</p>
+<div id="cell-11" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>model_2 <span class="op">=</span> smf.wls(<span class="st">'lhwage ~ educ'</span>, data<span class="op">=</span>group_wage, weights<span class="op">=</span>group_wage[<span class="st">"count"</span>]).fit()</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>model_2.summary().tables[<span class="dv">1</span>]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="6">
+<table class="simpletable caption-top table table-sm table-striped small">
+<tbody>
+<tr class="odd">
+<td></td>
+<th data-quarto-table-cell-role="th">coef</th>
+<th data-quarto-table-cell-role="th">std err</th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">P&gt;|t|</th>
+<th data-quarto-table-cell-role="th">[0.025</th>
+<th data-quarto-table-cell-role="th">0.975]</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Intercept</th>
+<td>2.2954</td>
+<td>0.078</td>
+<td>29.327</td>
+<td>0.000</td>
+<td>2.115</td>
+<td>2.476</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">educ</th>
+<td>0.0529</td>
+<td>0.006</td>
+<td>9.231</td>
+<td>0.000</td>
+<td>0.040</td>
+<td>0.066</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>注意分组模型中 edu 的参数估计与未分组数据中的参数估计完全相同。 此外，即使只有 10 个数据点，我们也设法获得了具有统计意义的系数。 那是因为，虽然我们的点数较少，但分组也大大降低了方差。 还要注意参数估计的标准误差是变得大了一点，t 统计量也是如此。 那是因为丢失了一些关于方差的信息，所以我们必须更加保守。 一旦我们对数据进行分组，我们不知道每个组内的方差有多大。 将上面的结果与我们在下面的非加权模型中得到的结果进行比较。</p>
+<div id="cell-13" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>model_3 <span class="op">=</span> smf.ols(<span class="st">'lhwage ~ educ'</span>, data<span class="op">=</span>group_wage).fit()</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>model_3.summary().tables[<span class="dv">1</span>]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="7">
+<table class="simpletable caption-top table table-sm table-striped small">
+<tbody>
+<tr class="odd">
+<td></td>
+<th data-quarto-table-cell-role="th">coef</th>
+<th data-quarto-table-cell-role="th">std err</th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">P&gt;|t|</th>
+<th data-quarto-table-cell-role="th">[0.025</th>
+<th data-quarto-table-cell-role="th">0.975]</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Intercept</th>
+<td>2.3650</td>
+<td>0.082</td>
+<td>28.988</td>
+<td>0.000</td>
+<td>2.177</td>
+<td>2.553</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">educ</th>
+<td>0.0481</td>
+<td>0.006</td>
+<td>8.136</td>
+<td>0.000</td>
+<td>0.034</td>
+<td>0.062</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>参数估计值相对较大。 这里发生的事情是回归对所有点施加了相等的权重。 如果我们沿着分组点绘制模型，我们会看到非加权模型对左下角小点的重视程度高于应有的重视程度。 因此，该模型的回归线具有更高的斜率。</p>
+<div id="cell-15" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>sns.scatterplot(x<span class="op">=</span><span class="st">"educ"</span>, y <span class="op">=</span> <span class="st">"lhwage"</span>, size<span class="op">=</span><span class="st">"count"</span>, legend<span class="op">=</span><span class="va">False</span>, data<span class="op">=</span>group_wage, sizes<span class="op">=</span>(<span class="dv">40</span>, <span class="dv">400</span>))</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>plt.plot(wage[<span class="st">"educ"</span>], model_2.predict(wage[<span class="st">"educ"</span>]), c<span class="op">=</span><span class="st">"C1"</span>, label <span class="op">=</span> <span class="st">"Weighted"</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>plt.plot(wage[<span class="st">"educ"</span>], model_3.predict(wage[<span class="st">"educ"</span>]), c<span class="op">=</span><span class="st">"C2"</span>, label <span class="op">=</span> <span class="st">"Non Weighted"</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Years of Education"</span>)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Log Hourly Wage"</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>plt.legend()<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06 第六章 分组和虚拟变量_files/figure-html/cell-9-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>归根结底，回归就是这个奇妙的工具，可以处理单个数据或聚合数据，但在最后一种情况下您必须使用权重。 要使用加权回归，您需要平均统计量。 不是总和，不是标准差，不是中位数，而是平均值！ 对于自变量和因变量都需要这么处理。 除了单一自变量回归的情况外，分组数据的加权回归结果与未分组数据的回归结果不会完全匹配，但会非常相似。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/dummy/heterosk.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p>我将用在分组数据模型中使用附加自变量的最后一个例子来结束。</p>
+<div id="cell-17" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>group_wage <span class="op">=</span> (wage</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>              .assign(count<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>              .groupby(<span class="st">"educ"</span>)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>              .agg({<span class="st">"lhwage"</span>:<span class="st">"mean"</span>, <span class="st">"IQ"</span>:<span class="st">"mean"</span>, <span class="st">"count"</span>:<span class="st">"count"</span>})</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>              .reset_index())</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>model_4 <span class="op">=</span> smf.wls(<span class="st">'lhwage ~ educ + IQ'</span>, data<span class="op">=</span>group_wage, weights<span class="op">=</span>group_wage[<span class="st">"count"</span>]).fit()</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Number of observations:"</span>, model_4.nobs)</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>model_4.summary().tables[<span class="dv">1</span>]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Number of observations: 10.0</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="9">
+<table class="simpletable caption-top table table-sm table-striped small">
+<tbody>
+<tr class="odd">
+<td></td>
+<th data-quarto-table-cell-role="th">coef</th>
+<th data-quarto-table-cell-role="th">std err</th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">P&gt;|t|</th>
+<th data-quarto-table-cell-role="th">[0.025</th>
+<th data-quarto-table-cell-role="th">0.975]</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Intercept</th>
+<td>1.8821</td>
+<td>0.324</td>
+<td>5.800</td>
+<td>0.001</td>
+<td>1.115</td>
+<td>2.649</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">educ</th>
+<td>0.0257</td>
+<td>0.021</td>
+<td>1.198</td>
+<td>0.270</td>
+<td>-0.025</td>
+<td>0.077</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">IQ</th>
+<td>0.0077</td>
+<td>0.006</td>
+<td>1.309</td>
+<td>0.232</td>
+<td>-0.006</td>
+<td>0.022</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>在此示例中，除了先前添加的教育年限之外，我们还包括 IQ 作为一个特征。运作机制几乎相同：获取均值并计数，回归均值并将计数用作权重。</p>
+</section>
+<section id="虚拟变量回归" class="level2">
+<h2 class="anchored" data-anchor-id="虚拟变量回归">虚拟变量回归</h2>
+<p>虚拟变量是我们编码为二进制列的分类变量。例如，假设您有一个希望包含在模型中的性别变量。该变量被编码为 3 个类别：男性、女性和其他性别。</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>性别</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>男</td>
+</tr>
+<tr class="even">
+<td>女</td>
+</tr>
+<tr class="odd">
+<td>女</td>
+</tr>
+<tr class="even">
+<td>其他</td>
+</tr>
+<tr class="odd">
+<td>男</td>
+</tr>
+</tbody>
+</table>
+<p>由于我们的模型只接受数值，我们需要将这个类别转换为数字。在线性回归中，我们为此使用了虚拟变量。我们将每个变量编码为 0/1 列，表示类别的存在。我们还将其中一个类别作为基本类别。这是必要的，因为最后一个类别是其他类别的线性组合。换句话说，如果有人向我们提供其他类别的信息，我们就可以知道最后一个类别。在我们的示例中，如果某人既不是女性也不是其他性别，我们可以推断该人的类别是男性。</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>性别</th>
+<th style="text-align: left;">女性</th>
+<th style="text-align: left;">其他</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>男性</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">0</td>
+</tr>
+<tr class="even">
+<td>女性</td>
+<td style="text-align: left;">1</td>
+<td style="text-align: left;">0</td>
+</tr>
+<tr class="odd">
+<td>女性</td>
+<td style="text-align: left;">1</td>
+<td style="text-align: left;">0</td>
+</tr>
+<tr class="even">
+<td>其他</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">1</td>
+</tr>
+<tr class="odd">
+<td>男性</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">0</td>
+</tr>
+</tbody>
+</table>
+<p>在处理 A/B 测试时，我们已经处理了一种简单形式的虚拟回归。更一般地，当我们处理二元处理时，我们将其表示为虚拟变量。在这种情况下，<strong>该虚拟变量的回归系数是回归线中截距的增量</strong>，或处理和未处理之间的均值差异。</p>
+<p>为了更具体地说明这一点，请考虑估计高中毕业（12年级毕业）对小时工资的影响的问题（让我们暂时忽略混杂因素）。在下面的代码中，我们创建了一个处理虚拟变量“T”，指示受教育年限是否大于 12。</p>
+<div id="cell-19" class="cell" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>wage <span class="op">=</span> (pd.read_csv(<span class="st">"./data/wage.csv"</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>        .assign(hwage<span class="op">=</span><span class="kw">lambda</span> d: d[<span class="st">"wage"</span>] <span class="op">/</span> d[<span class="st">"hours"</span>])</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>        .assign(T<span class="op">=</span><span class="kw">lambda</span> d: (d[<span class="st">"educ"</span>] <span class="op">&gt;</span> <span class="dv">12</span>).astype(<span class="bu">int</span>)))</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>wage[[<span class="st">"hwage"</span>, <span class="st">"IQ"</span>, <span class="st">"T"</span>]].head()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="10">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">hwage</th>
+<th data-quarto-table-cell-role="th">IQ</th>
+<th data-quarto-table-cell-role="th">T</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>19.225</td>
+<td>93</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>16.160</td>
+<td>119</td>
+<td>1</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>20.625</td>
+<td>108</td>
+<td>1</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>16.250</td>
+<td>96</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>14.050</td>
+<td>74</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>虚拟变量作为一种开关工作。 在我们的示例中，如果虚拟变量值为1，则预测值是截距加上虚拟变量对应的系数。 如果虚拟变量为值0，则预测值只是截距。</p>
+<div id="cell-21" class="cell" data-execution_count="11">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>smf.ols(<span class="st">'hwage ~ T'</span>, data<span class="op">=</span>wage).fit().summary().tables[<span class="dv">1</span>]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="11">
+<table class="simpletable caption-top table table-sm table-striped small">
+<tbody>
+<tr class="odd">
+<td></td>
+<th data-quarto-table-cell-role="th">coef</th>
+<th data-quarto-table-cell-role="th">std err</th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">P&gt;|t|</th>
+<th data-quarto-table-cell-role="th">[0.025</th>
+<th data-quarto-table-cell-role="th">0.975]</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Intercept</th>
+<td>19.9405</td>
+<td>0.436</td>
+<td>45.685</td>
+<td>0.000</td>
+<td>19.084</td>
+<td>20.797</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">T</th>
+<td>4.9044</td>
+<td>0.626</td>
+<td>7.830</td>
+<td>0.000</td>
+<td>3.675</td>
+<td>6.134</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>在这种情况下，当此人未完成 12 年级（虚拟变量为0）时，平均收入为 19.9。当他或她完成 12 年级（虚拟变量为1）时，预测值或平均收入为 24.8449 (19.9405 + 4.9044)。因此，虚拟系数捕捉了均值的差异，在我们的案例中为 4.9044。</p>
+<p>用更正式的表述来讲，当因变量是二元变量时，就像干预指标的情况一样，回归完美地捕捉了 ATE。这是因为回归是条件期望函数 (CEF) <span class="math inline">\(E[Y|X]\)</span> 的线性近似，在这种特殊情况下，CEF 是线性的。即，我们可以定义 <span class="math inline">\(E[Y_i|T_i=0]=\alpha\)</span> 和 <span class="math inline">\(E[Y_i|T_i=1] = \alpha + \beta\)</span>，这导致以下 CEF</p>
+<p><span class="math display">\[
+E[Y_i|T_i] = E[Y_i|T_i=0] + \beta T_i = \alpha + \beta T_i
+\]</span></p>
+<p>和 <span class="math inline">\(\beta\)</span> 是随机数据的平均值或 ATE 的差异</p>
+<p><span class="math display">\[
+\beta = [Y_i|T_i=1] - [Y_i|T_i=0]
+\]</span></p>
+<p>如果我们使用额外的变量，虚拟变量系数将成为 <strong>条件</strong> 均值差异。例如，假设我们将 IQ 添加到之前的模型中。现在，虚拟系数告诉我们 12 年级 <strong>在保持 IQ 固定</strong> 的情况下应该期望增加多少。如果我们绘制预测图，我们将看到两条平行线。从一行跳到下一行表示我们完成高中后平均收入的预期数量。并且，这个差异效果是恒定的。即，无论您的智商如何，每个人都从高中毕业学历中有同样的受益。</p>
+<div id="cell-23" class="cell" data-execution_count="12">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>m <span class="op">=</span> smf.ols(<span class="st">'hwage ~ T+IQ'</span>, data<span class="op">=</span>wage).fit()</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>plt_df <span class="op">=</span> wage.assign(y_hat <span class="op">=</span> m.fittedvalues)</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>plt.plot(plt_df.query(<span class="st">"T==1"</span>)[<span class="st">"IQ"</span>], plt_df.query(<span class="st">"T==1"</span>)[<span class="st">"y_hat"</span>], c<span class="op">=</span><span class="st">"C1"</span>, label<span class="op">=</span><span class="st">"T=1"</span>)</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>plt.plot(plt_df.query(<span class="st">"T==0"</span>)[<span class="st">"IQ"</span>], plt_df.query(<span class="st">"T==0"</span>)[<span class="st">"y_hat"</span>], c<span class="op">=</span><span class="st">"C2"</span>, label<span class="op">=</span><span class="st">"T=0"</span>)</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="ss">f"E[T=1|IQ] - E[T=0|IQ] = </span><span class="sc">{</span><span class="bu">round</span>(m.params[<span class="st">'T'</span>], <span class="dv">2</span>)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Wage"</span>)</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"IQ"</span>)</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>plt.legend()<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06 第六章 分组和虚拟变量_files/figure-html/cell-13-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>如果我们把这个模型放到一个方程中，我们就会明白为什么：</p>
+<p><span class="math display">\[
+工资_i = \beta_0 + \beta_1T_i + \beta_2 IQ_i + e_i
+\]</span></p>
+<p>这里，<span class="math inline">\(\beta_1\)</span> 是均值的条件差，它是一个常数值，在我们的例子中是 3.16。我们可以通过添加交互项来使这个模型更加灵活。</p>
+<p><span class="math display">\[
+工资_i = \beta_0 + \beta_1T_i + \beta_2 IQ_i + \beta_3 IQ_i * T_i + e_i
+\]</span></p>
+<p>事情变得有点复杂，所以让我们看看每个参数在这个模型中的含义。首先，截取 <span class="math inline">\(\beta_0\)</span>。这个坏男孩没有特别有趣的解释。这是治疗为零（此人未从 12 年级毕业）且 IQ 为零时的预期工资。由于我们不希望任何人的 IQ 为零（实际上……没关系），因此该参数不是很有意义。现在，当我们转向 <span class="math inline">\(\beta_1\)</span> 时，我们遇到了类似的情况。这个参数是我们在完成 12 年级 <strong>当 IQ 为零</strong>时应该期望增加多少工资。再说一次，由于智商永远不会为零，因此它没有特别有趣的含义。现在， <span class="math inline">\(\beta_2\)</span> 更有趣一些。它告诉我们 IQ 增加了多少 <strong>未接受治疗的</strong>的工资。所以，在我们的例子中，它类似于 0.11。这意味着每增加 1 个 IQ 点，未完成 12 年级的人应该期望每小时增加 11 美分。最后，最有趣的参数是<span class="math inline">\(\beta_3\)</span>。它告诉我们 IQ 对 12 年级毕业的影响有多大。在我们的例子中，这个参数是 0.024，这意味着对于每一个额外的 IQ 点，从 12 年级毕业会给 2 美分。这可能看起来不多，但比较一下 60IQ 和 140IQ 的人。第一个将获得 1.44 的工资增长（60 * 0.024），而智商为 140 的人从 12 年级毕业时将获得额外的 3.36 美元（60 * 0.024）。</p>
+<p>用简单的建模术语来说，这个交互项允许治疗效果根据特征的级别（在这个例子中只有 IQ）而改变。结果是，如果我们绘制预测线，我们将看到它们不再平行，并且那些 12 年级 (T=1) 毕业的人在 IQ 上有更高的斜率，高智商比低智商受益更多。这有时被称为效果修改或异质治疗效果。</p>
+<div id="cell-25" class="cell" data-execution_count="13">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>m <span class="op">=</span> smf.ols(<span class="st">'hwage ~ T*IQ'</span>, data<span class="op">=</span>wage).fit()</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>plt_df <span class="op">=</span> wage.assign(y_hat <span class="op">=</span> m.fittedvalues)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>plt.plot(plt_df.query(<span class="st">"T==1"</span>)[<span class="st">"IQ"</span>], plt_df.query(<span class="st">"T==1"</span>)[<span class="st">"y_hat"</span>], c<span class="op">=</span><span class="st">"C1"</span>, label<span class="op">=</span><span class="st">"T=1"</span>)</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>plt.plot(plt_df.query(<span class="st">"T==0"</span>)[<span class="st">"IQ"</span>], plt_df.query(<span class="st">"T==0"</span>)[<span class="st">"y_hat"</span>], c<span class="op">=</span><span class="st">"C2"</span>, label<span class="op">=</span><span class="st">"T=0"</span>)</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="ss">f"E[T=1|IQ] - E[T=0|IQ] = </span><span class="sc">{</span><span class="bu">round</span>(m.params[<span class="st">'T'</span>], <span class="dv">2</span>)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Wage"</span>)</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"IQ"</span>)</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>plt.legend()<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06 第六章 分组和虚拟变量_files/figure-html/cell-14-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>最后，让我们看看我们模型中的所有变量都是哑元的情况。 为此，我们将 IQ 离散为 4 个 bin，并将受教育年限视为一个类别。</p>
+<div id="cell-27" class="cell" data-execution_count="14">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>wage_ed_bins <span class="op">=</span> (wage</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>                .assign(IQ_bins <span class="op">=</span> <span class="kw">lambda</span> d: pd.qcut(d[<span class="st">"IQ"</span>], q<span class="op">=</span><span class="dv">4</span>, labels<span class="op">=</span><span class="bu">range</span>(<span class="dv">4</span>)))</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>                [[<span class="st">"hwage"</span>, <span class="st">"educ"</span>, <span class="st">"IQ_bins"</span>]])</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>wage_ed_bins.head()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="14">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">hwage</th>
+<th data-quarto-table-cell-role="th">educ</th>
+<th data-quarto-table-cell-role="th">IQ_bins</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>19.225</td>
+<td>12</td>
+<td>1</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>16.160</td>
+<td>18</td>
+<td>3</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>20.625</td>
+<td>14</td>
+<td>2</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>16.250</td>
+<td>12</td>
+<td>1</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>14.050</td>
+<td>11</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>将教育视为一个类别，我们不再将教育的效果限制在单个参数上。 相反，我们允许每一年的教育都有自己独特的影响。 通过这样做，我们获得了灵活性，因为教育的效果不再是参数化的。 这个模型只是计算每一年教育的平均工资。</p>
+<div id="cell-29" class="cell" data-execution_count="15">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>model_dummy <span class="op">=</span> smf.ols(<span class="st">'hwage ~ C(educ)'</span>, data<span class="op">=</span>wage).fit()</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>model_dummy.summary().tables[<span class="dv">1</span>]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="15">
+<table class="simpletable caption-top table table-sm table-striped small">
+<tbody>
+<tr class="odd">
+<td></td>
+<th data-quarto-table-cell-role="th">coef</th>
+<th data-quarto-table-cell-role="th">std err</th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">P&gt;|t|</th>
+<th data-quarto-table-cell-role="th">[0.025</th>
+<th data-quarto-table-cell-role="th">0.975]</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Intercept</th>
+<td>18.5600</td>
+<td>3.011</td>
+<td>6.164</td>
+<td>0.000</td>
+<td>12.651</td>
+<td>24.469</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">C(educ)[T.10]</th>
+<td>-0.7874</td>
+<td>3.414</td>
+<td>-0.231</td>
+<td>0.818</td>
+<td>-7.488</td>
+<td>5.913</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">C(educ)[T.11]</th>
+<td>0.1084</td>
+<td>3.343</td>
+<td>0.032</td>
+<td>0.974</td>
+<td>-6.452</td>
+<td>6.669</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">C(educ)[T.12]</th>
+<td>1.7479</td>
+<td>3.049</td>
+<td>0.573</td>
+<td>0.567</td>
+<td>-4.236</td>
+<td>7.732</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">C(educ)[T.13]</th>
+<td>4.3290</td>
+<td>3.183</td>
+<td>1.360</td>
+<td>0.174</td>
+<td>-1.918</td>
+<td>10.576</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">C(educ)[T.14]</th>
+<td>4.0888</td>
+<td>3.200</td>
+<td>1.278</td>
+<td>0.202</td>
+<td>-2.192</td>
+<td>10.370</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">C(educ)[T.15]</th>
+<td>6.3013</td>
+<td>3.329</td>
+<td>1.893</td>
+<td>0.059</td>
+<td>-0.231</td>
+<td>12.834</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">C(educ)[T.16]</th>
+<td>7.2225</td>
+<td>3.110</td>
+<td>2.323</td>
+<td>0.020</td>
+<td>1.120</td>
+<td>13.325</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">C(educ)[T.17]</th>
+<td>9.5905</td>
+<td>3.366</td>
+<td>2.849</td>
+<td>0.004</td>
+<td>2.984</td>
+<td>16.197</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">C(educ)[T.18]</th>
+<td>7.3681</td>
+<td>3.264</td>
+<td>2.257</td>
+<td>0.024</td>
+<td>0.962</td>
+<td>13.775</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="cell-30" class="cell" data-execution_count="16">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>plt.scatter(wage[<span class="st">"educ"</span>], wage[<span class="st">"hwage"</span>])</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>plt.plot(wage[<span class="st">"educ"</span>].sort_values(), model_dummy.predict(wage[<span class="st">"educ"</span>].sort_values()), c<span class="op">=</span><span class="st">"C1"</span>)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Years of Education"</span>)</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Hourly Wage"</span>)<span class="op">;</span></span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06 第六章 分组和虚拟变量_files/figure-html/cell-17-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>首先，请注意这如何消除关于教育如何影响工资的功能形式的任何假设。 我们不再需要担心对数函数的处理。 本质上，这个模型是完全非参数化的。 它所做的只是计算每一年教育的样本平均工资。 这可以在上图中看到，其中拟合线没有特定形式。 相反，是对每一年教育的样本均值进行插值。 我们还可以通过重构一个参数来看到这一点，例如对于具备17年教育年限水平的分组的参数。 对于这个模型，它是“9.5905”。 下面，我们可以看到基线教育年限水平 (9) 与 17 年教育年限水平的个人之间的差异</p>
+<p><span class="math display">\[
+\beta_{17} = E[Y|T=17]-E[Y|T=9]
+\]</span></p>
+<p>需要权衡的点是，当我们允许这种较大的灵活性时，我们会同步失去统计显著性。 请注意某些教育年限水平的 p 值有多大。</p>
+<div id="cell-32" class="cell" data-execution_count="17">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>t1 <span class="op">=</span> wage.query(<span class="st">"educ==17"</span>)[<span class="st">"hwage"</span>]</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>t0 <span class="op">=</span> wage.query(<span class="st">"educ==9"</span>)[<span class="st">"hwage"</span>]</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"E[Y|T=9]:"</span>, t0.mean())</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"E[Y|T=17]-E[Y|T=9]:"</span>, t1.mean() <span class="op">-</span> t0.mean())</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>E[Y|T=9]: 18.56
+E[Y|T=17]-E[Y|T=9]: 9.59047236235352</code></pre>
+</div>
+</div>
+<p>如果我们在模型中包含更多的虚拟协变量，则教育参数成为对每个虚拟组影响的加权平均值：</p>
+<p><span class="math display">\[
+E\{ \ (E[Y_i|T=1, Group_i] - E[Y_i|T=0, Group_i])w(Group_i) \ \}
+\]</span></p>
+<p><span class="math inline">\(w(Group_i)\)</span> 并不是一成不变的，而是与该样本组中干预因子的方差，即 <span class="math inline">\(Var(T_i|Group_i)\)</span> 成正比。 由此自然而然产生的一个问题是，为什么不使用完整的非参数估计量，其中组权重是样本量？ 这确实是一个有效的估计量，但它不是回归所做的。 通过使用干预因子的方差，回归将更多的权重放在干预在样本间变化很大的组上。 这是符合直觉的。 如果干预几乎是恒定的（比如 1 个人被干预而其他所有人都未被干预），则其样本大小无关紧要。 它不会提供有关干预效果的太多信息。</p>
+<div id="cell-34" class="cell" data-execution_count="18">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>model_dummy_2 <span class="op">=</span> smf.ols(<span class="st">'hwage ~ C(educ) + C(IQ_bins)'</span>, data<span class="op">=</span>wage_ed_bins).fit()</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>model_dummy_2.summary().tables[<span class="dv">1</span>]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="18">
+<table class="simpletable caption-top table table-sm table-striped small">
+<tbody>
+<tr class="odd">
+<td></td>
+<th data-quarto-table-cell-role="th">coef</th>
+<th data-quarto-table-cell-role="th">std err</th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">P&gt;|t|</th>
+<th data-quarto-table-cell-role="th">[0.025</th>
+<th data-quarto-table-cell-role="th">0.975]</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Intercept</th>
+<td>18.4178</td>
+<td>2.991</td>
+<td>6.158</td>
+<td>0.000</td>
+<td>12.548</td>
+<td>24.288</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">C(educ)[T.10]</th>
+<td>-1.2149</td>
+<td>3.392</td>
+<td>-0.358</td>
+<td>0.720</td>
+<td>-7.872</td>
+<td>5.442</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">C(educ)[T.11]</th>
+<td>-0.4687</td>
+<td>3.332</td>
+<td>-0.141</td>
+<td>0.888</td>
+<td>-7.008</td>
+<td>6.070</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">C(educ)[T.12]</th>
+<td>0.3400</td>
+<td>3.059</td>
+<td>0.111</td>
+<td>0.912</td>
+<td>-5.664</td>
+<td>6.344</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">C(educ)[T.13]</th>
+<td>2.4103</td>
+<td>3.206</td>
+<td>0.752</td>
+<td>0.452</td>
+<td>-3.882</td>
+<td>8.702</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">C(educ)[T.14]</th>
+<td>1.8040</td>
+<td>3.238</td>
+<td>0.557</td>
+<td>0.578</td>
+<td>-4.551</td>
+<td>8.159</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">C(educ)[T.15]</th>
+<td>3.8599</td>
+<td>3.369</td>
+<td>1.146</td>
+<td>0.252</td>
+<td>-2.752</td>
+<td>10.472</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">C(educ)[T.16]</th>
+<td>4.4060</td>
+<td>3.171</td>
+<td>1.390</td>
+<td>0.165</td>
+<td>-1.817</td>
+<td>10.629</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">C(educ)[T.17]</th>
+<td>6.7470</td>
+<td>3.422</td>
+<td>1.971</td>
+<td>0.049</td>
+<td>0.030</td>
+<td>13.464</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">C(educ)[T.18]</th>
+<td>4.3463</td>
+<td>3.332</td>
+<td>1.304</td>
+<td>0.192</td>
+<td>-2.194</td>
+<td>10.886</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">C(IQ_bins)[T.1]</th>
+<td>1.4216</td>
+<td>0.898</td>
+<td>1.584</td>
+<td>0.114</td>
+<td>-0.340</td>
+<td>3.183</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">C(IQ_bins)[T.2]</th>
+<td>2.9717</td>
+<td>0.930</td>
+<td>3.195</td>
+<td>0.001</td>
+<td>1.146</td>
+<td>4.797</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">C(IQ_bins)[T.3]</th>
+<td>3.7879</td>
+<td>1.022</td>
+<td>3.708</td>
+<td>0.000</td>
+<td>1.783</td>
+<td>5.793</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/img/dummy/you_little_shit.png" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+</section>
+<section id="关键思想" class="level2">
+<h2 class="anchored" data-anchor-id="关键思想">关键思想</h2>
+<p>我们通过查看某些数据点如何比其他数据点更重要来开始本节。 即，在估计线性模型时，应给予具有较大样本量和较低方差的样本更多的权重。 然后，我们研究了线性回归如何优雅地处理分组匿名数据，前提是我们在模型中使用了样本的权重。</p>
+<p>之后，我们进而讨论了虚拟回归。 我们看到虚拟回归如何被设计为一个非参数模型，这类模型对干预因素如何影响结果的函数形式不做任何假设。 最后，我们探索了虚拟回归背后的直观含义。</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "已复制");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "已复制");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../chapters/05 第五章 线性回归超乎寻常的有效性.html" class="pagination-link" aria-label="第五章: 线性回归的有效性">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">第五章: 线性回归的有效性</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../chapters/07 第七章 控制混淆因素之外的考虑.html" class="pagination-link" aria-label="第七章: 控制混淆之外">
+        <span class="nav-page-text">第七章: 控制混淆之外</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>内容基于《Causal Inference for the Brave and True》中文翻译整理。</p>
+</div>   
+    <div class="nav-footer-center">
+<p>用 Quarto 构建，面向在线阅读与本地复现。</p>
+<div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/xieliaing/CausalInferenceIntro/blob/main/chapters/06 第六章 分组和虚拟变量.ipynb" class="toc-action"><i class="bi bi-github"></i>查看代码</a></li><li><a href="https://github.com/xieliaing/CausalInferenceIntro/issues/new" class="toc-action"><i class="bi empty"></i>反馈问题</a></li></ul></div></div>
+    <div class="nav-footer-right">
+<p><a href="https://github.com/xieliaing/CausalInferenceIntro">GitHub 仓库</a></p>
+</div>
+  </div>
+</footer>
+
+
+
+
+<script src="../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>
